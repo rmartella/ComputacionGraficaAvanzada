@@ -1,0 +1,8 @@
+.vs
+*/*/Debug/*
+*/Debug/*
+Debug/*.exe
+Debug/*.ilk
+Debug/*.pdb
+RemoteSystemsTempFiles/
+.metadata/
