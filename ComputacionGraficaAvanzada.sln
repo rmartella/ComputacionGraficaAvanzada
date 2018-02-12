@@ -19,6 +19,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "07-AtributosVertices", "07-
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "08-ShadersEnObjeto", "08-ShadersEnObjeto\08-ShadersEnObjeto.vcxproj", "{4905AFFD-1433-4DB6-BB78-01C6B107DB64}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "10-Transformaciones", "10-Transformaciones\10-Transformaciones.vcxproj", "{30F82549-7352-4FF2-AF3D-92D9FAAE92C4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "09-Uniforms", "09-Uniforms\09-Uniforms.vcxproj", "{BD543663-D977-450D-87C3-D45A0EA64A2B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -59,6 +63,14 @@ Global
 		{4905AFFD-1433-4DB6-BB78-01C6B107DB64}.Debug|x86.Build.0 = Debug|Win32
 		{4905AFFD-1433-4DB6-BB78-01C6B107DB64}.Release|x86.ActiveCfg = Release|Win32
 		{4905AFFD-1433-4DB6-BB78-01C6B107DB64}.Release|x86.Build.0 = Release|Win32
+		{30F82549-7352-4FF2-AF3D-92D9FAAE92C4}.Debug|x86.ActiveCfg = Debug|Win32
+		{30F82549-7352-4FF2-AF3D-92D9FAAE92C4}.Debug|x86.Build.0 = Debug|Win32
+		{30F82549-7352-4FF2-AF3D-92D9FAAE92C4}.Release|x86.ActiveCfg = Release|Win32
+		{30F82549-7352-4FF2-AF3D-92D9FAAE92C4}.Release|x86.Build.0 = Release|Win32
+		{BD543663-D977-450D-87C3-D45A0EA64A2B}.Debug|x86.ActiveCfg = Debug|Win32
+		{BD543663-D977-450D-87C3-D45A0EA64A2B}.Debug|x86.Build.0 = Debug|Win32
+		{BD543663-D977-450D-87C3-D45A0EA64A2B}.Release|x86.ActiveCfg = Release|Win32
+		{BD543663-D977-450D-87C3-D45A0EA64A2B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

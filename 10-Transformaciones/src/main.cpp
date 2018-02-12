@@ -85,15 +85,17 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glViewport(0, 0, screenWidth, screenHeight);
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
-	shader.initialize("../Shaders/basic.vs", "../Shaders/basic.fs");
+	shader.initialize("../Shaders/basicTransformacion.vs", "../Shaders/basicTransformacion.fs");
 
 	// Set up vertex data (and buffer(s)) and attribute pointers
 	GLfloat vertices[] = {
-		// Positions         // Colors
-		0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // Bottom Right
-		-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  // Bottom Left
-		0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f   // Top
+		// Positions          // Colors
+		0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // Top Right
+		0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // Bottom Right
+		-0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, // Top Left
+		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // Bottom Left
 	};
+
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
@@ -171,6 +173,7 @@ bool processInput(bool continueApplication){
 
 void applicationLoop() {
 	bool psi = true;
+	double lastTime = TimeManager::Instance().GetTime();
 	while (psi) {
 		psi = processInput(true);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -179,8 +182,19 @@ void applicationLoop() {
 		
 		shader.turnOn();
 
+		GLfloat timeValue = TimeManager::Instance().GetTime() - lastTime;
+		// Create transformations
+		glm::mat4 transform;
+		transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+		transform = glm::rotate(transform, (GLfloat)timeValue * 1.0f,
+			glm::vec3(0.0f, 0.0f, 1.0f));
+
+		// Get matrix's uniform location and set matrix
+		GLint transformLoc = shader.getUniformLocation("transformacion");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		glBindVertexArray(0);
 
 		shader.turnOff();

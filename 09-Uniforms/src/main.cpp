@@ -85,15 +85,15 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glViewport(0, 0, screenWidth, screenHeight);
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
-	shader.initialize("../Shaders/basic.vs", "../Shaders/basic.fs");
+	shader.initialize("../Shaders/uniform.vs", "../Shaders/uniform.fs");
 
-	// Set up vertex data (and buffer(s)) and attribute pointers
 	GLfloat vertices[] = {
-		// Positions         // Colors
-		0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // Bottom Right
-		-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  // Bottom Left
-		0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f   // Top
+		// Positions
+		0.5f, -0.5f, 0.0f,  // Bottom Right
+		-0.5f, -0.5f, 0.0f,  // Bottom Left
+		0.0f, 0.5f, 0.0f   // Top
 	};
+
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
@@ -103,13 +103,9 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	// Position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat),
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat),
 		(GLvoid*)0);
 	glEnableVertexAttribArray(0);
-	// Color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat),
-		(GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
 
 	glBindVertexArray(0); // Unbind VAO
 }
@@ -128,7 +124,6 @@ void destroy() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glDeleteBuffers(1, &VBO);
 
-	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(0);
 
 	glBindVertexArray(0);
@@ -171,6 +166,7 @@ bool processInput(bool continueApplication){
 
 void applicationLoop() {
 	bool psi = true;
+	double lastTime = TimeManager::Instance().GetTime();
 	while (psi) {
 		psi = processInput(true);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -178,6 +174,12 @@ void applicationLoop() {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		
 		shader.turnOn();
+
+		// Update the uniform color
+		GLfloat timeValue = TimeManager::Instance().GetTime() - lastTime;
+		GLfloat greenValue = (sin(timeValue) / 2) + 0.5;
+		GLint vertexColorLocation = shader.getUniformLocation("ourColor");
+		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);

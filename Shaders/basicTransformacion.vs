@@ -4,10 +4,10 @@ layout (location = 1) in vec3 color;
 
 out vec3 ourColor;
 
-uniform mat4 
+uniform mat4 transformacion;
 
 void main()
 {
-    gl_Position = vec4(position, 1.0f);
+    gl_Position = transformacion * vec4(position, 1.0f);
     ourColor = color;
 }

@@ -21,10 +21,10 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\TimeManager.cpp">
+    <ClCompile Include="src\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Shader.cpp">
+    <ClCompile Include="src\TimeManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -32,18 +32,18 @@
     <ClInclude Include="src\Headers\InputManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Headers\TimeManager.h">
+    <ClInclude Include="src\Headers\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Headers\Shader.h">
+    <ClInclude Include="src\Headers\TimeManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Shaders\basic.fs">
+    <None Include="..\Shaders\uniform.fs">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\Shaders\basic.vs">
+    <None Include="..\Shaders\uniform.vs">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

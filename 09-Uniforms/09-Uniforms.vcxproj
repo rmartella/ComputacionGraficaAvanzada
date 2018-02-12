@@ -22,13 +22,13 @@
     <ClInclude Include="src\Headers\TimeManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Shaders\basic.fs" />
-    <None Include="..\Shaders\basic.vs" />
+    <None Include="..\Shaders\uniform.fs" />
+    <None Include="..\Shaders\uniform.vs" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{4905affd-1433-4db6-bb78-01c6b107db64}</ProjectGuid>
+    <ProjectGuid>{bd543663-d977-450d-87c3-d45a0ea64a2b}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>_08_ShadersEnObjeto</RootNamespace>
+    <RootNamespace>_09_Uniforms</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
