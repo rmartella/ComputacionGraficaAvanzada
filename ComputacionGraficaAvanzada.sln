@@ -37,7 +37,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "16-CamaraCircular", "16-Cam
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "17-CamaraFPS", "17-CamaraFPS\17-CamaraFPS.vcxproj", "{63C0EFC3-2C94-4BE4-94DC-0CC98D36B277}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "19-CamaraTPS", "19-CamaraTPS\19-CamaraTPS.vcxproj", "{55391686-CCA3-463B-905B-1AB79C5B2DA6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "18-CamaraTPS", "18-CamaraTPS\18-CamaraTPS.vcxproj", "{55391686-CCA3-463B-905B-1AB79C5B2DA6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
