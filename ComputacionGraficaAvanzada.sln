@@ -51,6 +51,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "23-PropiedadesLuzMateriales
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "24-DiferentesColoresLuzMateriales", "24-DiferentesColoresLuzMateriales\24-DiferentesColoresLuzMateriales.vcxproj", "{B770C7F6-116D-44A5-8414-EEB670F50E0E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "25-MapasIluminacion", "25-MapasIluminacion\25-MapasIluminacion.vcxproj", "{2547425C-C986-4479-BED7-6DE0FC131BA6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "26-TiposLuces", "26-TiposLuces\26-TiposLuces.vcxproj", "{472FD751-CFA7-436C-9012-B27327E0826E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -205,6 +209,18 @@ Global
 		{B770C7F6-116D-44A5-8414-EEB670F50E0E}.Release|x64.ActiveCfg = Release|Win32
 		{B770C7F6-116D-44A5-8414-EEB670F50E0E}.Release|x86.ActiveCfg = Release|Win32
 		{B770C7F6-116D-44A5-8414-EEB670F50E0E}.Release|x86.Build.0 = Release|Win32
+		{2547425C-C986-4479-BED7-6DE0FC131BA6}.Debug|x64.ActiveCfg = Debug|Win32
+		{2547425C-C986-4479-BED7-6DE0FC131BA6}.Debug|x86.ActiveCfg = Debug|Win32
+		{2547425C-C986-4479-BED7-6DE0FC131BA6}.Debug|x86.Build.0 = Debug|Win32
+		{2547425C-C986-4479-BED7-6DE0FC131BA6}.Release|x64.ActiveCfg = Release|Win32
+		{2547425C-C986-4479-BED7-6DE0FC131BA6}.Release|x86.ActiveCfg = Release|Win32
+		{2547425C-C986-4479-BED7-6DE0FC131BA6}.Release|x86.Build.0 = Release|Win32
+		{472FD751-CFA7-436C-9012-B27327E0826E}.Debug|x64.ActiveCfg = Debug|Win32
+		{472FD751-CFA7-436C-9012-B27327E0826E}.Debug|x86.ActiveCfg = Debug|Win32
+		{472FD751-CFA7-436C-9012-B27327E0826E}.Debug|x86.Build.0 = Debug|Win32
+		{472FD751-CFA7-436C-9012-B27327E0826E}.Release|x64.ActiveCfg = Release|Win32
+		{472FD751-CFA7-436C-9012-B27327E0826E}.Release|x86.ActiveCfg = Release|Win32
+		{472FD751-CFA7-436C-9012-B27327E0826E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
