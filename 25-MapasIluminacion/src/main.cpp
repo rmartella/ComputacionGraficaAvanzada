@@ -225,8 +225,8 @@ void applicationLoop() {
 		textureDifuse.bind(GL_TEXTURE0);
 		textureSpecular.bind(GL_TEXTURE1);
 
-		int diffuseMapLoc = lightingShader.getUniformLocation("diffuse");
-		int specularMapLoc = lightingShader.getUniformLocation("specular");
+		int diffuseMapLoc = lightingShader.getUniformLocation("material.diffuse");
+		int specularMapLoc = lightingShader.getUniformLocation("material.specular");
 
 		glUniform1i(diffuseMapLoc, 0);
 		glUniform1i(specularMapLoc, 1);
