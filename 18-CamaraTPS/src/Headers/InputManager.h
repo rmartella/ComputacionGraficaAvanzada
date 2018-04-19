@@ -80,7 +80,8 @@ enum State {
 
 class InputManager {
 public:
-
+	glm::vec3 camera_look_at;
+	float roty;
 	InputManager() :
 		lastMousePos(glm::ivec2(0.0)), deltax(0), deltay(0), scrollYoffset(
 			0), cameraPos(glm::vec3(0.0f, 0.0f, 3.0f)), yaw(0), pitch(
@@ -91,6 +92,8 @@ public:
 			mouseButtomState[i] = false;
 		for (int i = 0; i < 1024; i++)
 			keyState[i] = false;
+		camera_look_at = glm::vec3(0, 0, 0);
+		roty = 0.0;
 	}
 
 	~InputManager() {

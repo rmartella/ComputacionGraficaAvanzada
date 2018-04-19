@@ -23,6 +23,10 @@ InputCodes InputManager::toApplicationKey(int key) {
 		return InputCodes::Left;
 	case 262:
 		return InputCodes::Right;
+	case 79:
+		return InputCodes::o;
+	case 80:
+		return InputCodes::p;
 	}
 }
 
@@ -88,7 +92,11 @@ void InputManager::mouseScroll(float yoffset) {
 void InputManager::do_movement(float deltaTime) {
 	// Camera controls
 	float cameraSpeed = 50.0f * deltaTime;
-	glm::vec3 camera_look_at = glm::vec3(0, 0, 0);
+
+	if (keyState[InputCodes::o])
+		roty += 0.1;
+	if (keyState[InputCodes::p])
+		roty -= 0.1;
 
 	// Calculate zoom
 	float zoomLevel = scrollYoffset * cameraSpeed;
@@ -111,7 +119,7 @@ void InputManager::do_movement(float deltaTime) {
 	float verticalDistance = distanceFromPlayer * glm::sin(glm::radians(pitch));
 
 	//Calculate camera position
-	float theta = 0 + angleAroundPlayer;
+	float theta = roty + angleAroundPlayer;
 	float offsetx = horizontalDistance * glm::sin(glm::radians(theta));
 	float offsetz = horizontalDistance * glm::cos(glm::radians(theta));
 	cameraPos.x = camera_look_at.x - offsetx;
