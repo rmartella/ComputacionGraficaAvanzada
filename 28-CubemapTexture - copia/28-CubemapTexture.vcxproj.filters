@@ -15,6 +15,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\CubemapTexture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\InputManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -39,12 +42,12 @@
     <ClCompile Include="src\TimeManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\CubemapTexture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Headers\CameraFPS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Headers\CubemapTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Headers\definition.h">
@@ -71,9 +74,6 @@
     <ClInclude Include="src\Headers\TimeManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Headers\CubemapTexture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Shaders\lampShader.fs">
@@ -88,16 +88,10 @@
     <None Include="..\Shaders\loadModelLighting.vs">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\Shaders\cubemapTexture.fs">
+    <None Include="..\Shaders\cubeTexture.fs">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\Shaders\cubemapTexture.vs">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\Shaders\envRefCubemapTexture.fs">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\Shaders\envRefCubemapTexture.vs">
+    <None Include="..\Shaders\cubeTexture.vs">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

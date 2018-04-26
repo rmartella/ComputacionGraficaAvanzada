@@ -34,17 +34,15 @@
     <ClInclude Include="src\Headers\TimeManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Shaders\cubemapTexture.fs" />
-    <None Include="..\Shaders\cubemapTexture.vs" />
-    <None Include="..\Shaders\envRefCubemapTexture.fs" />
-    <None Include="..\Shaders\envRefCubemapTexture.vs" />
+    <None Include="..\Shaders\cubeTexture.fs" />
+    <None Include="..\Shaders\cubeTexture.vs" />
     <None Include="..\Shaders\lampShader.fs" />
     <None Include="..\Shaders\lampShader.vs" />
     <None Include="..\Shaders\loadModelLighting.fs" />
     <None Include="..\Shaders\loadModelLighting.vs" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{3d57d713-1171-421a-99dd-78bbdb1962a2}</ProjectGuid>
+    <ProjectGuid>{7a7b7518-718f-40b3-bedf-adef7f44c0a6}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>_28_CubemapTexture</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>

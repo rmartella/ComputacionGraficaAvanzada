@@ -16,12 +16,12 @@
 // Texture include
 #include "Headers/Texture.h"
 
-#include "Headers\CubemapTexture.h"
-
 // Camera include
 #include "Headers/CameraFPS.h"
 
 #include "Headers/Model.h"
+
+#include "Headers\CubemapTexture.h"
 
 // Sphere include
 #include "Headers/Sphere.h"
@@ -30,15 +30,23 @@ Sphere sp(1.5, 50, 50, MODEL_MODE::VERTEX_COLOR);
 Sphere sp2(1.5, 50, 50, MODEL_MODE::VERTEX_LIGHT_TEXTURE);
 
 Shader lightingShader;
+Shader cubeTextureShader;
 Shader lampShader;
-Shader cubemapShader;
-Shader envCubeShader;
 
 Model modelo1;
 
 Texture textureDifuse(GL_TEXTURE_2D, "../Textures/container2.png");
 Texture textureSpecular(GL_TEXTURE_2D, "../Textures/container2_specular.png");
-CubemapTexture * cubeMaptexture = new CubemapTexture("../Textures/mp_bloodvalley", "blood-valley_ft.tga", "blood-valley_bk.tga", "blood-valley_up.tga", "blood-valley_dn.tga", "blood-valley_rt.tga", "blood-valley_lf.tga");
+
+std::string texturePrefix = "purplenebula_";
+std::string textureExtension = ".tga";
+CubemapTexture * cubemapTexture = new CubemapTexture("../Textures/ame_nebula",
+	texturePrefix + "rt" + textureExtension,
+	texturePrefix + "lf" + textureExtension,
+	texturePrefix + "up" + textureExtension,
+	texturePrefix + "dn" + textureExtension,
+	texturePrefix + "bk" + textureExtension,
+	texturePrefix + "ft" + textureExtension);
 
 GLuint VAO, VBO, EBO;
 
@@ -124,12 +132,11 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	lightingShader.initialize("../Shaders/loadModelLighting.vs", "../Shaders/loadModelLighting.fs");
 	lampShader.initialize("../Shaders/lampShader.vs", "../Shaders/lampShader.fs");
-	cubemapShader.initialize("../Shaders/cubemapTexture.vs", "../Shaders/cubemapTexture.fs");
-	envCubeShader.initialize("../Shaders/envRefCubemapTexture.vs", "../Shaders/envRefCubemapTexture.fs");
-	textureDifuse.load();
-	
-	cubeMaptexture->Load();
+	cubeTextureShader.initialize("../Shaders/cubeTexture.vs", "../Shaders/cubeTexture.fs");
 
+	cubemapTexture->Load();
+
+	textureDifuse.load();
 }
 
 void destroyWindow() {
@@ -141,9 +148,8 @@ void destroy() {
 	destroyWindow();
 	lightingShader.destroy();
 	lampShader.destroy();
-	cubemapShader.destroy();
-	envCubeShader.destroy();
-	delete cubeMaptexture;
+	cubeTextureShader.destroy();
+	delete cubemapTexture;
 }
 
 void reshapeCallback(GLFWwindow* Window, int widthRes, int heightRes) {
@@ -195,6 +201,43 @@ void applicationLoop() {
 		glm::mat4 view = inputManager.getCameraFPS()->GetViewMatrix();
 		glm::mat4 projection;
 		projection = glm::perspective(45.0f, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+		
+		cubeTextureShader.turnOn();
+		//lampShader.turnOn();
+
+		// Get the uniform locations
+		GLint modelLoc = cubeTextureShader.getUniformLocation("model");
+		GLint viewLoc = cubeTextureShader.getUniformLocation("view");
+		GLint projLoc = cubeTextureShader.getUniformLocation("projection");
+		// Pass the matrices to the shader
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+		
+		cubemapTexture->Bind(GL_TEXTURE0);
+		//textureDifuse.bind(GL_TEXTURE0);
+		glUniform1i(cubeTextureShader.getUniformLocation("textura1"), 0);
+
+		// Draw a sphere
+		glm::mat4 modelCube;
+		modelCube = glm::translate(modelCube, inputManager.getCameraFPS()->Position);
+		modelCube = glm::scale(modelCube, glm::vec3(4.0f, 4.0f, 4.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCube));
+
+		GLint OldCullFaceMode;
+		glGetIntegerv(GL_CULL_FACE_MODE, &OldCullFaceMode);
+		GLint OldDepthFuncMode;
+		glGetIntegerv(GL_DEPTH_FUNC, &OldDepthFuncMode);
+
+		glCullFace(GL_FRONT);
+		glDepthFunc(GL_LEQUAL);
+
+		sp2.render();
+
+		glCullFace(OldCullFaceMode);
+		glDepthFunc(OldDepthFuncMode);
+		cubeTextureShader.turnOff();
+		
+		//lampShader.turnOff();
 
 		/*lightingShader.turnOn();
 
@@ -227,9 +270,9 @@ void applicationLoop() {
 		glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
 
 		// Get the uniform locations
-		GLint modelLoc = lightingShader.getUniformLocation("model");
-		GLint viewLoc = lightingShader.getUniformLocation("view");
-		GLint projLoc = lightingShader.getUniformLocation("projection");
+		modelLoc = lightingShader.getUniformLocation("model");
+		viewLoc = lightingShader.getUniformLocation("view");
+		projLoc = lightingShader.getUniformLocation("projection");
 		// Pass the matrices to the shader
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
@@ -239,10 +282,7 @@ void applicationLoop() {
 		model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
-		textureDifuse.bind(GL_TEXTURE0);
-
-		sp2.render();
-		//modelo1.render(&lightingShader);
+		modelo1.render(&lightingShader);
 		lightingShader.turnOff();
 
 		lampShader.turnOn();
@@ -259,61 +299,6 @@ void applicationLoop() {
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		sp.render();
 		lampShader.turnOff();*/
-
-		cubemapShader.turnOn();
-
-		GLint oldCullFaceMode;
-		GLint oldDepthFuncMode;
-
-		glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFaceMode);
-		glGetIntegerv(GL_DEPTH_FUNC, &oldDepthFuncMode);
-
-		GLint viewLoc = cubemapShader.getUniformLocation("view");
-		GLint projLoc = cubemapShader.getUniformLocation("projection");
-		GLint modelLoc = cubemapShader.getUniformLocation("model");
-
-		view = glm::mat3(inputManager.getCameraFPS()->GetViewMatrix());
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-		
-		glm::mat4 cubeModel;
-		cubeModel = glm::scale(cubeModel, glm::vec3(20.0f, 20.0f, 20.0f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(cubeModel));
-
-		cubeMaptexture->Bind(GL_TEXTURE0);
-		GLuint cubeTextureId = cubemapShader.getUniformLocation("skybox");
-		glUniform1f(cubeTextureId, 0);
-
-		glCullFace(GL_FRONT);
-		glDepthFunc(GL_LEQUAL);
-		sp2.render();
-		glCullFace(oldCullFaceMode);
-		glDepthFunc(oldDepthFuncMode);
-
-		cubemapShader.turnOff();
-
-		envCubeShader.turnOn();
-		
-		view = inputManager.getCameraFPS()->GetViewMatrix();
-		viewLoc = envCubeShader.getUniformLocation("view");
-		projLoc = envCubeShader.getUniformLocation("projection");
-		modelLoc = envCubeShader.getUniformLocation("model");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-		glm::mat4 model;
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-		cubeMaptexture->Bind(GL_TEXTURE0);
-		cubeTextureId = envCubeShader.getUniformLocation("skybox");
-		glUniform1f(cubeTextureId, 0);
-
-		GLuint viewPosLoc = envCubeShader.getUniformLocation("viewPos");
-		glUniform3fv(viewPosLoc,1, glm::value_ptr(inputManager.getCameraFPS()->Position));
-
-		modelo1.render(&envCubeShader);
-
-		envCubeShader.turnOff();
 
 		glfwSwapBuffers(window);
 	}
