@@ -59,6 +59,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "27-LoadModelLight", "27-Loa
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "28-CubemapTexture", "28-CubemapTexture\28-CubemapTexture.vcxproj", "{3D57D713-1171-421A-99DD-78BBDB1962A2}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "29-RayoGLM", "29-RayoGLM\29-RayoGLM.vcxproj", "{538DE290-C9C2-41F6-A0E3-C60515673B0E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "30-Colisiones", "30-Colisiones\30-Colisiones.vcxproj", "{5448CE00-7A4F-42F3-879C-887B58EC2F8F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -237,6 +241,18 @@ Global
 		{3D57D713-1171-421A-99DD-78BBDB1962A2}.Release|x64.ActiveCfg = Release|Win32
 		{3D57D713-1171-421A-99DD-78BBDB1962A2}.Release|x86.ActiveCfg = Release|Win32
 		{3D57D713-1171-421A-99DD-78BBDB1962A2}.Release|x86.Build.0 = Release|Win32
+		{538DE290-C9C2-41F6-A0E3-C60515673B0E}.Debug|x64.ActiveCfg = Debug|Win32
+		{538DE290-C9C2-41F6-A0E3-C60515673B0E}.Debug|x86.ActiveCfg = Debug|Win32
+		{538DE290-C9C2-41F6-A0E3-C60515673B0E}.Debug|x86.Build.0 = Debug|Win32
+		{538DE290-C9C2-41F6-A0E3-C60515673B0E}.Release|x64.ActiveCfg = Release|Win32
+		{538DE290-C9C2-41F6-A0E3-C60515673B0E}.Release|x86.ActiveCfg = Release|Win32
+		{538DE290-C9C2-41F6-A0E3-C60515673B0E}.Release|x86.Build.0 = Release|Win32
+		{5448CE00-7A4F-42F3-879C-887B58EC2F8F}.Debug|x64.ActiveCfg = Debug|Win32
+		{5448CE00-7A4F-42F3-879C-887B58EC2F8F}.Debug|x86.ActiveCfg = Debug|Win32
+		{5448CE00-7A4F-42F3-879C-887B58EC2F8F}.Debug|x86.Build.0 = Debug|Win32
+		{5448CE00-7A4F-42F3-879C-887B58EC2F8F}.Release|x64.ActiveCfg = Release|Win32
+		{5448CE00-7A4F-42F3-879C-887B58EC2F8F}.Release|x86.ActiveCfg = Release|Win32
+		{5448CE00-7A4F-42F3-879C-887B58EC2F8F}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
