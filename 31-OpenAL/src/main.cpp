@@ -24,18 +24,20 @@
 // Sphere include
 #include "Headers/Sphere.h"
 
-#include "Headers\collision.h"
+// OpenAL include
+#include <AL/alut.h>
 
-Sphere sp(1.0, 50, 50, MODEL_MODE::VERTEX_COLOR);
-Sphere sp2(1.0, 50, 50, MODEL_MODE::VERTEX_LIGHT_TEXTURE);
+#define NUM_BUFFERS 3
+#define NUM_SOURCES 3
+#define NUM_ENVIRONMENTS 1
+
+Sphere sp(1.5, 50, 50, MODEL_MODE::VERTEX_COLOR);
+Sphere sp2(1.5, 50, 50, MODEL_MODE::VERTEX_LIGHT_TEXTURE);
 
 Shader lightingShader;
 Shader lampShader;
 
 Model modelo1;
-Model modelo2;
-
-std::vector<GLuint> rays;
 
 Texture textureDifuse(GL_TEXTURE_2D, "../Textures/container2.png");
 Texture textureSpecular(GL_TEXTURE_2D, "../Textures/container2_specular.png");
@@ -48,6 +50,30 @@ int screenHeight;
 GLFWwindow * window;
 InputManager inputManager;
 double deltaTime;
+
+// OpenAL config
+ALfloat listenerPos[] = { 0.0, 0.0, 4.0 };
+ALfloat listenerVel[] = { 0.0, 0.0, 0.0 };
+ALfloat listenerOri[] = { 0.0, 0.0, 1.0, 0.0, 1.0, 0.0 };
+
+ALfloat source0Pos[] = { -2.0, 0.0, 0.0 };
+ALfloat source0Vel[] = { 0.0, 0.0, 0.0 };
+
+ALfloat source1Pos[] = { 2.0, 0.0, 0.0 };
+ALfloat source1Vel[] = { 0.0, 0.0, 0.0 };
+
+ALfloat source2Pos[] = { 0.0, 0.0, -4.0 };
+ALfloat source2Vel[] = { 0.0, 0.0, 0.0 };
+
+ALuint buffer[NUM_BUFFERS];
+ALuint source[NUM_SOURCES];
+ALuint environment[NUM_ENVIRONMENTS];
+
+ALsizei size, freq;
+ALenum format;
+ALvoid *data;
+int ch;
+ALboolean loop;
 
 // Se definen todos las funciones.
 void reshapeCallback(GLFWwindow* Window, int widthRes, int heightRes);
@@ -120,12 +146,66 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	sp2.init();
 	sp2.load();
 
-	modelo1.loadModel("../objects/nanosuit/nanosuit.obj");
-	modelo2.loadModel("../objects/cyborg/cyborg.obj");
+	modelo1.loadModel("../objects/cyborg/cyborg.obj");
 
 	lightingShader.initialize("../Shaders/loadModelLighting.vs", "../Shaders/loadModelLighting.fs");
 	lampShader.initialize("../Shaders/lampShader.vs", "../Shaders/lampShader.fs");
-		
+
+	// OpenAL init
+	alutInit(0, NULL);
+
+	alListenerfv(AL_POSITION, listenerPos);
+	alListenerfv(AL_VELOCITY, listenerVel);
+	alListenerfv(AL_ORIENTATION, listenerOri);
+
+	alGetError(); // clear any error messages
+
+	if (alGetError() != AL_NO_ERROR) {
+		printf("- Error creating buffers !!\n");
+		exit(1);
+	}
+	else {
+		printf("init() - No errors yet.");
+	}
+
+	// Generate buffers, or else no sound will happen!
+	alGenBuffers(NUM_BUFFERS, buffer);
+
+	buffer[0] = alutCreateBufferFromFile("../sounds/lawyer1.wav");
+	//buffer[0] = alutCreateBufferHelloWorld();
+
+	alGetError(); /* clear error */
+	alGenSources(NUM_SOURCES, source);
+
+	if (alGetError() != AL_NO_ERROR) {
+		printf("- Error creating sources !!\n");
+		exit(2);
+	}
+	else {
+		printf("init - no errors after alGenSources\n");
+	}
+
+	alSourcef(source[0], AL_PITCH, 1.0f);
+	alSourcef(source[0], AL_GAIN, 1.0f);
+	alSourcefv(source[0], AL_POSITION, source0Pos);
+	alSourcefv(source[0], AL_VELOCITY, source0Vel);
+	alSourcei(source[0], AL_BUFFER, buffer[0]);
+	alSourcei(source[0], AL_LOOPING, AL_TRUE);
+	alSourcef(source[0], AL_MAX_DISTANCE, 1200);
+
+	/*alSourcef(source[1], AL_PITCH, 1.0f);
+	alSourcef(source[1], AL_GAIN, 1.0f);
+	alSourcefv(source[1], AL_POSITION, source1Pos);
+	alSourcefv(source[1], AL_VELOCITY, source1Vel);
+	alSourcei(source[1], AL_BUFFER, buffer[1]);
+	alSourcei(source[1], AL_LOOPING, AL_TRUE);
+	alSourcef(source[2], AL_PITCH, 1.0f);
+	alSourcef(source[2], AL_GAIN, 1.0f);
+	alSourcefv(source[2], AL_POSITION, source2Pos);
+	alSourcefv(source[2], AL_VELOCITY, source2Vel);
+	alSourcei(source[2], AL_BUFFER, buffer[2]);
+	alSourcei(source[2], AL_LOOPING, AL_TRUE);*/
+	
 }
 
 void destroyWindow() {
@@ -179,9 +259,6 @@ void applicationLoop() {
 	glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 	double lastTime = TimeManager::Instance().GetTime();
 
-	SBB sbb1 = getSBB(modelo1.getMeshes());
-	SBB sbb2 = getSBB(modelo2.getMeshes());
-
 	while (psi) {
 		psi = processInput(true);
 		// This is new, need clear depth buffer bit
@@ -229,46 +306,13 @@ void applicationLoop() {
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-		glm::mat4 model1;
-		model1 = glm::translate(model1, glm::vec3(0.0f, -4.0f, -1.0f));
-		model1 = glm::scale(model1, glm::vec3(0.2f, 0.2f, 0.2f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model1));
+		glm::mat4 model;
+		model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
 		modelo1.render(&lightingShader);
-
-		glm::mat4 model2;
-		model2 = glm::translate(model2, glm::vec3(3.0f, -4.0f, -1.0f));
-		model2 = glm::scale(model2, glm::vec3(0.8f, 0.8f, 0.8f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model2));
-		modelo2.render(&lightingShader);
-
 		lightingShader.turnOff();
 
-		// Render SBB
-		lampShader.turnOn();
-		modelLoc = lampShader.getUniformLocation("model");
-		viewLoc = lampShader.getUniformLocation("view");
-		projLoc = lampShader.getUniformLocation("projection");
-
-		// Pass the matrices to the shader
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-		model1 = glm::translate(model1,
-			glm::vec3(sbb1.center.x, sbb1.center.y, sbb1.center.z));
-		model1 = glm::scale(model1,
-			glm::vec3(sbb1.ratio, sbb1.ratio, sbb1.ratio));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model1));
-		sp.render();
-
-		model2 = glm::translate(model2,
-			glm::vec3(sbb2.center.x, sbb2.center.y, sbb2.center.z));
-		model2 = glm::scale(model2,
-			glm::vec3(sbb2.ratio, sbb2.ratio, sbb2.ratio));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model2));
-		sp.render();
-		lampShader.turnOff();
-
-		// Render the light sphere model
 		lampShader.turnOn();
 		// Create transformations
 		modelLoc = lampShader.getUniformLocation("model");
@@ -278,93 +322,36 @@ void applicationLoop() {
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-		glm::mat4 model;
 		model = glm::translate(glm::mat4(), lightPos);
 		model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		sp.render();
 		lampShader.turnOff();
 
-		// Render the rays
-		lampShader.turnOn();
-		if (inputManager.isGenerateRay()) {
-			std::cout << "Generate ray:" << std::endl;
-			glm::vec4 viewport = glm::vec4(0.0f, 0.0f, screenWidth, screenHeight);
-			glm::vec3 o =
-				glm::unProject(
-					glm::vec3(
-						inputManager.getLastMousePos().x,
-						screenHeight
-						- inputManager.getLastMousePos().y,
-						0.0f), view, projection,
-					viewport);
-			glm::vec3 t =
-				glm::unProject(
-					glm::vec3(
-						inputManager.getLastMousePos().x,
-						screenHeight
-						- inputManager.getLastMousePos().y,
-						1.0f), view, projection,
-					viewport);
-
-			glm::vec3 c1 = glm::vec3(model1 * glm::vec4(0, 0, 0, 1));
-			glm::vec3 c2 = glm::vec3(model2 * glm::vec4(0, 0, 0, 1));
-			glm::vec3 dir = glm::normalize(t - o);
-			float t1;
-
-			if (raySphereIntersect(o, t, dir, c1, sbb1.ratio * 0.2f, t1))
-				std::cout << "Picking nanosuit" << std::endl;
-			if (raySphereIntersect(o, t, dir, c2, sbb2.ratio * 0.8f, t1))
-				std::cout << "Picking cyborg" << std::endl;
-
-			inputManager.setGenerateRay(false);
-
-			GLuint VAO;
-
-			VertexColor vertex[2] = { { o, glm::vec3(0.0) },
-			{ t, glm::vec3(0.0) } };
-			glGenVertexArrays(1, &VAO);
-			glGenBuffers(1, &VBO);
-			glBindVertexArray(VAO);
-			glBindBuffer(GL_ARRAY_BUFFER, VBO);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(vertex), vertex,
-				GL_STATIC_DRAW);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex[0]),
-				(GLvoid*)0);
-			glEnableVertexAttribArray(0);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			glBindVertexArray(0);
-
-			rays.push_back(VAO);
-		}
-
-		// For test collision sphere vs sphere
-		SBB s1, s2;
-		s1.center = glm::vec3(model1 * glm::vec4(0, 0, 0, 1));
-		s1.ratio = sbb1.ratio * 0.2f;
-		s2.center = glm::vec3(model2 * glm::vec4(0, 0, 0, 1));
-		s2.ratio = sbb2.ratio * 0.8f;
-		if (testSphereSphereIntersection(s1, s2))
-			std::cout << "Model collision:" << std::endl;
-
-		modelLoc = lampShader.getUniformLocation("model");
-		viewLoc = lampShader.getUniformLocation("view");
-		projLoc = lampShader.getUniformLocation("projection");
-		
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-		glm::mat4 modelLine;
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelLine));
-
-		for (int i = 0; i < rays.size(); i++) {
-			glBindVertexArray(rays[i]);
-			glDrawArrays(GL_LINES, 0, 2);
-		}
-
-		lampShader.turnOff();
-
 		glfwSwapBuffers(window);
+
+		source0Pos[0] = model[3].x;
+		source0Pos[1] = model[3].y;
+		source0Pos[2] = model[3].z;
+		alSourcefv(source[0], AL_POSITION, source0Pos);
+
+		listenerPos[0] = inputManager.getCameraFPS()->Position.x;
+		listenerPos[1] = inputManager.getCameraFPS()->Position.y;
+		listenerPos[2] = inputManager.getCameraFPS()->Position.z;
+		alListenerfv(AL_POSITION, listenerPos);
+
+		listenerOri[0] = inputManager.getCameraFPS()->Front.x;
+		listenerOri[1] = inputManager.getCameraFPS()->Front.y;
+		listenerOri[2] = inputManager.getCameraFPS()->Front.z;
+		listenerOri[3] = inputManager.getCameraFPS()->Up.x;
+		listenerOri[4] = inputManager.getCameraFPS()->Up.y;
+		listenerOri[5] = inputManager.getCameraFPS()->Up.z;
+		alListenerfv(AL_ORIENTATION, listenerOri);
+
+		if (inputManager.getKeyState()[InputCodes::u]) {
+			alSourcePlay(source[0]);
+		}
+
 	}
 }
 

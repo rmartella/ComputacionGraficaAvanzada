@@ -31,6 +31,12 @@
     <ClInclude Include="src\Headers\Texture.h" />
     <ClInclude Include="src\Headers\TimeManager.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Shaders\lampShader.fs" />
+    <None Include="..\Shaders\lampShader.vs" />
+    <None Include="..\Shaders\loadModelLighting.fs" />
+    <None Include="..\Shaders\loadModelLighting.vs" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{538de290-c9c2-41f6-a0e3-c60515673b0e}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

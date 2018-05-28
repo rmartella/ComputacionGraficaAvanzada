@@ -75,4 +75,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Shaders\lampShader.fs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\Shaders\lampShader.vs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\Shaders\loadModelLighting.fs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\Shaders\loadModelLighting.vs">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>
