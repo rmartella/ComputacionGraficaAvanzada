@@ -232,8 +232,7 @@ void applicationLoop() {
 
 		// Create camera transformations
 		glm::mat4 view = inputManager.getCameraFPS()->GetViewMatrix();
-		glm::mat4 projection;
-		projection = glm::perspective(45.0f, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(45.0f, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 		// Get the uniform locations
 		GLint modelLoc = lightingShader->getUniformLocation("model");
 		GLint viewLoc = lightingShader->getUniformLocation("view");
@@ -244,8 +243,7 @@ void applicationLoop() {
 
 		// Draw a sphere
 		for (GLuint i = 0; i < 10; i++) {
-			glm::mat4 model;
-			model = glm::translate(model, cubePositions[i]);
+			glm::mat4 model = glm::translate(glm::mat4(1.0f), cubePositions[i]);
 			GLfloat angle = 20.0f * i;
 			model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
 			model = glm::scale(model, glm::vec3(0.5, 0.5, 0.5));
@@ -271,7 +269,7 @@ void applicationLoop() {
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-		glm::mat4 model = glm::translate(glm::mat4(), lightPos);
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), lightPos);
 		model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		sp.render();

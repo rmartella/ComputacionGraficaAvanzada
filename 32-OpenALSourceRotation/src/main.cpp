@@ -298,8 +298,7 @@ void applicationLoop() {
 
 		// Create camera transformations
 		glm::mat4 view = inputManager.getCameraFPS()->GetViewMatrix();
-		glm::mat4 projection;
-		projection = glm::perspective(45.0f, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(45.0f, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 		// Get the uniform locations
 		GLint modelLoc = lightingShader.getUniformLocation("model");
 		GLint viewLoc = lightingShader.getUniformLocation("view");
@@ -311,8 +310,7 @@ void applicationLoop() {
 		GLfloat timeValue = TimeManager::Instance().GetTime() - lastTime;
 
 		// Draw the loaded model
-		glm::mat4 model1;
-		model1 = glm::rotate(timeValue, glm::vec3(0.0, 1.0, 0.0));
+		glm::mat4 model1 = glm::rotate(glm::mat4(1.0f), timeValue, glm::vec3(0.0, 1.0, 0.0));
 		model1 = glm::translate(model1, glm::vec3(0.0f, -1.75f, 5.0f));
 		model1 = glm::scale(model1, glm::vec3(0.8f, 0.8f, 0.8f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model1));
@@ -329,7 +327,7 @@ void applicationLoop() {
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-		glm::mat4 model = glm::translate(glm::mat4(), lightPos);
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), lightPos);
 		model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		sp.render();

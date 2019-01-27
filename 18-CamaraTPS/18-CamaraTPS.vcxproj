@@ -31,7 +31,7 @@
     <ProjectGuid>{55391686-cca3-463b-905b-1ab79c5b2da6}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>_19_CamaraTPS</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
     <ProjectName>18-CamaraTPS</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -60,8 +60,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(IncludePath);..\..\external\glm-0.9.8.5\glm;..\..\external\glew-2.1.0\include;..\..\external\glfw-3.2.1\include;..\..\external\FreeImage\Source;..\..\external\assimp-4.1.0\build\include;..\..\external\assimp-4.1.0\include;../../external/OpenAL/include;../../external/freealut/include</IncludePath>
-    <LibraryPath>$(LibraryPath);..\..\external\glew-2.1.0\lib\Debug\Win32;..\..\external\glfw-3.2.1\build\src\Debug;..\..\external\FreeImage\Dist\x32;..\..\external\assimp-4.1.0\build\code\Debug;../../external/OpenAL/libs/Win32;../../external/freealut/build/src/Debug</LibraryPath>
+    <IncludePath>$(IncludePath);..\..\external\glm;..\..\external\glew\include;..\..\external\glfw\include;..\..\external\FreeImage\include;..\..\external\assimp\include;../../external/OpenAL/include;../../external/freealut/include</IncludePath>
+    <LibraryPath>$(LibraryPath);..\..\external\glew\lib\;..\..\external\glfw\lib;..\..\external\FreeImage\lib;..\..\external\assimp\lib;../../external/OpenAL/lib;../../external/freealut/lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>

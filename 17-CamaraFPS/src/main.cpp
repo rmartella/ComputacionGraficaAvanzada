@@ -261,12 +261,10 @@ void applicationLoop() {
 
 		// Create transformations
 		// Create transformations
-		glm::mat4 view;
-		view = glm::lookAt(inputManager.getCameraPos(), inputManager.getCameraPos()
+		glm::mat4 view = glm::lookAt(inputManager.getCameraPos(), inputManager.getCameraPos()
 			+ inputManager.getCameraFront(), inputManager.getCameraUp());
 
-		glm::mat4 projection;
-		projection = glm::perspective(45.0f, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(45.0f, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 		// Get their uniform location
 		shader.getUniformLocation("model");
 		GLint modelLoc = shader.getUniformLocation("model");
@@ -277,8 +275,7 @@ void applicationLoop() {
 
 		glBindVertexArray(VAO);
 		for (GLuint i = 0; i < 10; i++) {
-			glm::mat4 model;
-			model = glm::translate(model, cubePositions[i]);
+			glm::mat4 model = glm::translate(glm::mat4(1.0f), cubePositions[i]);
 			GLfloat angle = 20.0f * i;
 			model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
 			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));

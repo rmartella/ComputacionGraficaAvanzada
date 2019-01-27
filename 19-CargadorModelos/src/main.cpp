@@ -160,8 +160,7 @@ void applicationLoop() {
 
 		// Transformation matrices
 		glm::mat4 view = inputManager.getCameraFPS()->GetViewMatrix();
-		glm::mat4 projection;
-		projection = glm::perspective(45.0f, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(45.0f, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 		// Get the uniform locations
 		GLint modelLoc = shader.getUniformLocation("model");
 		GLint viewLoc = shader.getUniformLocation("view");
@@ -171,8 +170,7 @@ void applicationLoop() {
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
 		// Draw the loaded model
-		glm::mat4 model;
-		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f));
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -1.75f, 0.0f));
 		model = glm::scale(model, glm::vec3(0.02f, 0.02f, 0.02f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 

@@ -268,11 +268,9 @@ void applicationLoop() {
 		GLfloat timeValue = TimeManager::Instance().GetTime() - lastTime;
 
 		// Transformation matrices
-		glm::mat4 model;
-		model = glm::scale(model, glm::vec3(0.3, 0.3, 0.3));
+		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(0.3, 0.3, 0.3));
 		glm::mat4 view = inputManager.getCameraFPS()->GetViewMatrix();
-		glm::mat4 projection;
-		projection = glm::perspective(45.0f, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(45.0f, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 		glm::vec3 cameraPos = inputManager.getCameraFPS()->Position;
 
 		lightingShader.turnOn();
@@ -346,7 +344,7 @@ void applicationLoop() {
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-		model = glm::scale(glm::mat4(), glm::vec3(0.5, 0.5, 0.5));
+		model = glm::scale(glm::mat4(1.0f), glm::vec3(0.5, 0.5, 0.5));
 		model = glm::translate(model, lightPos);
 		model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));

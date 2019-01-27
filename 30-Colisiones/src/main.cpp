@@ -219,8 +219,7 @@ void applicationLoop() {
 
 		// Create camera transformations
 		glm::mat4 view = inputManager.getCameraFPS()->GetViewMatrix();
-		glm::mat4 projection;
-		projection = glm::perspective(45.0f, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(45.0f, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 		// Get the uniform locations
 		GLint modelLoc = lightingShader.getUniformLocation("model");
 		GLint viewLoc = lightingShader.getUniformLocation("view");
@@ -229,14 +228,12 @@ void applicationLoop() {
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-		glm::mat4 model1;
-		model1 = glm::translate(model1, glm::vec3(0.0f, -4.0f, -1.0f));
+		glm::mat4 model1 = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -4.0f, -1.0f));
 		model1 = glm::scale(model1, glm::vec3(0.2f, 0.2f, 0.2f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model1));
 		modelo1.render(&lightingShader);
 
-		glm::mat4 model2;
-		model2 = glm::translate(model2, glm::vec3(3.0f, -4.0f, -1.0f));
+		glm::mat4 model2 = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, -4.0f, -1.0f));
 		model2 = glm::scale(model2, glm::vec3(0.8f, 0.8f, 0.8f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model2));
 		modelo2.render(&lightingShader);
@@ -278,8 +275,7 @@ void applicationLoop() {
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-		glm::mat4 model;
-		model = glm::translate(glm::mat4(), lightPos);
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), lightPos);
 		model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		sp.render();
@@ -354,7 +350,7 @@ void applicationLoop() {
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-		glm::mat4 modelLine;
+		glm::mat4 modelLine = glm::mat4(1.0f);
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelLine));
 
 		for (int i = 0; i < rays.size(); i++) {

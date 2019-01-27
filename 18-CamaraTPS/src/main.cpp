@@ -270,9 +270,7 @@ void applicationLoop() {
 		glUniform1i(shader.getUniformLocation("textura2"), 1);
 
 		// Create transformations
-		// Create transformations
-		glm::mat4 view;
-		view = glm::rotate(view,
+		glm::mat4 view = glm::rotate(glm::mat4(1.0f),
 			glm::radians(inputManager.getPitch()),
 			glm::vec3(1, 0, 0));
 		view = glm::rotate(view,
@@ -282,8 +280,7 @@ void applicationLoop() {
 		view = glm::translate(view,
 			glm::vec3(-cameraPos.x, -cameraPos.y, -cameraPos.z));
 
-		glm::mat4 projection;
-		projection = glm::perspective(45.0f, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(45.0f, (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 		// Get their uniform location
 		shader.getUniformLocation("model");
 		GLint modelLoc = shader.getUniformLocation("model");
@@ -294,8 +291,7 @@ void applicationLoop() {
 
 		glBindVertexArray(VAO);
 		for (GLuint i = 0; i < 10; i++) {
-			glm::mat4 model;
-			model = glm::translate(model, cubePositions[i]);
+			glm::mat4 model = glm::translate(glm::mat4(1.0f), cubePositions[i]);
 			GLfloat angle = 20.0f * i;
 			model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
 			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -303,13 +299,12 @@ void applicationLoop() {
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
-		glm::mat4 model;
-		model = glm::rotate(glm::radians(inputManager.roty), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 model = glm::rotate(glm::mat4(1.0f), glm::radians(inputManager.roty), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::translate(model ,glm::vec3(0.0, 0.0, offsetz));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		inputManager.camera_look_at = glm::vec4(glm::rotate(glm::radians(inputManager.roty), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0.0, 0.0, offsetz, 1.0f));
+		inputManager.camera_look_at = glm::vec4(glm::rotate(glm::mat4(1.0f), glm::radians(inputManager.roty), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0.0, 0.0, offsetz, 1.0f));
 
 		offsetz += 0.001;
 		
