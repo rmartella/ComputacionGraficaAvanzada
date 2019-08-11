@@ -107,6 +107,22 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 			{ glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 1.0f, 0.0f) }
 	};
 
+	// Se definen los indices de las conexiones con los vertices.
+	GLuint indices[] = {  // Note que se inicia en 0!
+		0, 1, 2,
+		0, 2, 3,
+		1, 4, 5,
+		1, 5, 2,
+		0, 3, 6,
+		0, 6, 7,
+		0, 4, 1,
+		0, 7, 4,
+		3, 2, 5,
+		3, 5, 6,
+		4, 5, 6,
+		4, 6, 7
+	};
+
 	size_t bufferSize = sizeof(vertices);
 	size_t vertexSize = sizeof(vertices[0]);
 	size_t rgbOffset = sizeof(vertices[0].m_Pos);
