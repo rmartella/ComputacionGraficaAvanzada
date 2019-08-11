@@ -242,7 +242,7 @@ void applicationLoop() {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// Esta linea esta comentada debido a que de momento no se usan los shaders
-		glUseProgram(shaderProgramID);
+		// glUseProgram(shaderProgramID);
 
 		// Se indica el buffer de datos y la estructura de estos utilizando solo el id del VAO
 		glBindVertexArray(VAO);
