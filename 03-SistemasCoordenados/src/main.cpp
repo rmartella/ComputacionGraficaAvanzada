@@ -22,6 +22,12 @@ int lastMousePosY;
 
 double deltaTime;
 
+//GLM include
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 // Se definen todos las funciones.
 void reshapeCallback(GLFWwindow* Window, int widthRes, int heightRes);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -31,22 +37,12 @@ void init(int width, int height, std::string strTitle, bool bFullScreen);
 void destroy();
 bool processInput(bool continueApplication = true);
 
-GLint vertexShaderID, fragmentShaderID, shaderProgramID;
 GLuint VAO, VBO;
 
-// Codigo de los shaders, por ahora se crean en una cadena de texto
-// Shader de vertices
-const GLchar * vertexShaderSource = "#version 330 core\n"
-		"layout (location=0) in vec3 in_position;\n"
-		"void main(){\n"
-		"gl_Position = vec4(in_position, 1.0);\n"
-		"}\0";
-// Shader de fragmento
-const GLchar * fragmentShaderSource = "#version 330 core\n"
-		"out vec4 color;\n"
-		"void main(){\n"
-		"color = vec4(0.9, 0.4, 0.1, 1.0);\n"
-		"}\0";
+typedef struct _Vertex{
+	glm::vec3 m_Pos;
+	glm::vec3 m_Color;
+} Vertex;
 
 // Implementacion de todas las funciones.
 void init(int width, int height, std::string strTitle, bool bFullScreen) {
@@ -98,42 +94,31 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glViewport(0, 0, screenWidth, screenHeight);
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
-	// Compilacion de los shaders
-
-	// Se crea el id del Vertex Shader
-	vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-	// Se agrega el codigo fuente al ID
-	glShaderSource(vertexShaderID, 1, &vertexShaderSource, NULL);
-	// Compilación de Vertex Shader
-	glCompileShader(vertexShaderID);
-	GLint success;
-	GLchar infoLog[512];
-	// Se obtiene el estatus de la compilacion del vertex shader
-	glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &success);
-	if(!success){
-		// En caso de error se obtiene el error y lanza mensaje con error
-		glGetShaderInfoLog(vertexShaderID, 512, NULL, infoLog);
-		std::cout << "Error al compilar el VERTEX_SHADER." << infoLog << std::endl;
-	}
-
-	// Programa con los shaders
-	shaderProgramID = glCreateProgram();
-	// Se agregan el vertex y fragment shader al program
-	glAttachShader(shaderProgramID, vertexShaderID);
-	// glAttachShader(shaderProgramID, fragmentShaderID);
-	// Proceso de linkeo
-	glLinkProgram(shaderProgramID);
-	// Revision de error de linkeo del programa
-	glGetProgramiv(shaderProgramID, GL_LINK_STATUS, &success);
-	if(!success){
-		glGetProgramInfoLog(shaderProgramID, 512, NULL, infoLog);
-		std::cout << "ERROR al linkear el programa." << infoLog << std::endl;
-	}
-
 	// Se definen los vertices de la geometria a dibujar
-	GLfloat vertices[] = {-0.5, -0.5, 0.0, 0.5, -0.5, 0.0, 0.0, 0.5, 0.0};
+	Vertex vertices [] =
+	{
+			{ glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec3(1.0f, 0.0f, 0.0f) },
+			{ glm::vec3( 0.5f, -0.5f,  0.5f), glm::vec3(0.0f, 1.0f, 0.0f) },
+			{ glm::vec3( 0.5f,  0.5f,  0.5f), glm::vec3(0.0f, 0.0f, 1.0f) },
+			{ glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec3(1.0f, 0.0f, 1.0f) },
+			{ glm::vec3( 0.5f, -0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f) },
+			{ glm::vec3( 0.5f,  0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 1.0f) },
+			{ glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(0.0f, 0.0f, 1.0f) },
+			{ glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 1.0f, 0.0f) }
+	};
+
+	size_t bufferSize = sizeof(vertices);
+	size_t vertexSize = sizeof(vertices[0]);
+	size_t rgbOffset = sizeof(vertices[0].m_Pos);
+
+	std::cout << "Vertices Estrella:" << std::endl;
+	std::cout << "bufferSize:" << bufferSize << std::endl;
+	std::cout << "vertexSize:" << vertexSize << std::endl;
+	std::cout << "rgbOffset:" << rgbOffset << std::endl;
 
 	// Se crea el ID del VAO
+	// Se crea el VBO (buffer de datos) asociado al VAO
+	glGenBuffers(1, &VBO);
 	/*
 	El VAO es un objeto que nos permite almacenar la estructura de nuestros datos,
 	Esto es de gran utilidad debido a que solo se configura la estructura una vez
@@ -142,25 +127,24 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glGenVertexArrays(1, &VAO);
 	// Cambiamos el estado para indicar que usaremos el id del VAO
 	glBindVertexArray(VAO);
-	// Se crea el VBO (buffer de datos) asociado al VAO
-	glGenBuffers(1, &VBO);
 
 	// Cambiamos el estado para indicar que usaremos el id del VBO como Arreglo de vertices (GL_ARRAY_BUFFER)
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	// Copiamos los datos de los vertices a memoria del procesador grafico
 	//           TIPO DE BUFFER     TAMANIO          DATOS    MODO (No cambian los datos)
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, bufferSize, vertices, GL_STATIC_DRAW);
 
 	// Se crea un indice para el atributo del vertice posicion, debe corresponder al location del atributo del shader
 	// indice del atributo, Cantidad de datos, Tipo de dato, Normalizacion, Tamanio del bloque (Stride), offset
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, (GLvoid*)0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertexSize, (GLvoid*)rgbOffset);
 	// Se habilita el atributo del vertice con indice 0 (posicion)
 	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
 
 	// Ya que se configuro, se regresa al estado original
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-
 }
 
 void destroy() {
@@ -169,17 +153,9 @@ void destroy() {
 	// --------- IMPORTANTE ----------
 	// Eliminar los shader y buffers creados.
 
-	glUseProgram(0);
-	glDetachShader(shaderProgramID, vertexShaderID);
-	glDetachShader(shaderProgramID, fragmentShaderID);
-
-	glDeleteShader(vertexShaderID);
-	glDeleteShader(fragmentShaderID);
-
-	glDeleteProgram(shaderProgramID);
-
 	glBindVertexArray(VAO);
 	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
 
 	glBindBuffer(GL_ARRAY_BUFFER,VBO);
 	glDeleteBuffers(1, &VBO);
@@ -248,7 +224,7 @@ void applicationLoop() {
 		// Se indica el buffer de datos y la estructura de estos utilizando solo el id del VAO
 		glBindVertexArray(VAO);
 		// Primitiva de ensamble
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
