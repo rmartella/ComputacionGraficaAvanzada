@@ -37,7 +37,7 @@ GLuint VAO, VBO;
 // Codigo de los shaders, por ahora se crean en una cadena de texto
 // Shader de vertices
 const GLchar * vertexShaderSource = "#version 330 core\n"
-		"layout (location = 0) in vec3 position;\n"
+		"layout (location=0) in vec3 position;\n"
 		"void main(){\n"
 		"gl_Position = vec4(position, 1.0);\n"
 		"}\0";
@@ -120,7 +120,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shaderProgramID = glCreateProgram();
 	// Se agregan el vertex y fragment shader al program
 	glAttachShader(shaderProgramID, vertexShaderID);
-	glAttachShader(shaderProgramID, fragmentShaderID);
+	// glAttachShader(shaderProgramID, fragmentShaderID);
 	// Proceso de linkeo
 	glLinkProgram(shaderProgramID);
 	// Revision de error de linkeo del programa
@@ -152,7 +152,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	// Se crea un indice para el atributo del vertice posicion, debe corresponder al location del atributo del shader
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid*)0);
 	// Se habilita el atributo del vertice con indice 0 (posicion)
 	glEnableVertexAttribArray(0);
 
