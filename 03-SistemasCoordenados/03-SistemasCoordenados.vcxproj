@@ -18,6 +18,21 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\TimeManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Headers\Shader.h" />
+    <ClInclude Include="src\Headers\TimeManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Shaders\basic.fs" />
+    <None Include="..\Shaders\basic.vs" />
+    <None Include="..\Shaders\transformaciones.fs" />
+    <None Include="..\Shaders\transformaciones.vs" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{1476f656-8c45-4170-bea1-db88ac993135}</ProjectGuid>
