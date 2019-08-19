@@ -11,6 +11,16 @@
 // program include
 #include "Headers/TimeManager.h"
 
+// Shader include
+#include "Headers/Shader.h"
+
+// Model geometric includes
+/*
+#include "Headers/Sphere.h"
+#include "Headers/Cylinder.h"
+#include "Headers/Box.h"
+*/
+
 //GLM include
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -21,6 +31,12 @@ int screenWidth;
 int screenHeight;
 
 GLFWwindow * window;
+
+Shader shader;
+
+/*Sphere sphere1(20, 20);
+Cylinder cylinder1(20, 20, 0.5, 0.5);
+Box box1;*/
 
 bool exitApp = false;
 int lastMousePosX;
@@ -36,13 +52,6 @@ void mouseButtonCallback(GLFWwindow* window, int button, int state, int mod);
 void init(int width, int height, std::string strTitle, bool bFullScreen);
 void destroy();
 bool processInput(bool continueApplication = true);
-
-GLuint VAO, VBO;
-
-typedef struct _Vertex{
-	glm::vec3 m_Pos;
-	glm::vec3 m_Color;
-} Vertex;
 
 // Implementacion de todas las funciones.
 void init(int width, int height, std::string strTitle, bool bFullScreen) {
@@ -94,73 +103,22 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glViewport(0, 0, screenWidth, screenHeight);
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
-	// Se definen los vertices de la geometria a dibujar
-	Vertex vertices [] =
-	{
-			{ glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec3(1.0f, 0.0f, 0.0f) },
-			{ glm::vec3( 0.5f, -0.5f,  0.5f), glm::vec3(0.0f, 1.0f, 0.0f) },
-			{ glm::vec3( 0.5f,  0.5f,  0.5f), glm::vec3(0.0f, 0.0f, 1.0f) },
-			{ glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec3(1.0f, 0.0f, 1.0f) },
-			{ glm::vec3( 0.5f, -0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f) },
-			{ glm::vec3( 0.5f,  0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 1.0f) },
-			{ glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(0.0f, 0.0f, 1.0f) },
-			{ glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 1.0f, 0.0f) }
-	};
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
 
-	// Se definen los indices de las conexiones con los vertices.
-	GLuint indices[] = {  // Note que se inicia en 0!
-		0, 1, 2,
-		0, 2, 3,
-		1, 4, 5,
-		1, 5, 2,
-		0, 3, 6,
-		0, 6, 7,
-		0, 4, 1,
-		0, 7, 4,
-		3, 2, 5,
-		3, 5, 6,
-		4, 5, 6,
-		4, 6, 7
-	};
+	shader.initialize("../Shaders/colorShader.vs", "../Shaders/colorShader.fs");
 
-	size_t bufferSize = sizeof(vertices);
-	size_t vertexSize = sizeof(vertices[0]);
-	size_t rgbOffset = sizeof(vertices[0].m_Pos);
+	/*sphere1.init();
+	sphere1.setShader(&shader);
+	sphere1.setColor(glm::vec4(0.3, 0.3, 1.0, 1.0));
 
-	std::cout << "Vertices Estrella:" << std::endl;
-	std::cout << "bufferSize:" << bufferSize << std::endl;
-	std::cout << "vertexSize:" << vertexSize << std::endl;
-	std::cout << "rgbOffset:" << rgbOffset << std::endl;
+	cylinder1.init();
+	cylinder1.setShader(&shader);
+	cylinder1.setColor(glm::vec4(0.3, 0.3, 1.0, 1.0));
 
-	// Se crea el ID del VAO
-	// Se crea el VBO (buffer de datos) asociado al VAO
-	glGenBuffers(1, &VBO);
-	/*
-	El VAO es un objeto que nos permite almacenar la estructura de nuestros datos,
-	Esto es de gran utilidad debido a que solo se configura la estructura una vez
-	y se puede utilizar en el loop de renderizado
-	*/
-	glGenVertexArrays(1, &VAO);
-	// Cambiamos el estado para indicar que usaremos el id del VAO
-	glBindVertexArray(VAO);
-
-	// Cambiamos el estado para indicar que usaremos el id del VBO como Arreglo de vertices (GL_ARRAY_BUFFER)
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	// Copiamos los datos de los vertices a memoria del procesador grafico
-	//           TIPO DE BUFFER     TAMANIO          DATOS    MODO (No cambian los datos)
-	glBufferData(GL_ARRAY_BUFFER, bufferSize, vertices, GL_STATIC_DRAW);
-
-	// Se crea un indice para el atributo del vertice posicion, debe corresponder al location del atributo del shader
-	// indice del atributo, Cantidad de datos, Tipo de dato, Normalizacion, Tamanio del bloque (Stride), offset
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, (GLvoid*)0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertexSize, (GLvoid*)rgbOffset);
-	// Se habilita el atributo del vertice con indice 0 (posicion)
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-
-	// Ya que se configuro, se regresa al estado original
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+	box1.init();
+	box1.setShader(&shader);
+	box1.setColor(glm::vec4(0.3, 0.3, 1.0, 1.0));*/
 }
 
 void destroy() {
@@ -169,16 +127,11 @@ void destroy() {
 	// --------- IMPORTANTE ----------
 	// Eliminar los shader y buffers creados.
 
-	glBindVertexArray(VAO);
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
+	/*sphere1.destroy();
+	cylinder1.destroy();
+	box1.destroy();*/
 
-	glBindBuffer(GL_ARRAY_BUFFER,VBO);
-	glDeleteBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
-	glDeleteVertexArrays(1, &VAO);
+	shader.destroy();
 }
 
 void reshapeCallback(GLFWwindow* Window, int widthRes, int heightRes) {
@@ -232,16 +185,28 @@ void applicationLoop() {
 	bool psi = true;
 	while (psi) {
 		psi = processInput(true);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// Esta linea esta comentada debido a que de momento no se usan los shaders
-		// glUseProgram(shaderProgramID);
+		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) screenWidth / (float) screenHeight, 0.01f, 100.0f);
+		glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
 
-		// Se indica el buffer de datos y la estructura de estos utilizando solo el id del VAO
-		glBindVertexArray(VAO);
-		// Primitiva de ensamble
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-		glBindVertexArray(0);
+		shader.turnOn();
+
+		shader.setMatrix4("projection", 1, false, glm::value_ptr(projection));
+		shader.setMatrix4("view", 1, false, glm::value_ptr(view));
+
+		glm::mat4 model = glm::mat4(1.0f);
+
+		/*sphere1.render(model);
+		sphere1.enableWireMode();*/
+
+		/*cylinder1.render(model);
+		cylinder1.enableWireMode();*/
+
+		/*box1.render(model);
+		box1.enableWireMode();*/
+
+		shader.turnOff();
 
 		glfwSwapBuffers(window);
 	}
