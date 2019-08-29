@@ -18,6 +18,26 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Box.cpp" />
+    <ClCompile Include="src\Cylinder.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\Sphere.cpp" />
+    <ClCompile Include="src\TimeManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Headers\AbstractModel.h" />
+    <ClInclude Include="src\Headers\Box.h" />
+    <ClInclude Include="src\Headers\Cylinder.h" />
+    <ClInclude Include="src\Headers\Shader.h" />
+    <ClInclude Include="src\Headers\Sphere.h" />
+    <ClInclude Include="src\Headers\TimeManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Shaders\colorShader.fs" />
+    <None Include="..\Shaders\colorShader.vs" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{59cb9b00-d532-4db6-b06a-4d0ab90a5f08}</ProjectGuid>
