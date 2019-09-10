@@ -40,6 +40,8 @@ float r1 = 0.0, r2 = 0.0, r3 = 0.0, r4 = 0.0, r5 = 0.0;
 GLFWwindow * window;
 
 Shader shader;
+//Descomentar
+//Shader shaderTexture;
 
 Sphere sphere1(20, 20);
 Cylinder cylinder1(4, 4, 0.5, 0.3);
