@@ -143,27 +143,26 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	camera->setPosition(glm::vec3(0.0, 0.0, 6.0));
 
 	// Descomentar
-	/*
-	 int imageWidth, imageHeight;
-	 Texture texture1("../Textures/sponge.png");
-	 FIBITMAP* bitmap = texture1.loadImage();
-	 unsigned char * data = texture1.convertToData(bitmap, imageWidth, imageHeight);
-	 glGenTextures(1, &textureID1);
-	 glBindTexture(GL_TEXTURE_2D, textureID1);
-	 // set the texture wrapping parameters
-	 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-	 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	 // set texture filtering parameters
-	 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	 if (data){
-	 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
-	 glGenerateMipmap(GL_TEXTURE_2D);
-	 }
-	 else
-	 std::cout << "Failed to load texture" << std::endl;
-	 texture1.freeImage(bitmap);
-	 */
+	/*int imageWidth, imageHeight;
+	Texture texture1("../Textures/sponge.jpg");
+	FIBITMAP *bitmap = texture1.loadImage();
+	unsigned char *data = texture1.convertToData(bitmap, imageWidth,
+			imageHeight);
+	glGenTextures(1, &textureID1);
+	glBindTexture(GL_TEXTURE_2D, textureID1);
+	// set the texture wrapping parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);// set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	if (data) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0,
+				GL_BGRA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	} else
+		std::cout << "Failed to load texture" << std::endl;
+	texture1.freeImage(bitmap);*/
 }
 
 void destroy() {
@@ -266,9 +265,13 @@ void applicationLoop() {
 		glm::mat4 view = camera->getViewMatrix();
 
 		shader.turnOn();
-
 		shader.setMatrix4("projection", 1, false, glm::value_ptr(projection));
 		shader.setMatrix4("view", 1, false, glm::value_ptr(view));
+
+		//Descomentar
+		/*shaderTexture.turnOn();
+		shaderTexture.setMatrix4("projection", 1, false, glm::value_ptr(projection));
+		shaderTexture.setMatrix4("view", 1, false, glm::value_ptr(view));*/
 
 		glm::mat4 model = glm::mat4(1.0f);
 
@@ -342,8 +345,6 @@ void applicationLoop() {
 		// Ojo
 		glm::mat4 l6 = glm::translate(model, glm::vec3(0.25, 0.25, 0.05));
 		sphere1.render(glm::scale(l6, glm::vec3(0.2, 0.3, 0.05)));
-
-		shader.turnOff();
 
 		glfwSwapBuffers(window);
 	}
