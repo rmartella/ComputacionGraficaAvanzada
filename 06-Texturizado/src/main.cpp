@@ -22,7 +22,7 @@
 #include "Headers/FirstPersonCamera.h"
 //Texture includes
 //Descomentar
-//#include "Headers/Texture.h"
+#include "Headers/Texture.h"
 
 std::shared_ptr<FirstPersonCamera> camera(new FirstPersonCamera());
 
@@ -41,7 +41,7 @@ GLFWwindow * window;
 
 Shader shader;
 //Descomentar
-//Shader shaderTexture;
+Shader shaderTexture;
 
 Sphere sphere1(20, 20);
 Cylinder cylinder1(4, 4, 0.5, 0.3);
@@ -49,7 +49,7 @@ Box box1;
 Box box2;
 
 // Descomentar
-//GLuint textureID1;
+GLuint textureID1, textureID2, textureID3;
 
 bool exitApp = false;
 int lastMousePosX, offsetX = 0;
@@ -117,23 +117,23 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
 	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 
 	shader.initialize("../Shaders/colorShader.vs", "../Shaders/colorShader.fs");
 
 	//Descomentar
-	//shaderTexture.initialize("../Shaders/texturizado.vs", "../Shaders/texturizado.fs");
+	shaderTexture.initialize("../Shaders/texturizado.vs", "../Shaders/texturizado.fs");
 
 	sphere1.init();
-	sphere1.setShader(&shader);
+	sphere1.setShader(&shaderTexture);
 	sphere1.setColor(glm::vec4(0.3, 1.0, 0.3, 1.0));
 
 	cylinder1.init();
-	cylinder1.setShader(&shader);
+	cylinder1.setShader(&shaderTexture);
 	cylinder1.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 
 	box1.init();
-	box1.setShader(&shader);
+	box1.setShader(&shaderTexture);
 	box1.setColor(glm::vec4(1.0, 1.0, 0.0, 1.0));
 
 	box2.init();
@@ -143,8 +143,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	camera->setPosition(glm::vec3(0.0, 0.0, 6.0));
 
 	// Descomentar
-	/*int imageWidth, imageHeight;
-	Texture texture1("../Textures/sponge.jpg");
+	int imageWidth, imageHeight;
+	Texture texture1("../Textures/texturaLadrillos.jpg");
 	FIBITMAP *bitmap = texture1.loadImage();
 	unsigned char *data = texture1.convertToData(bitmap, imageWidth,
 			imageHeight);
@@ -162,7 +162,47 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 		glGenerateMipmap(GL_TEXTURE_2D);
 	} else
 		std::cout << "Failed to load texture" << std::endl;
-	texture1.freeImage(bitmap);*/
+	texture1.freeImage(bitmap);
+
+	Texture texture2("../Textures/sponge.jpg");
+	bitmap = texture2.loadImage();
+	data = texture2.convertToData(bitmap, imageWidth, imageHeight);
+	glGenTextures(1, &textureID2);
+	glBindTexture(GL_TEXTURE_2D, textureID2);
+	// set the texture wrapping parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);// set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	if (data) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0,
+			GL_BGRA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+		std::cout << "Failed to load texture" << std::endl;
+	texture2.freeImage(bitmap);
+
+	Texture texture3("../Textures/bluewater.png");
+	bitmap = texture3.loadImage();
+	data = texture3.convertToData(bitmap, imageWidth, imageHeight);
+	glGenTextures(1, &textureID3);
+	glBindTexture(GL_TEXTURE_2D, textureID3);
+	// set the texture wrapping parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);// set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	if (data) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0,
+			GL_BGRA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+		std::cout << "Failed to load texture" << std::endl;
+	texture3.freeImage(bitmap);
 }
 
 void destroy() {
@@ -256,6 +296,7 @@ bool processInput(bool continueApplication){
 
 void applicationLoop() {
 	bool psi = true;
+	float offsetX = 0.0;
 	while (psi) {
 		psi = processInput(true);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -269,50 +310,61 @@ void applicationLoop() {
 		shader.setMatrix4("view", 1, false, glm::value_ptr(view));
 
 		//Descomentar
-		/*shaderTexture.turnOn();
+		shaderTexture.turnOn();
 		shaderTexture.setMatrix4("projection", 1, false, glm::value_ptr(projection));
-		shaderTexture.setMatrix4("view", 1, false, glm::value_ptr(view));*/
+		shaderTexture.setMatrix4("view", 1, false, glm::value_ptr(view));
+		shaderTexture.setFloat("scaleUV", 3.0);
+		shaderTexture.setFloat("offsetX", offsetX);
+		offsetX += 0.001;
 
 		glm::mat4 model = glm::mat4(1.0f);
 
 		//Descomentar
-		//glBindTexture(GL_TEXTURE_2D, textureID1);
+		glBindTexture(GL_TEXTURE_2D, textureID1);
 		//box1.enableWireMode();
 		box1.render(glm::scale(model, glm::vec3(1.0, 1.0, 0.1)));
 		//Descomentar
-		//glBindTexture(GL_TEXTURE_2D, 0);
-
+		glBindTexture(GL_TEXTURE_2D, 0);
 
 		// Articulacion 1
+		shaderTexture.setFloat("scaleUV", 1.0);
+		shaderTexture.setFloat("offsetX", 0);
 		glm::mat4 j1 = glm::translate(model, glm::vec3(0.5f, 0.0f, 0.0f));
 		j1 = glm::rotate(j1, r2, glm::vec3(0.0, 1.0, 0.0));
 		j1 = glm::rotate(j1, r1, glm::vec3(0.0, 0.0, 1.0));
+		glBindTexture(GL_TEXTURE_2D, textureID2);
 		//sphere1.enableWireMode();
 		sphere1.render(glm::scale(j1, glm::vec3(0.1, 0.1, 0.1)));
+		glBindTexture(GL_TEXTURE_2D, 0);
 
 		// Hueso 1
 		glm::mat4 l1 = glm::translate(j1, glm::vec3(0.25, 0.0, 0.0));
 		l1 = glm::rotate(l1, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		l1 = glm::scale(l1, glm::vec3(0.1, 0.5, 0.1));
+		glBindTexture(GL_TEXTURE_2D, textureID3);
 		//cylinder1.enableWireMode();
 		cylinder1.render(l1);
+		glBindTexture(GL_TEXTURE_2D, 0);
 
 		// Articulacion 2
 		glm::mat4 j2 = glm::translate(j1, glm::vec3(0.5, 0.0, 0.0));
 		j2 = glm::rotate(j2, r3, glm::vec3(0.0, 0.0, 1.0f));
 		//sphere1.enableWireMode();
+		glBindTexture(GL_TEXTURE_2D, textureID2);
 		sphere1.render(glm::scale(j2, glm::vec3(0.1, 0.1, 0.1)));
 
 		// Hueso 2
 		glm::mat4 l2 = glm::translate(j2, glm::vec3(0.25, 0.0, 0.0));
 		l2 = glm::rotate(l2, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		l2 = glm::scale(l2, glm::vec3(0.1, 0.5, 0.1));
+		glBindTexture(GL_TEXTURE_2D, textureID3);
 		cylinder1.enableWireMode();
 		cylinder1.render(l2);
 
 		// Articulacion 3
 		glm::mat4 j3 = glm::translate(j2, glm::vec3(0.5, 0.0, 0.0));
 		//sphere1.enableWireMode();
+		glBindTexture(GL_TEXTURE_2D, textureID2);
 		sphere1.render(glm::scale(j3, glm::vec3(0.1, 0.1, 0.1)));
 
 		// Articulacion 4 (Pierna)
@@ -320,22 +372,27 @@ void applicationLoop() {
 		j4 = glm::rotate(j4, r4, glm::vec3(1.0f, 0.0f, 0.0f));
 		j4 = glm::rotate(j4, r5, glm::vec3(0.0f, 0.0f, 1.0f));
 		//sphere1.enableWireMode();
+		glBindTexture(GL_TEXTURE_2D, textureID2);
 		sphere1.render(glm::scale(j4, glm::vec3(0.1, 0.1, 0.1)));
 
 		// Hueso (Pierna)
 		glm::mat4 l3 = glm::translate(j4, glm::vec3(0.0f, -0.25f, 0.0f));
+		glBindTexture(GL_TEXTURE_2D, textureID3);
 		//cylinder1.enableWireMode();
 		cylinder1.render(glm::scale(l3, glm::vec3(0.1, 0.5, 0.1)));
 
 		// Articulacion 4 (Pierna)
 		glm::mat4 j5 = glm::translate(j4, glm::vec3(0.0, -0.5, 0.0));
 		//sphere1.enableWireMode();
+		glBindTexture(GL_TEXTURE_2D, textureID2);
 		sphere1.render(glm::scale(j5, glm::vec3(0.1, 0.1, 0.1)));
 
 		// Hueso (Pierna)
 		glm::mat4 l4 = glm::translate(j5, glm::vec3(0.0f, -0.25f, 0.0f));
 		//cylinder1.enableWireMode();
+		glBindTexture(GL_TEXTURE_2D, textureID3);
 		cylinder1.render(glm::scale(l4, glm::vec3(0.1, 0.5, 0.1)));
+		glBindTexture(GL_TEXTURE_2D, 0);
 
 		// Boca
 		glm::mat4 l5 = glm::translate(model, glm::vec3(0.0, -0.3, 0.05));
