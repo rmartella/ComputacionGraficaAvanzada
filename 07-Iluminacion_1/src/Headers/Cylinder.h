@@ -16,7 +16,6 @@ public:
 	int getStacks() {
 		return this->stacks;
 	}
-
 private:
 	int slices;
 	int stacks;

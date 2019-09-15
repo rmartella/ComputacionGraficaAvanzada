@@ -124,6 +124,10 @@ public:
 	}
 
 	void render(glm::mat4 parentTrans = glm::mat4(1.0f)) {
+		render(0, index.size(), parentTrans);
+	}
+
+	void render(int indexInit, int indexSize, glm::mat4 parentTrans = glm::mat4(1.0f)) {
 		shader_ptr->turnOn();
 		glBindVertexArray(VAO);
 		glm::mat4 scale = glm::scale(glm::mat4(1.0f), this->scale);
@@ -135,7 +139,7 @@ public:
 		glm::mat4 modelMatrix = parentTrans * translate * glm::mat4_cast(ori) * scale;
 		this->shader_ptr->setMatrix4("model", 1, GL_FALSE, glm::value_ptr(modelMatrix));
 		this->shader_ptr->setVectorFloat4("ourColor", glm::value_ptr(color));
-		glDrawElements(GL_TRIANGLES, index.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, indexSize, GL_UNSIGNED_INT, (GLuint*)(indexInit * sizeof(GLuint)));
 		glBindVertexArray(0);
 		shader_ptr->turnOff();
 		this->enableFillMode();
