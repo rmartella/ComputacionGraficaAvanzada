@@ -1,5 +1,3 @@
-#define _USE_MATH_DEFINES
-#include <cmath>
 //glew include
 #include <GL/glew.h>
 
@@ -43,12 +41,16 @@ GLFWwindow * window;
 Shader shaderColor;
 Shader shaderTexture;
 Shader shaderIluminacion;
+Shader shaderDirectional;
+Shader shaderPoint;
+Shader shaderSpot;
 
 Sphere sphere1(20, 20);
 Sphere sphereLamp(20, 20);
 Cylinder cylinder1(4, 4, 0.5, 0.3);
 Box box1;
 Box box2;
+Cylinder cylinder2(20, 20, 0.5, 0.5);
 
 // Descomentar
 GLuint textureID1, textureID2, textureID3;
@@ -125,6 +127,12 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shaderTexture.initialize("../Shaders/texturizado.vs", "../Shaders/texturizado.fs");
 	shaderIluminacion.initialize("../Shaders/iluminacion_textura.vs",
 			"../Shaders/iluminacion_textura.fs");
+	shaderDirectional.initialize("../Shaders/iluminacion_textura.vs",
+			"../Shaders/directionalLight.fs");
+	shaderPoint.initialize("../Shaders/iluminacion_textura.vs",
+			"../Shaders/pointLight.fs");
+	shaderSpot.initialize("../Shaders/iluminacion_textura.vs",
+			"../Shaders/spotLight.fs");
 
 	sphere1.init();
 	sphere1.setShader(&shaderIluminacion);
@@ -141,6 +149,11 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	box2.init();
 	box2.setShader(&shaderIluminacion);
+
+	cylinder2.init();
+	//cylinder2.setShader(&shaderDirectional);
+	//cylinder2.setShader(&shaderPoint);
+	cylinder2.setShader(&shaderSpot);
 
 	camera->setPosition(glm::vec3(0.0, 0.0, 6.0));
 
@@ -321,6 +334,55 @@ void applicationLoop() {
 		shaderIluminacion.setMatrix4("projection", 1, false, glm::value_ptr(projection));
 		shaderIluminacion.setMatrix4("view", 1, false, glm::value_ptr(view));
 
+		shaderPoint.setMatrix4("projection", 1, false, glm::value_ptr(projection));
+		shaderPoint.setMatrix4("view", 1, false, glm::value_ptr(view));
+
+		shaderSpot.setMatrix4("projection", 1, false, glm::value_ptr(projection));
+		shaderSpot.setMatrix4("view", 1, false, glm::value_ptr(view));
+
+		shaderDirectional.setMatrix4("projection", 1, false, glm::value_ptr(projection));
+		shaderDirectional.setMatrix4("view", 1, false, glm::value_ptr(view));
+
+		shaderDirectional.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
+		shaderDirectional.setVectorFloat3("light.direction", glm::value_ptr(glm::vec3(0.0, 0.0, 1.0)));
+		shaderDirectional.setVectorFloat3("light.ambient", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
+		shaderDirectional.setVectorFloat3("light.diffuse", glm::value_ptr(glm::vec3(0.6, 0.0, 0.6)));
+		shaderDirectional.setVectorFloat3("light.specular", glm::value_ptr(glm::vec3(0.0, 0.6, 0)));
+
+		shaderPoint.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
+		shaderPoint.setVectorFloat3("light.position",
+				glm::value_ptr(glm::vec3(0.0, 0.0, -3.0)));
+		shaderPoint.setVectorFloat3("light.ambient",
+				glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
+		shaderPoint.setVectorFloat3("light.diffuse",
+				glm::value_ptr(glm::vec3(0.6, 0.0, 0.6)));
+		shaderPoint.setVectorFloat3("light.specular",
+				glm::value_ptr(glm::vec3(0.0, 0.6, 0)));
+
+		shaderPoint.setFloat("light.constant", 1.0);
+		shaderPoint.setFloat("light.linear", 0.014);
+		shaderPoint.setFloat("light.quadratic", 0.044);
+
+		shaderSpot.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
+		shaderSpot.setVectorFloat3("light.position",
+				glm::value_ptr(camera->getPosition()));
+		/*shaderSpot.setVectorFloat3("light.direction",
+				glm::value_ptr(camera->getFront()));*/
+		shaderSpot.setVectorFloat3("light.direction",
+				glm::value_ptr(camera->getFront()));
+		shaderSpot.setFloat("light.cutOff", cos(glm::radians(5.5)));
+		shaderSpot.setFloat("light.outerCutOff", cos(glm::radians(7.0)));
+		shaderSpot.setVectorFloat3("light.ambient",
+				glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
+		shaderSpot.setVectorFloat3("light.diffuse",
+				glm::value_ptr(glm::vec3(0.6, 0.0, 0.6)));
+		shaderSpot.setVectorFloat3("light.specular",
+				glm::value_ptr(glm::vec3(0.0, 0.6, 0)));
+
+		shaderSpot.setFloat("light.constant", 1.0);
+		shaderSpot.setFloat("light.linear", 0.014);
+		shaderSpot.setFloat("light.quadratic", 0.044);
+
 		glm::mat4 model = glm::mat4(1.0f);
 
 		if (angle > 2 * M_PI)
@@ -337,9 +399,9 @@ void applicationLoop() {
 		shaderIluminacion.setVectorFloat3("light.position",
 				glm::value_ptr(
 						glm::vec3(lightModelmatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f))));
-		shaderIluminacion.setVectorFloat3("light.ambient", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
-		shaderIluminacion.setVectorFloat3("light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.4, 0.4)));
-		shaderIluminacion.setVectorFloat3("light.specular", glm::value_ptr(glm::vec3(0.5, 0.3, 0.2)));
+		shaderIluminacion.setVectorFloat3("light.ambient", glm::value_ptr(glm::vec3(0.0, 0.5, 0.0)));
+		shaderIluminacion.setVectorFloat3("light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.0, 0.0)));
+		shaderIluminacion.setVectorFloat3("light.specular", glm::value_ptr(glm::vec3(0.9, 0.9, 0.0)));
 		shaderIluminacion.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
 
 		glBindTexture(GL_TEXTURE_2D, textureID1);
@@ -423,6 +485,26 @@ void applicationLoop() {
 		glBindTexture(GL_TEXTURE_2D, textureID2);
 		glm::mat4 l6 = glm::translate(model, glm::vec3(0.25, 0.25, 0.05));
 		sphere1.render(glm::scale(l6, glm::vec3(0.2, 0.3, 0.05)));
+
+		// Renderizado del cylindro con luz direccional
+		glm::mat4 modelCylinder = glm::mat4(1.0);
+		modelCylinder = glm::translate(modelCylinder,
+				glm::vec3(3.0, 0.0, -4.0));
+		glBindTexture(GL_TEXTURE_2D, textureID3);
+		cylinder2.render(modelCylinder);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		modelCylinder = glm::translate(glm::mat4(1.0),
+				glm::vec3(-2.0, 0.0, -3.0));
+		glBindTexture(GL_TEXTURE_2D, textureID3);
+		cylinder2.render(modelCylinder);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		modelCylinder = glm::translate(glm::mat4(1.0),
+				glm::vec3(-2.0, 0.0, -10.0));
+		glBindTexture(GL_TEXTURE_2D, textureID3);
+		cylinder2.render(modelCylinder);
+		glBindTexture(GL_TEXTURE_2D, 0);
 
 		glfwSwapBuffers(window);
 	}
