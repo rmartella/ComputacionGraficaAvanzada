@@ -18,6 +18,39 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Box.cpp" />
+    <ClCompile Include="src\Cylinder.cpp" />
+    <ClCompile Include="src\FirstPersonCamera.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\Sphere.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
+    <ClCompile Include="src\TimeManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Headers\AbstractModel.h" />
+    <ClInclude Include="src\Headers\Box.h" />
+    <ClInclude Include="src\Headers\Camera.h" />
+    <ClInclude Include="src\Headers\Cylinder.h" />
+    <ClInclude Include="src\Headers\FirstPersonCamera.h" />
+    <ClInclude Include="src\Headers\Shader.h" />
+    <ClInclude Include="src\Headers\Sphere.h" />
+    <ClInclude Include="src\Headers\Texture.h" />
+    <ClInclude Include="src\Headers\TimeManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Shaders\colorShader.fs" />
+    <None Include="..\Shaders\colorShader.vs" />
+    <None Include="..\Shaders\directionalLight.fs" />
+    <None Include="..\Shaders\iluminacion_textura.fs" />
+    <None Include="..\Shaders\iluminacion_textura.vs" />
+    <None Include="..\Shaders\multipleLights.fs" />
+    <None Include="..\Shaders\pointLight.fs" />
+    <None Include="..\Shaders\spotLight.fs" />
+    <None Include="..\Shaders\texturizado.fs" />
+    <None Include="..\Shaders\texturizado.vs" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{c8899150-7b0e-452b-be20-6f7f02bd4796}</ProjectGuid>
