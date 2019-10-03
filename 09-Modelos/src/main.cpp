@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
 //glew include
 #include <GL/glew.h>
 
