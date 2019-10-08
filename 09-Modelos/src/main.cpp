@@ -25,6 +25,8 @@
 //Texture includes
 #include "Headers/Texture.h"
 
+#define ARRAY_SIZE_IN_ELEMENTS(a) (sizeof(a)/sizeof(a[0]))
+
 std::shared_ptr<FirstPersonCamera> camera(new FirstPersonCamera());
 
 //GLM include
@@ -47,18 +49,35 @@ Shader shaderDirectional;
 Shader shaderPoint;
 Shader shaderSpot;
 Shader multipleLights;
+Shader shaderSkybox;
+
+GLenum types[6] = {
+GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+GL_TEXTURE_CUBE_MAP_NEGATIVE_Z };
+
+std::string fileNames[6] = { "../Textures/mp_bloodvalley/blood-valley_ft.tga",
+	"../Textures/mp_bloodvalley/blood-valley_bk.tga",
+	"../Textures/mp_bloodvalley/blood-valley_up.tga",
+	"../Textures/mp_bloodvalley/blood-valley_dn.tga",
+	"../Textures/mp_bloodvalley/blood-valley_rt.tga",
+	"../Textures/mp_bloodvalley/blood-valley_lf.tga" };
 
 Sphere sphere1(20, 20);
 Sphere sphereLamp(20, 20);
+Sphere skyboxSphere(20, 20);
 Cylinder cylinder1(4, 4, 0.5, 0.3);
 Box box1;
 Box box2;
 Cylinder cylinder2(20, 20, 0.5, 0.5);
 Cylinder cylinder3(30, 30, 0.5, 0.5);
 
-
 // Descomentar
 GLuint textureID1, textureID2, textureID3;
+GLuint skyboxTextureID;
 
 bool exitApp = false;
 int lastMousePosX, offsetX = 0;
@@ -140,6 +159,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 			"../Shaders/spotLight.fs");
 	multipleLights.initialize("../Shaders/iluminacion_textura.vs",
 		"../Shaders/multipleLights.fs");
+	/*shaderSkybox.initialize("../Shaders/cubeTexture.vs",
+		"../Shaders/cubeTexture.fs");*/
 
 	sphere1.init();
 	sphere1.setShader(&multipleLights);
@@ -154,8 +175,6 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	cylinder3.init();
 	cylinder3.setShader(&multipleLights);
 
-	
-
 	box1.init();
 	box1.setShader(&multipleLights);
 
@@ -166,6 +185,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//cylinder2.setShader(&shaderDirectional);
 	//cylinder2.setShader(&shaderPoint);
 	cylinder2.setShader(&multipleLights);
+
+	/*skyboxSphere.init();
+	skyboxSphere.setShader(&shaderSkybox);
+	skyboxSphere.setScale(glm::vec3(20.0f, 20.0f, 20.0f));*/
 
 	camera->setPosition(glm::vec3(0.0, 0.0, 6.0));
 
@@ -230,6 +253,30 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	else
 		std::cout << "Failed to load texture" << std::endl;
 	texture3.freeImage(bitmap);
+
+	/*// Carga de texturas para el skybox
+	Texture skyboxTexture = Texture("");
+	glGenTextures(1, &skyboxTextureID);
+	// Tipo de textura CUBE MAP
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTextureID);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);// set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);// set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	for (int i = 0; i < ARRAY_SIZE_IN_ELEMENTS(types); i++) {
+		skyboxTexture = Texture(fileNames[i]);
+		FIBITMAP *bitmap = skyboxTexture.loadImage(true);
+		unsigned char *data = skyboxTexture.convertToData(bitmap, imageWidth,
+				imageHeight);
+		if (data) {
+			glTexImage2D(types[i], 0, GL_RGBA, imageWidth, imageHeight, 0,
+			GL_BGRA, GL_UNSIGNED_BYTE, data);
+		} else
+			std::cout << "Failed to load texture" << std::endl;
+		skyboxTexture.freeImage(bitmap);
+	}*/
 }
 
 void destroy() {
@@ -354,6 +401,11 @@ void applicationLoop() {
 
 		shaderDirectional.setMatrix4("projection", 1, false, glm::value_ptr(projection));
 		shaderDirectional.setMatrix4("view", 1, false, glm::value_ptr(view));
+
+		/*shaderSkybox.setMatrix4("projection", 1, false,
+				glm::value_ptr(projection));
+		shaderSkybox.setMatrix4("view", 1, false,
+				glm::value_ptr(view));*/
 
 		multipleLights.setMatrix4("projection", 1, false, glm::value_ptr(projection));
 		multipleLights.setMatrix4("view", 1, false, glm::value_ptr(view));
@@ -568,6 +620,18 @@ void applicationLoop() {
 		cylinder3.render(modelocilindro3);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
+		// Se Dibuja el Skybox
+		/*GLint oldCullFaceMode;
+		GLint oldDepthFuncMode;
+		// deshabilita el modo del recorte de caras ocultas para ver las esfera desde adentro
+		glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFaceMode);
+		glGetIntegerv(GL_DEPTH_FUNC, &oldDepthFuncMode);
+		shaderSkybox.setFloat("skybox", 0);
+		glCullFace(GL_FRONT);
+		glDepthFunc(GL_LEQUAL);
+		skyboxSphere.render();
+		glCullFace(oldCullFaceMode);
+		glDepthFunc(oldDepthFuncMode);*/
 
 		glfwSwapBuffers(window);
 	}
