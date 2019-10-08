@@ -45,8 +45,8 @@ in vec3 fragPos;
 in vec3 our_normal;
 in vec2 our_uv;
 
-uniform int pointLightCount;
-uniform int spotLightCount;
+uniform float pointLightCount;
+uniform float spotLightCount;
 
 uniform DirectionalLight directionalLight;
 uniform PointLight pointLights[MAX_POINT_LIGHTS];
