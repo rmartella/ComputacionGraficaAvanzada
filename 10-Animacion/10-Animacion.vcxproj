@@ -18,6 +18,49 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Shaders\colorShader.fs" />
+    <None Include="..\Shaders\colorShader.vs" />
+    <None Include="..\Shaders\cubeTexture.fs" />
+    <None Include="..\Shaders\cubeTexture.vs" />
+    <None Include="..\Shaders\directionalLight.fs" />
+    <None Include="..\Shaders\iluminacionBasica.fs" />
+    <None Include="..\Shaders\iluminacionBasica.vs" />
+    <None Include="..\Shaders\iluminacion_textura.fs" />
+    <None Include="..\Shaders\iluminacion_textura.vs" />
+    <None Include="..\Shaders\lampShader.fs" />
+    <None Include="..\Shaders\lampShader.vs" />
+    <None Include="..\Shaders\multipleLights.fs" />
+    <None Include="..\Shaders\pointLight.fs" />
+    <None Include="..\Shaders\spotLight.fs" />
+    <None Include="..\Shaders\texturizado.fs" />
+    <None Include="..\Shaders\texturizado.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Box.cpp" />
+    <ClCompile Include="src\Cylinder.cpp" />
+    <ClCompile Include="src\FirstPersonCamera.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\Model.cpp" />
+    <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\Sphere.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
+    <ClCompile Include="src\TimeManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Headers\AbstractModel.h" />
+    <ClInclude Include="src\Headers\Box.h" />
+    <ClInclude Include="src\Headers\Camera.h" />
+    <ClInclude Include="src\Headers\Cylinder.h" />
+    <ClInclude Include="src\Headers\FirstPersonCamera.h" />
+    <ClInclude Include="src\Headers\Mesh.h" />
+    <ClInclude Include="src\Headers\Model.h" />
+    <ClInclude Include="src\Headers\Shader.h" />
+    <ClInclude Include="src\Headers\Sphere.h" />
+    <ClInclude Include="src\Headers\Texture.h" />
+    <ClInclude Include="src\Headers\TimeManager.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{7a34c8fa-06f2-4d56-ab10-52cf1c07c19a}</ProjectGuid>
