@@ -26,6 +26,13 @@ public:
 		glUniformMatrix4fv(id, count, transpose, value);
 	}
 
+	void setMatrix3(std::string strVariable, GLsizei count, GLboolean transpose,
+			const GLfloat *value) {
+		this->turnOn();
+		GLint id = this->getUniformLocation(strVariable);
+		glUniformMatrix3fv(id, count, transpose, value);
+	}
+
 	void setMatrix2(std::string strVariable, GLsizei count, GLboolean transpose,
 			const GLfloat *value){
 		this->turnOn();
@@ -37,6 +44,12 @@ public:
 		this->turnOn();
 		GLint id = this->getUniformLocation(strVariable);
 		glUniform1f(id, value);
+	}
+
+	void setInt(std::string strVariable, int value){
+		this->turnOn();
+		GLint id = this->getUniformLocation(strVariable);
+		glUniform1i(id, value);
 	}
 
 	void setVectorFloat2(std::string strVariable, const GLfloat *value){
