@@ -26,6 +26,7 @@
 #include "Headers/Texture.h"
 //Model loader include
 #include "Headers/Model.h"
+#include "Headers/AnimationUtils.h"
 
 #define ARRAY_SIZE_IN_ELEMENTS(a) (sizeof(a)/sizeof(a[0]))
 
@@ -40,7 +41,7 @@ std::shared_ptr<FirstPersonCamera> camera(new FirstPersonCamera());
 int screenWidth;
 int screenHeight;
 
-float r1 = 0.0, r2 = 0.0, r3 = 0.0, r4 = 0.0, r5 = 0.0;
+float r1 = 0.0, r2 = 0.0, r3 = 0.0, r4 = 0.0;
 
 GLFWwindow * window;
 
@@ -94,6 +95,17 @@ int lastMousePosX, offsetX = 0;
 int lastMousePosY, offsetY = 0;
 
 double deltaTime;
+
+// Variables to animations keyframes
+bool saveFrame = false, availableSave = true;
+
+float roty = 0.0;
+float advancez = 0.0;
+// Variables to animations keyframes
+std::ofstream myfile;
+std::string fileName = "../animaciones/animation.txt";
+std::vector<std::vector<glm::mat4>> keyFrames;
+bool record = false;
 
 // Se definen todos las funciones.
 void reshapeCallback(GLFWwindow* Window, int widthRes, int heightRes);
@@ -309,8 +321,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glGenTextures(1, &textureCespedID);
 	glBindTexture(GL_TEXTURE_2D, textureCespedID);
 	// set the texture wrapping parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 	// set texture filtering parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -416,18 +428,58 @@ bool processInput(bool continueApplication){
 	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		camera->moveRightCamera(true, deltaTime);
 
-	if(glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+	if(glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS
+			&& glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
 		r1 += 0.001;
-	if(glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-		r2 += 0.001;
-	if(glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
-		r3 += 0.001;
-	if(glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
-		r4 += 0.001;
-	if(glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
-		r5 += 0.001;
-	if(glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS)
+	else if(glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS
+			&& glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		r1 -= 0.001;
+	if(glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS
+			&& glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+		r2 += 0.001;
+	if(glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS
+			&& glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		r2 -= 0.001;
+	if(glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS
+			&& glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+		r3 += 0.001;
+	if(glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS
+			&& glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		r3 -= 0.001;
+	if(glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS
+			&& glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+		r4 += 0.001;
+	if(glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS
+			&& glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		r4 -= 0.001;
+
+	if(availableSave && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS){
+		saveFrame = true;
+		availableSave = false;
+	}if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_RELEASE)
+		availableSave = true;
+
+	if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+		advancez = 0.001;
+	if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+		advancez = -0.001;
+	if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+		roty = 0.001;
+	if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+		roty = -0.001;
+	if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS
+			&& glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS){
+		record = true;
+		if(myfile.is_open())
+			myfile.close();
+		myfile.open(fileName);
+	}
+	if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE
+			&& glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS){
+		record = false;
+		myfile.close();
+		keyFrames = getKeyFrames(fileName);
+	}
 
 	glfwPollEvents();
 	return continueApplication;
@@ -438,14 +490,33 @@ void applicationLoop() {
 
 	float angle = 0.0;
 	float ratio = 5.0;
+	glm::vec2 off = glm::vec2(0.0, 0.0);
 
-	int nextState = 0;
-	int countState = 0;
-	glm::mat4 matrixAirCraft = glm::mat4(1.0f);
-	matrixAirCraft = glm::translate(matrixAirCraft,
-			glm::vec3(10.0, 2.0, 15.0));
+	glm::mat4 matrixModelAirCraft = glm::mat4(1.0f);
+	matrixModelAirCraft = glm::translate(matrixModelAirCraft,
+			glm::vec3(10.0, 2.0, 20.0));
+	int state = 0;
+	float offsetAircraft = 0.0;
+
+	/*std::cout << "Size of the keyframes:" << keyFrames.size() << std::endl;
+	std::cout << "Size of the keyframes[0]:" << keyFrames[0].size() << std::endl;*/
+	int indexNext = 1;
+	float interpolation = 0.0;
+	int maxNumPasos = 150;
+	int numPasos = 0;
+
+	if(record)
+		myfile.open(fileName);
+	else
+		keyFrames = getKeyFrames(fileName);
+
+	// Esto es para mover el modelo con las flechas
+	glm::mat4 model = glm::mat4(1.0f);
 
 	while (psi) {
+		// Variables to animations keyframes
+		std::vector<glm::mat4> matrixList;
+
 		psi = processInput(true);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -519,8 +590,6 @@ void applicationLoop() {
 		shaderSpot.setFloat("light.linear", 0.014);
 		shaderSpot.setFloat("light.quadratic", 0.044);
 
-		glm::mat4 model = glm::mat4(1.0f);
-
 		if (angle > 2 * M_PI)
 			angle = 0.0;
 		else
@@ -581,87 +650,197 @@ void applicationLoop() {
 		shaderIluminacion.setVectorFloat3("light.specular", glm::value_ptr(glm::vec3(0.9, 0.9, 0.0)));
 		shaderIluminacion.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
 
-		glBindTexture(GL_TEXTURE_2D, textureID1);
-		//box1.enableWireMode();
-		box1.render(glm::scale(model, glm::vec3(1.0, 1.0, 0.1)));
-		glBindTexture(GL_TEXTURE_2D, 0);
+		/*****************************************************
+		 * This is for save the keyframes
+		 *****************************************************/
+		if(record){
+			model = glm::translate(model, glm::vec3(0.0, 0.0, advancez));
+			model = glm::rotate(model, roty, glm::vec3(0, 1, 0));
+			glBindTexture(GL_TEXTURE_2D, textureID1);
+			//box1.enableWireMode();
+			box1.render(glm::scale(model, glm::vec3(1.0, 1.0, 0.1)));
+			glBindTexture(GL_TEXTURE_2D, 0);
 
-		// Articulacion 1
-		glm::mat4 j1 = glm::translate(model, glm::vec3(0.5f, 0.0f, 0.0f));
-		j1 = glm::rotate(j1, r2, glm::vec3(0.0, 1.0, 0.0));
-		j1 = glm::rotate(j1, r1, glm::vec3(0.0, 0.0, 1.0));
-		glBindTexture(GL_TEXTURE_2D, textureID2);
-		//sphere1.enableWireMode();
-		sphere1.render(glm::scale(j1, glm::vec3(0.1, 0.1, 0.1)));
-		glBindTexture(GL_TEXTURE_2D, 0);
+			// Articulacion 1
+			glm::mat4 j1 = glm::translate(model, glm::vec3(0.5f, 0.0f, 0.0f));
+			j1 = glm::rotate(j1, r1, glm::vec3(1.0, 0.0, 0.0));
+			j1 = glm::rotate(j1, glm::radians(-60.0f), glm::vec3(0.0, 0.0, 1.0));
+			// Push de la matriz de la articulacion
+			matrixList.push_back(glm::inverse(model) * j1);
+			glBindTexture(GL_TEXTURE_2D, textureID2);
+			//sphere1.enableWireMode();
+			sphere1.render(glm::scale(j1, glm::vec3(0.1, 0.1, 0.1)));
+			glBindTexture(GL_TEXTURE_2D, 0);
 
-		// Hueso 1
-		glm::mat4 l1 = glm::translate(j1, glm::vec3(0.25, 0.0, 0.0));
-		l1 = glm::rotate(l1, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		l1 = glm::scale(l1, glm::vec3(0.1, 0.5, 0.1));
-		glBindTexture(GL_TEXTURE_2D, textureID3);
-		//cylinder1.enableWireMode();
-		cylinder1.render(l1);
-		glBindTexture(GL_TEXTURE_2D, 0);
+			// Hueso 1
+			glm::mat4 l1 = glm::translate(j1, glm::vec3(0.25, 0.0, 0.0));
+			l1 = glm::rotate(l1, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+			l1 = glm::scale(l1, glm::vec3(0.1, 0.5, 0.1));
+			glBindTexture(GL_TEXTURE_2D, textureID3);
+			//cylinder1.enableWireMode();
+			cylinder1.render(l1);
+			glBindTexture(GL_TEXTURE_2D, 0);
 
-		// Articulacion 2
-		glm::mat4 j2 = glm::translate(j1, glm::vec3(0.5, 0.0, 0.0));
-		j2 = glm::rotate(j2, r3, glm::vec3(0.0, 0.0, 1.0f));
-		//sphere1.enableWireMode();
-		glBindTexture(GL_TEXTURE_2D, textureID2);
-		sphere1.render(glm::scale(j2, glm::vec3(0.1, 0.1, 0.1)));
+			// Articulacion 2
+			glm::mat4 j2 = glm::translate(j1, glm::vec3(0.5, 0.0, 0.0));
+			j2 = glm::rotate(j2, r2, glm::vec3(0.0, 1.0, 0.0f));
+			//sphere1.enableWireMode();
+			// Push de la matriz de la articulacion
+			matrixList.push_back(glm::inverse(model) * j2);
+			glBindTexture(GL_TEXTURE_2D, textureID2);
+			sphere1.render(glm::scale(j2, glm::vec3(0.1, 0.1, 0.1)));
 
-		// Hueso 2
-		glm::mat4 l2 = glm::translate(j2, glm::vec3(0.25, 0.0, 0.0));
-		l2 = glm::rotate(l2, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		l2 = glm::scale(l2, glm::vec3(0.1, 0.5, 0.1));
-		glBindTexture(GL_TEXTURE_2D, textureID3);
-		cylinder1.enableWireMode();
-		cylinder1.render(l2);
+			// Hueso 2
+			glm::mat4 l2 = glm::translate(j2, glm::vec3(0.25, 0.0, 0.0));
+			l2 = glm::rotate(l2, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+			l2 = glm::scale(l2, glm::vec3(0.1, 0.5, 0.1));
+			glBindTexture(GL_TEXTURE_2D, textureID3);
+			//cylinder1.enableWireMode();
+			cylinder1.render(l2);
 
-		// Articulacion 3
-		glm::mat4 j3 = glm::translate(j2, glm::vec3(0.5, 0.0, 0.0));
-		//sphere1.enableWireMode();
-		glBindTexture(GL_TEXTURE_2D, textureID2);
-		sphere1.render(glm::scale(j3, glm::vec3(0.1, 0.1, 0.1)));
+			// Articulacion 3
+			glm::mat4 j3 = glm::translate(j2, glm::vec3(0.5, 0.0, 0.0));
+			//sphere1.enableWireMode();
+			glBindTexture(GL_TEXTURE_2D, textureID2);;
+			sphere1.render(glm::scale(j3, glm::vec3(0.1, 0.1, 0.1)));
 
-		// Articulacion 4 (Pierna)
-		glm::mat4 j4 = glm::translate(model, glm::vec3(0.25, -0.5, 0.0));
-		j4 = glm::rotate(j4, r4, glm::vec3(1.0f, 0.0f, 0.0f));
-		j4 = glm::rotate(j4, r5, glm::vec3(0.0f, 0.0f, 1.0f));
-		//sphere1.enableWireMode();
-		glBindTexture(GL_TEXTURE_2D, textureID2);
-		sphere1.render(glm::scale(j4, glm::vec3(0.1, 0.1, 0.1)));
+			// Articulacion 4 (Pierna)
+			glm::mat4 j4 = glm::translate(model, glm::vec3(0.25, -0.5, 0.0));
+			j4 = glm::rotate(j4, r3, glm::vec3(1.0f, 0.0f, 0.0f));
+			j4 = glm::rotate(j4, glm::radians(10.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+			//sphere1.enableWireMode();
+			// Push de la matriz de la articulacion
+			matrixList.push_back(glm::inverse(model) * j4);
+			glBindTexture(GL_TEXTURE_2D, textureID2);
+			sphere1.render(glm::scale(j4, glm::vec3(0.1, 0.1, 0.1)));
 
-		// Hueso (Pierna)
-		glm::mat4 l3 = glm::translate(j4, glm::vec3(0.0f, -0.25f, 0.0f));
-		glBindTexture(GL_TEXTURE_2D, textureID3);
-		//cylinder1.enableWireMode();
-		cylinder1.render(glm::scale(l3, glm::vec3(0.1, 0.5, 0.1)));
+			// Hueso (Pierna)
+			glm::mat4 l3 = glm::translate(j4, glm::vec3(0.0f, -0.25f, 0.0f));
+			glBindTexture(GL_TEXTURE_2D, textureID3);
+			//cylinder1.enableWireMode();
+			cylinder1.render(glm::scale(l3, glm::vec3(0.1, 0.5, 0.1)));
 
-		// Articulacion 4 (Pierna)
-		glm::mat4 j5 = glm::translate(j4, glm::vec3(0.0, -0.5, 0.0));
-		//sphere1.enableWireMode();
-		glBindTexture(GL_TEXTURE_2D, textureID2);
-		sphere1.render(glm::scale(j5, glm::vec3(0.1, 0.1, 0.1)));
+			// Articulacion 4 (Pierna)
+			glm::mat4 j5 = glm::translate(j4, glm::vec3(0.0, -0.5, 0.0));
+			j5 = glm::rotate(j5, r4, glm::vec3(1.0, 0.0, 0.0));
+			j5 = glm::rotate(j5, glm::radians(-10.0f), glm::vec3(0.0, 0.0, 1.0));
+			// Push de la matriz de la articulacion
+			matrixList.push_back(glm::inverse(model) * j5);
+			//sphere1.enableWireMode();
+			glBindTexture(GL_TEXTURE_2D, textureID2);
+			sphere1.render(glm::scale(j5, glm::vec3(0.1, 0.1, 0.1)));
 
-		// Hueso (Pierna)
-		glm::mat4 l4 = glm::translate(j5, glm::vec3(0.0f, -0.25f, 0.0f));
-		//cylinder1.enableWireMode();
-		glBindTexture(GL_TEXTURE_2D, textureID3);
-		cylinder1.render(glm::scale(l4, glm::vec3(0.1, 0.5, 0.1)));
-		glBindTexture(GL_TEXTURE_2D, 0);
+			// Hueso (Pierna)
+			glm::mat4 l4 = glm::translate(j5, glm::vec3(0.0f, -0.25f, 0.0f));
+			//cylinder1.enableWireMode();
+			glBindTexture(GL_TEXTURE_2D, textureID3);
+			cylinder1.render(glm::scale(l4, glm::vec3(0.1, 0.5, 0.1)));
+			glBindTexture(GL_TEXTURE_2D, 0);
 
-		// Boca
-		glm::mat4 l5 = glm::translate(model, glm::vec3(0.0, -0.3, 0.05));
-		glBindTexture(GL_TEXTURE_2D, textureID2);
-		box2.render(glm::scale(l5, glm::vec3(0.6, 0.1, 0.05)));
-		//box1.enableWireMode();
+			// Boca
+			glm::mat4 l5 = glm::translate(model, glm::vec3(0.0, -0.3, 0.05));
+			glBindTexture(GL_TEXTURE_2D, textureID2);
+			//box1.enableWireMode();
+			box2.render(glm::scale(l5, glm::vec3(0.6, 0.1, 0.05)));
 
-		// Ojo
-		glBindTexture(GL_TEXTURE_2D, textureID2);
-		glm::mat4 l6 = glm::translate(model, glm::vec3(0.25, 0.25, 0.05));
-		sphere1.render(glm::scale(l6, glm::vec3(0.2, 0.3, 0.05)));
+			// Ojo
+			glBindTexture(GL_TEXTURE_2D, textureID2);
+			glm::mat4 l6 = glm::translate(model, glm::vec3(0.25, 0.25, 0.05));
+			sphere1.render(glm::scale(l6, glm::vec3(0.2, 0.3, 0.05)));
+		}
+		else if (keyFrames.size() > 0 &&
+				keyFrames[indexNext - 1].size() == 5 && keyFrames[indexNext].size() == 5) {
+
+			interpolation = numPasos / (float)maxNumPasos;
+
+			model = glm::translate(model, glm::vec3(0.0, 0.0, advancez));
+			model = glm::rotate(model, roty, glm::vec3(0, 1, 0));
+			glBindTexture(GL_TEXTURE_2D, textureID1);
+			//box1.enableWireMode();
+			box1.render(glm::scale(model, glm::vec3(1.0, 1.0, 0.1)));
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			// Articulacion 1
+			glm::mat4 j1 = model * interpolate(keyFrames,
+					indexNext, 0, interpolation);
+			glBindTexture(GL_TEXTURE_2D, textureID2);
+			//sphere1.enableWireMode();
+			sphere1.render(glm::scale(j1, glm::vec3(0.1, 0.1, 0.1)));
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			// Hueso 1
+			glm::mat4 l1 = glm::translate(j1, glm::vec3(0.25, 0.0, 0.0));
+			l1 = glm::rotate(l1, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+			l1 = glm::scale(l1, glm::vec3(0.1, 0.5, 0.1));
+			glBindTexture(GL_TEXTURE_2D, textureID3);
+			//cylinder1.enableWireMode();
+			cylinder1.render(l1);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			// Articulacion 2
+			glm::mat4 j2 = model * interpolate(keyFrames,
+					indexNext, 1, interpolation);
+			glBindTexture(GL_TEXTURE_2D, textureID2);
+			sphere1.render(glm::scale(j2, glm::vec3(0.1, 0.1, 0.1)));
+
+			// Hueso 2
+			glm::mat4 l2 = glm::translate(j2, glm::vec3(0.25, 0.0, 0.0));
+			l2 = glm::rotate(l2, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+			l2 = glm::scale(l2, glm::vec3(0.1, 0.5, 0.1));
+			glBindTexture(GL_TEXTURE_2D, textureID3);
+			//cylinder1.enableWireMode();
+			cylinder1.render(l2);
+
+			// Articulacion 3
+			glm::mat4 j3 = glm::translate(j2, glm::vec3(0.5, 0.0, 0.0));
+			//sphere1.enableWireMode();
+			glBindTexture(GL_TEXTURE_2D, textureID2);;
+			sphere1.render(glm::scale(j3, glm::vec3(0.1, 0.1, 0.1)));
+
+			// Articulacion 4 (Pierna)
+			glm::mat4 j4 = model * interpolate(keyFrames,
+					indexNext, 2, interpolation);
+			glBindTexture(GL_TEXTURE_2D, textureID2);
+			sphere1.render(glm::scale(j4, glm::vec3(0.1, 0.1, 0.1)));
+
+			// Hueso (Pierna)
+			glm::mat4 l3 = glm::translate(j4, glm::vec3(0.0f, -0.25f, 0.0f));
+			glBindTexture(GL_TEXTURE_2D, textureID3);
+			//cylinder1.enableWireMode();
+			cylinder1.render(glm::scale(l3, glm::vec3(0.1, 0.5, 0.1)));
+
+			// Articulacion 4 (Pierna)
+			glm::mat4 j5 = model * interpolate(keyFrames,
+					indexNext, 3, interpolation);
+			glBindTexture(GL_TEXTURE_2D, textureID2);
+			sphere1.render(glm::scale(j5, glm::vec3(0.1, 0.1, 0.1)));
+
+			// Hueso (Pierna)
+			glm::mat4 l4 = glm::translate(j5, glm::vec3(0.0f, -0.25f, 0.0f));
+			//cylinder1.enableWireMode();
+			glBindTexture(GL_TEXTURE_2D, textureID3);
+			cylinder1.render(glm::scale(l4, glm::vec3(0.1, 0.5, 0.1)));
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			// Boca
+			glm::mat4 l5 = glm::translate(model, glm::vec3(0.0, -0.3, 0.05));
+			glBindTexture(GL_TEXTURE_2D, textureID2);
+			box2.render(glm::scale(l5, glm::vec3(0.6, 0.1, 0.05)));
+			//box1.enableWireMode();
+
+			// Ojo
+			glBindTexture(GL_TEXTURE_2D, textureID2);
+			glm::mat4 l6 = glm::translate(model, glm::vec3(0.25, 0.25, 0.05));
+			sphere1.render(glm::scale(l6, glm::vec3(0.2, 0.3, 0.05)));
+
+			numPasos++;
+			if (interpolation > 1.0) {
+				numPasos = 0;
+				indexNext++;
+			}
+			if (indexNext > keyFrames.size() - 1)
+				indexNext = 1;
+		}
 
 		// Renderizado del cylindro con luz direccional
 		glm::mat4 modelCylinder = glm::mat4(1.0);
@@ -692,13 +871,17 @@ void applicationLoop() {
 		glBindTexture(GL_TEXTURE_2D, textureCespedID);
 		boxCesped.setPosition(glm::vec3(0.0, -1.7, 0.0));
 		boxCesped.setScale(glm::vec3(100.0, 0.001, 100.0));
+		multipleLights.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(40.0, 40.0)));
 		boxCesped.render();
+		multipleLights.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(0.0, 0.0)));
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		glBindTexture(GL_TEXTURE_2D, textureWaterID);
 		boxWater.setPosition(glm::vec3(3.0, 2.0, -5.0));
 		boxWater.setScale(glm::vec3(10.0, 0.001, 10.0));
+		multipleLights.setVectorFloat2("offset", glm::value_ptr(off));
 		boxWater.render();
+		multipleLights.setVectorFloat2("offset", glm::value_ptr(glm::vec2(0.0, 0.0)));
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		modelRock.setPosition(glm::vec3(5.0, 3.0, -20.0));
@@ -712,7 +895,8 @@ void applicationLoop() {
 		glActiveTexture(GL_TEXTURE0);
 
 		modelAirCraft.setScale(glm::vec3(1.0, 1.0, 1.0));
-		modelAirCraft.render(matrixAirCraft);
+		//modelAirCraft.setPosition(glm::vec3(10.0, 2.0, 15.0));
+		modelAirCraft.render(matrixModelAirCraft);
 		glActiveTexture(GL_TEXTURE0);
 
 		// Se Dibuja el Skybox
@@ -728,38 +912,51 @@ void applicationLoop() {
 		glCullFace(oldCullFaceMode);
 		glDepthFunc(oldDepthFuncMode);
 
-		switch(nextState)
-		{
+		off.x += 0.001;
+		off.y += 0.001;
+
+		switch(state){
 		case 0:
-			std::cout << "Inicia el movimiento." << std::endl;
-			nextState = 1;
+			std::cout << "Incio del movimiento" << std::endl;
+			state = 1;
+			offsetAircraft = 0.0;
 			break;
 		case 1:
-			std::cout << "Avanza." << std::endl;
-			if (countState < 10000) {
-				matrixAirCraft = glm::translate(matrixAirCraft,
-						glm::vec3(0.0, 0.0, -0.001));
-				countState++;
-			} else {
-				countState = 0;
-				nextState = 2;
+			std::cout << "Avanzando" << std::endl;
+			if(offsetAircraft >= 10.0){
+				offsetAircraft = 0.0;
+				state = 2;
+			}else{
+				matrixModelAirCraft = glm::translate(matrixModelAirCraft, glm::vec3(0.0, 0.0, -0.01));
+				offsetAircraft += 0.01;
 			}
 			break;
 		case 2:
-			std::cout << "Gira." << std::endl;
-			if (countState < 900) {
-				matrixAirCraft = glm::rotate(matrixAirCraft, glm::radians(0.1f),
-						glm::vec3(0, 1, 0));
-				countState++;
-			} else {
-				countState = 0;
-				nextState = 0;
+			std::cout << "Giro" << std::endl;
+			if(offsetAircraft > 90.0)
+				state = 0;
+			else{
+				matrixModelAirCraft = glm::translate(matrixModelAirCraft,
+						glm::vec3(0, 0, -0.01));
+				matrixModelAirCraft = glm::rotate(matrixModelAirCraft,
+						glm::radians(0.1f), glm::vec3(0.0, 1.0, 0.0f));
+				offsetAircraft += 0.1;
 			}
 			break;
 		}
 
+		if (saveFrame) {
+			appendFrame(myfile, matrixList);
+			saveFrame = false;
+		}
+
+		advancez = 0.0;
+		roty = 0.0;
+
 		glfwSwapBuffers(window);
 	}
+	if(record)
+		myfile.close();
 }
 
 int main(int argc, char ** argv) {
