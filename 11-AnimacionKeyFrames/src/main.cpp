@@ -500,6 +500,7 @@ void applicationLoop() {
 
 	/*std::cout << "Size of the keyframes:" << keyFrames.size() << std::endl;
 	std::cout << "Size of the keyframes[0]:" << keyFrames[0].size() << std::endl;*/
+	int index = 0;
 	int indexNext = 1;
 	float interpolation = 0.0;
 	int maxNumPasos = 150;
@@ -749,7 +750,7 @@ void applicationLoop() {
 			sphere1.render(glm::scale(l6, glm::vec3(0.2, 0.3, 0.05)));
 		}
 		else if (keyFrames.size() > 0 &&
-				keyFrames[indexNext - 1].size() == 5 && keyFrames[indexNext].size() == 5) {
+				keyFrames[index].size() == 4 && keyFrames[indexNext].size() == 4) {
 
 			interpolation = numPasos / (float)maxNumPasos;
 
@@ -761,7 +762,7 @@ void applicationLoop() {
 			glBindTexture(GL_TEXTURE_2D, 0);
 
 			// Articulacion 1
-			glm::mat4 j1 = model * interpolate(keyFrames,
+			glm::mat4 j1 = model * interpolate(keyFrames, index,
 					indexNext, 0, interpolation);
 			glBindTexture(GL_TEXTURE_2D, textureID2);
 			//sphere1.enableWireMode();
@@ -778,7 +779,7 @@ void applicationLoop() {
 			glBindTexture(GL_TEXTURE_2D, 0);
 
 			// Articulacion 2
-			glm::mat4 j2 = model * interpolate(keyFrames,
+			glm::mat4 j2 = model * interpolate(keyFrames, index,
 					indexNext, 1, interpolation);
 			glBindTexture(GL_TEXTURE_2D, textureID2);
 			sphere1.render(glm::scale(j2, glm::vec3(0.1, 0.1, 0.1)));
@@ -798,7 +799,7 @@ void applicationLoop() {
 			sphere1.render(glm::scale(j3, glm::vec3(0.1, 0.1, 0.1)));
 
 			// Articulacion 4 (Pierna)
-			glm::mat4 j4 = model * interpolate(keyFrames,
+			glm::mat4 j4 = model * interpolate(keyFrames, index,
 					indexNext, 2, interpolation);
 			glBindTexture(GL_TEXTURE_2D, textureID2);
 			sphere1.render(glm::scale(j4, glm::vec3(0.1, 0.1, 0.1)));
@@ -810,7 +811,7 @@ void applicationLoop() {
 			cylinder1.render(glm::scale(l3, glm::vec3(0.1, 0.5, 0.1)));
 
 			// Articulacion 4 (Pierna)
-			glm::mat4 j5 = model * interpolate(keyFrames,
+			glm::mat4 j5 = model * interpolate(keyFrames, index,
 					indexNext, 3, interpolation);
 			glBindTexture(GL_TEXTURE_2D, textureID2);
 			sphere1.render(glm::scale(j5, glm::vec3(0.1, 0.1, 0.1)));
@@ -836,10 +837,13 @@ void applicationLoop() {
 			numPasos++;
 			if (interpolation > 1.0) {
 				numPasos = 0;
+				index = indexNext;
 				indexNext++;
 			}
-			if (indexNext > keyFrames.size() - 1)
+			if (indexNext > keyFrames.size() - 1){
+				index = 0;
 				indexNext = 1;
+			}
 		}
 
 		// Renderizado del cylindro con luz direccional

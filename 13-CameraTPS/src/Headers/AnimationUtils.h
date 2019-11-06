@@ -33,7 +33,17 @@ void appendFrame(std::ofstream &outputFile,
 	std::stringstream ss;
 	for(unsigned int i = 0; i < matrixList.size(); i++)
 		ss << matToString(matrixList[i]) << "|";
-	outputFile << ss.str() << "|" << std::endl;
+	//outputFile << ss.str() << "|" << std::endl;
+	outputFile << ss.str() << std::endl;
+}
+
+void appendFrame(std::ofstream &outputFile,
+		std::vector<float> jointsList){
+	std::stringstream ss;
+	for(unsigned int i = 0; i < jointsList.size(); i++)
+		ss << jointsList[i] << "|";
+	outputFile << ss.str() << std::endl;
+	//outputFile << ss.str() << "|" << std::endl;
 }
 
 std::vector<std::vector<glm::mat4>> getKeyFrames(std::string fileName) {
@@ -88,7 +98,31 @@ std::vector<std::vector<glm::mat4>> getKeyFrames(std::string fileName) {
 	return keyFrames;
 }
 
-glm::mat4 interpolate(std::vector<std::vector<glm::mat4>> keyFrames,
+std::vector<std::vector<float>> getKeyRotFrames(std::string fileName) {
+	std::vector<std::vector<float>> keyFrames;
+	std::string line;
+	std::ifstream infile(fileName);
+	std::string s = line;
+	while (std::getline(infile, line))
+	{
+		std::vector<float> rotations;
+		s = line;
+		size_t pos1 = 0;
+		std::string token1;
+		std::string delimiter1 = "|";
+		while ((pos1 = s.find(delimiter1)) != std::string::npos) {
+			token1 = s.substr(0, pos1);
+			//std::cout << token1 << std::endl;
+			float rotation = atof(token1.c_str());
+			rotations.push_back(rotation);
+			s.erase(0, pos1 + delimiter1.length());
+		}
+		keyFrames.push_back(rotations);
+	}
+	return keyFrames;
+}
+
+glm::mat4 interpolate(std::vector<std::vector<glm::mat4>> keyFrames, int index,
 		int indexNext, int jointID, float interpolation){
 	glm::quat firstQuat;
 	glm::quat secondQuat;
@@ -98,15 +132,20 @@ glm::mat4 interpolate(std::vector<std::vector<glm::mat4>> keyFrames,
 	glm::vec4 transformComp2;
 	glm::vec4 finalTrans;
 
-	firstQuat = glm::quat_cast(keyFrames[indexNext - 1][jointID]);
+	firstQuat = glm::quat_cast(keyFrames[index][jointID]);
 	secondQuat = glm::quat_cast(keyFrames[indexNext][jointID]);
 	finalQuat = glm::slerp(firstQuat, secondQuat, interpolation);
 	interpoltaedMatrix = glm::mat4_cast(finalQuat);
-	transformComp1 = keyFrames[indexNext - 1][jointID] * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	transformComp1 = keyFrames[index][jointID] * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	transformComp2 = keyFrames[indexNext][jointID] * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	finalTrans = (float)(1.0 - interpolation) * transformComp1 + transformComp2 * interpolation;
 	interpoltaedMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(finalTrans)) * interpoltaedMatrix;
 	return interpoltaedMatrix;
+}
+
+float interpolate(std::vector<std::vector<float>> keyFrames, int index,
+		int indexNext, int jointID, float interpolation){
+	return (float)(1.0 - interpolation) * keyFrames[index][jointID] + keyFrames[indexNext][jointID] * interpolation;
 }
 
 #endif /* SRC_HEADERS_ANIMATIONUTILS_H_ */

@@ -22,6 +22,7 @@
 #include "Headers/Box.h"
 
 #include "Headers/FirstPersonCamera.h"
+#include "Headers/ThirdPersonCamera.h"
 //Texture includes
 #include "Headers/Texture.h"
 //Model loader include
@@ -30,7 +31,8 @@
 
 #define ARRAY_SIZE_IN_ELEMENTS(a) (sizeof(a)/sizeof(a[0]))
 
-std::shared_ptr<FirstPersonCamera> camera(new FirstPersonCamera());
+std::shared_ptr<Camera> camera(new ThirdPersonCamera());
+float distanceFromTarget = 4.0;
 
 //GLM include
 #define GLM_FORCE_RADIANS
@@ -124,6 +126,8 @@ Box boxWater;
 Box boxCesped;
 Cylinder cylinder2(20, 20, 0.5, 0.5);
 Cylinder cylinder3(30, 30, 0.5, 0.5);
+Box boxCollider;
+Sphere sphereCollider(20, 20);
 
 // Descomentar
 GLuint textureID1, textureID2, textureID3, textureCespedID, textureWaterID;
@@ -141,9 +145,74 @@ void reshapeCallback(GLFWwindow* Window, int widthRes, int heightRes);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
 void mouseButtonCallback(GLFWwindow* window, int button, int state, int mod);
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 void init(int width, int height, std::string strTitle, bool bFullScreen);
 void destroy();
 bool processInput(bool continueApplication = true);
+
+bool raySphereIntersect(glm::vec3 orig, glm::vec3 dest, glm::vec3 dir,
+	glm::vec3 vSphereCenter, float sphereRadius, float &t) {
+	// Vector del Origen del rayo al centro de la esfera.
+	glm::vec3 vDirToSphere = vSphereCenter - orig;
+
+	// Distancia del origen al destino del rayo.
+	float fLineLength = glm::distance(orig, dest);
+
+	// Proyección escalar de vDirToSphere sobre la direccion del rayo.
+	t = glm::dot(vDirToSphere, dir);
+
+	glm::vec3 vClosestPoint;
+	// Si la distancia proyectada del origen es menor o igual que cero
+	// Significa que el punto mas cercano al centro es el origen.
+	if (t <= 0.0f)
+		vClosestPoint = orig;
+	// Si la proyección escalar del origen es mayor a distancia del origen
+	// al destino, el punto mas cercano es el destino.
+	else if (t >= fLineLength)
+		vClosestPoint = dest;
+	// En caso contrario de calcula el punto sobre la linea usando t.
+	else
+		vClosestPoint = orig + dir * (t);
+
+	// Se pureba si el punto mas cercao esta contenido en el radio de la esfera.
+	return glm::distance(vSphereCenter, vClosestPoint) <= sphereRadius;
+}
+
+bool testSphereSphereIntersection(AbstractModel::SBB sbb1, AbstractModel::SBB sbb2) {
+	float d = glm::distance(sbb1.c, sbb2.c);
+	/*float d = sqrt(
+	pow(sbb1.center.x - sbb2.center.x, 2)
+	+ pow(sbb1.center.y - sbb2.center.y, 2)
+	+ pow(sbb1.center.y - sbb2.center.y, 2));
+	std::cout << "d:" << d << std::endl;
+	std::cout << "sum:" << sbb1.ratio + sbb2.ratio << std::endl;*/
+	if (d <= (sbb1.ratio + sbb2.ratio))
+		return true;
+	return false;
+}
+
+bool testSphereOBox(AbstractModel::SBB sbb, AbstractModel::OBB obb){
+	float d = 0;
+	glm::quat qinv = glm::inverse(obb.orientation);
+	sbb.c = qinv * glm::vec4(sbb.c, 1.0);
+	obb.c = qinv * glm::vec4(obb.c, 1.0);
+	AbstractModel::AABB aabb;
+	aabb.mins = obb.c - obb.dims / 2.0f;
+	aabb.maxs = obb.c + obb.dims / 2.0f;
+	if (sbb.c[0] >= aabb.mins[0] && sbb.c[0] <= aabb.maxs[0]
+			&& sbb.c[1] >= aabb.mins[1] && sbb.c[1] <= aabb.maxs[1]
+			&& sbb.c[2] >= aabb.mins[2] && sbb.c[2] <= aabb.maxs[2])
+		return true;
+	for (int i = 0; i < 3; i++){
+		if(sbb.c[i] < aabb.mins[i])
+			d += (sbb.c[i] - aabb.mins[i]) * (sbb.c[i] - aabb.mins[i]);
+		else if(sbb.c[i] > aabb.maxs[i])
+			d += (sbb.c[i] - aabb.maxs[i]) * (sbb.c[i] - aabb.maxs[i]);
+	}
+	if(d <= sbb.ratio * sbb.ratio)
+		return true;
+	return false;
+}
 
 // Implementacion de todas las funciones.
 void init(int width, int height, std::string strTitle, bool bFullScreen) {
@@ -177,11 +246,11 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(0);
-
 	glfwSetWindowSizeCallback(window, reshapeCallback);
 	glfwSetKeyCallback(window, keyCallback);
 	glfwSetCursorPosCallback(window, mouseCallback);
 	glfwSetMouseButtonCallback(window, mouseButtonCallback);
+	glfwSetScrollCallback(window, scrollCallback);
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
 	// Init glew
@@ -276,7 +345,16 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	skyboxSphere.setShader(&shaderSkybox);
 	skyboxSphere.setScale(glm::vec3(20.0f, 20.0f, 20.0f));
 
+	boxCollider.init();
+	boxCollider.setShader(&shaderColor);
+	boxCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
+	sphereCollider.init();
+	sphereCollider.setShader(&shaderColor);
+	sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
+
 	camera->setPosition(glm::vec3(0.0, 0.0, 6.0));
+	camera->setDistanceFromTarget(distanceFromTarget);
+	camera->setSensitivity(0.1);
 
 	// Texturas
 	int imageWidth, imageHeight;
@@ -441,7 +519,14 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
 	lastMousePosX = xpos;
 	lastMousePosY = ypos;
 	if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-		camera->mouseMoveCamera(offsetX, offsetY, 0.005);
+		camera->mouseMoveCamera(offsetX, 0.0, deltaTime);
+	if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+		camera->mouseMoveCamera(0.0, offsetY, deltaTime);
+}
+
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset){
+	distanceFromTarget -= yoffset;
+	camera->setDistanceFromTarget(distanceFromTarget);
 }
 
 void mouseButtonCallback(GLFWwindow* window, int button, int state, int mod) {
@@ -465,14 +550,14 @@ bool processInput(bool continueApplication){
 	if (exitApp || glfwWindowShouldClose(window) != 0) {
 		return false;
 	}
-	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	/*if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		camera->moveFrontCamera(true, deltaTime);
 	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 		camera->moveFrontCamera(false, deltaTime);
 	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 		camera->moveRightCamera(false, deltaTime);
 	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera->moveRightCamera(true, deltaTime);
+		camera->moveRightCamera(true, deltaTime);*/
 
 	// Seleccionar modelo
 	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS){
@@ -618,13 +703,12 @@ void applicationLoop() {
 
 	glm::mat4 matrixModelAirCraft = glm::mat4(1.0f);
 	matrixModelAirCraft = glm::translate(matrixModelAirCraft,
-			glm::vec3(10.0, 2.0, 20.0));
+			glm::vec3(10.0, 0.2, 20.0));
 	int state = 0;
 	float offsetAircraft = 0.0;
 
 	glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 	modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(3.0, -1.7, 20.0));
-	modelMatrixDart = glm::scale(modelMatrixDart, glm::vec3(0.5, 0.5, 0.5));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -651,6 +735,14 @@ void applicationLoop() {
 
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) screenWidth / (float) screenHeight, 0.01f, 100.0f);
 		//glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.01f, 100.0f);
+		glm::vec3 axis = glm::axis(glm::quat_cast(modelMatrixDart));
+		float angleTarget = glm::angle(glm::quat_cast(modelMatrixDart));
+		if(isnanf(angleTarget))
+			angleTarget = 0.0;
+		if(axis.y < 0)
+			angleTarget = -angleTarget;
+		camera->setCameraTarget(modelMatrixDart * glm::vec4(0, 0, 0, 1) + glm::vec4(0, 1.7, 0.0, 0.0));
+		camera->setAngleTarget(angleTarget - glm::radians(90.0f));
 		glm::mat4 view = camera->getViewMatrix();
 
 		shaderColor.setMatrix4("projection", 1, false, glm::value_ptr(projection));
@@ -926,6 +1018,97 @@ void applicationLoop() {
 			rotDartRightLeg = interpolate(keyFramesJoints, indexFrameJoints, indexFrameJointsNext, 6, interpolationJoints);
 		}
 
+		// render de colliders
+		// Collider del dart vader lego
+		glm::mat4 modelmatrixColliderDart = glm::mat4(modelMatrixDart);
+		AbstractModel::OBB obb;
+		modelmatrixColliderDart = glm::scale(modelmatrixColliderDart, glm::vec3(0.5, 0.5, 0.5));
+		modelmatrixColliderDart = glm::translate(modelmatrixColliderDart,
+				glm::vec3(modelDartLegoBody.getObb().c.x,
+						modelDartLegoBody.getObb().c.y,
+						modelDartLegoBody.getObb().c.z));
+		obb.c = glm::vec3(modelmatrixColliderDart[3][0], modelmatrixColliderDart[3][1], modelmatrixColliderDart[3][2]);
+		obb.dims = modelDartLegoBody.getObb().dims * glm::vec3(0.5, 0.5, 0.5);
+		obb.orientation = glm::quat_cast(modelMatrixDart);
+		modelmatrixColliderDart = glm::scale(modelmatrixColliderDart,
+				glm::vec3(modelDartLegoBody.getObb().dims.x,
+						modelDartLegoBody.getObb().dims.y,
+						modelDartLegoBody.getObb().dims.z));
+		boxCollider.enableWireMode();
+		boxCollider.render(modelmatrixColliderDart);
+		// Collider de la via
+		glm::mat4 modelMatrixColliderRail= glm::mat4(1.0);
+		modelMatrixColliderRail = glm::translate(modelMatrixColliderRail, glm::vec3(-10.0, -1.7, 25.0));
+		modelMatrixColliderRail = glm::scale(modelMatrixColliderRail, glm::vec3(1.0, 1.0, 1.0));
+		modelMatrixColliderRail = glm::translate(modelMatrixColliderRail,
+				glm::vec3(modelRail.getObb().c.x, modelRail.getObb().c.y,
+						modelRail.getObb().c.z));
+		modelMatrixColliderRail = glm::scale(modelMatrixColliderRail,
+				glm::vec3(modelRail.getObb().dims.x, modelRail.getObb().dims.y,
+						modelRail.getObb().dims.z));
+		boxCollider.enableWireMode();
+		boxCollider.render(modelMatrixColliderRail);
+		// Collider del aricraft
+		AbstractModel::SBB sbb;
+		glm::mat4 modelMatrixColliderAircraft = glm::mat4(matrixModelAirCraft);
+		modelMatrixColliderAircraft = glm::scale(modelMatrixColliderAircraft,
+				glm::vec3(1.0, 1.0, 1.0));
+		modelMatrixColliderAircraft = glm::translate(
+				modelMatrixColliderAircraft,
+				glm::vec3(modelAirCraft.getSbb().c.x,
+						modelAirCraft.getSbb().c.y,
+						modelAirCraft.getSbb().c.z));
+		sbb.c = glm::vec3(modelMatrixColliderAircraft[3][0], modelMatrixColliderAircraft[3][1], modelMatrixColliderAircraft[3][2]);
+		sbb.ratio = modelAirCraft.getSbb().ratio * 1.0;
+		modelMatrixColliderAircraft = glm::scale(modelMatrixColliderAircraft,
+				glm::vec3(modelAirCraft.getSbb().ratio * 2.0,
+						modelAirCraft.getSbb().ratio * 2.0,
+						modelAirCraft.getSbb().ratio * 2.0));
+		sphereCollider.enableWireMode();
+		sphereCollider.render(modelMatrixColliderAircraft);
+
+		modelMatrixColliderAircraft = glm::mat4(matrixModelAirCraft);
+		modelMatrixColliderAircraft = glm::scale(modelMatrixColliderAircraft,
+				glm::vec3(1.0, 1.0, 1.0));
+		modelMatrixColliderAircraft = glm::translate(
+				modelMatrixColliderAircraft,
+				glm::vec3(modelAirCraft.getObb().c.x,
+						modelAirCraft.getObb().c.y,
+						modelAirCraft.getObb().c.z));
+		modelMatrixColliderAircraft = glm::scale(modelMatrixColliderAircraft,
+				glm::vec3(modelAirCraft.getObb().dims.x,
+						modelAirCraft.getObb().dims.y,
+						modelAirCraft.getObb().dims.z));
+		boxCollider.enableWireMode();
+		boxCollider.render(modelMatrixColliderAircraft);
+
+		// Esto es para ilustrar la transformacion inversa de los coliders
+		glm::vec3 cinv = glm::inverse(obb.orientation) * glm::vec4(sbb.c, 1.0);
+		glm::mat4 invColliderS = glm::mat4(1.0);
+		invColliderS = glm::translate(invColliderS, cinv);
+		invColliderS = glm::scale(invColliderS, glm::vec3(sbb.ratio * 2.0, sbb.ratio * 2.0, sbb.ratio * 2.0));
+		sphereCollider.setColor(glm::vec4(1.0, 1.0, 0.0, 1.0));
+		sphereCollider.enableWireMode();
+		sphereCollider.render(invColliderS);
+
+		glm::vec3 cinv2 = glm::inverse(obb.orientation) * glm::vec4(obb.c, 1.0);
+		glm::mat4 invColliderB = glm::mat4(1.0);
+		invColliderB = glm::translate(invColliderB, cinv2);
+		invColliderB = glm::scale(invColliderB, obb.dims);
+		boxCollider.setColor(glm::vec4(1.0, 1.0, 0.0, 1.0));
+		boxCollider.enableWireMode();
+		boxCollider.render(invColliderB);
+
+		// Se regresa el color blanco
+		sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
+		boxCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
+
+
+		if(testSphereOBox(sbb, obb))
+			std::cout << "Colision aircraft vs dart vader" << std::endl;
+
+
+
 		// Se Dibuja el Skybox
 		GLint oldCullFaceMode;
 		GLint oldDepthFuncMode;
@@ -938,11 +1121,6 @@ void applicationLoop() {
 		skyboxSphere.render();
 		glCullFace(oldCullFaceMode);
 		glDepthFunc(oldDepthFuncMode);
-
-		if (angle > 2 * M_PI)
-			angle = 0.0;
-		else
-			angle += 0.01;
 
 		off.x += 0.001;
 		off.y += 0.001;
