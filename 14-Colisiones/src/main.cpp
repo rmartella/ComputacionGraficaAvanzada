@@ -56,6 +56,8 @@ std::ofstream myfile;
 std::string fileName = "";
 bool record = false;
 
+bool rayGenerate = false;
+
 // Joints interpolations Dart Lego
 std::vector<std::vector<float>> keyFramesJoints;
 std::vector<std::vector<glm::mat4>> keyFramesDart;
@@ -150,10 +152,9 @@ void init(int width, int height, std::string strTitle, bool bFullScreen);
 void destroy();
 bool processInput(bool continueApplication = true);
 
-bool raySphereIntersect(glm::vec3 orig, glm::vec3 dest, glm::vec3 dir,
-	glm::vec3 vSphereCenter, float sphereRadius, float &t) {
+bool raySphereIntersect(glm::vec3 orig, glm::vec3 dest, glm::vec3 dir, AbstractModel::SBB sbb, float &t) {
 	// Vector del Origen del rayo al centro de la esfera.
-	glm::vec3 vDirToSphere = vSphereCenter - orig;
+	glm::vec3 vDirToSphere = sbb.c - orig;
 
 	// Distancia del origen al destino del rayo.
 	float fLineLength = glm::distance(orig, dest);
@@ -175,7 +176,7 @@ bool raySphereIntersect(glm::vec3 orig, glm::vec3 dest, glm::vec3 dir,
 		vClosestPoint = orig + dir * (t);
 
 	// Se pureba si el punto mas cercao esta contenido en el radio de la esfera.
-	return glm::distance(vSphereCenter, vClosestPoint) <= sphereRadius;
+	return glm::distance(sbb.c, vClosestPoint) <= sbb.ratio;
 }
 
 bool testSphereSphereIntersection(AbstractModel::SBB sbb1, AbstractModel::SBB sbb2) {
@@ -690,6 +691,11 @@ bool processInput(bool continueApplication){
 	else if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		advanceDartBody = 0.02;
 
+	if(glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+		rayGenerate = true;
+	if(glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_RELEASE || glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
+		rayGenerate = false;
+
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -913,7 +919,7 @@ void applicationLoop() {
 		multipleLights.setVectorFloat2("offset", glm::value_ptr(glm::vec2(0.0, 0.0)));
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		modelRock.setPosition(glm::vec3(5.0, 3.0, -20.0));
+		modelRock.setPosition(glm::vec3(5.0, -1.0, 5.0));
 		modelRock.setScale(glm::vec3(1.0, 1.0, 1.0));
 		modelRock.render();
 		glActiveTexture(GL_TEXTURE0);
@@ -1021,15 +1027,15 @@ void applicationLoop() {
 		// render de colliders
 		// Collider del dart vader lego
 		glm::mat4 modelmatrixColliderDart = glm::mat4(modelMatrixDart);
-		AbstractModel::OBB obb;
+		AbstractModel::OBB obbDartLegoBody;
 		modelmatrixColliderDart = glm::scale(modelmatrixColliderDart, glm::vec3(0.5, 0.5, 0.5));
 		modelmatrixColliderDart = glm::translate(modelmatrixColliderDart,
 				glm::vec3(modelDartLegoBody.getObb().c.x,
 						modelDartLegoBody.getObb().c.y,
 						modelDartLegoBody.getObb().c.z));
-		obb.c = glm::vec3(modelmatrixColliderDart[3][0], modelmatrixColliderDart[3][1], modelmatrixColliderDart[3][2]);
-		obb.dims = modelDartLegoBody.getObb().dims * glm::vec3(0.5, 0.5, 0.5);
-		obb.orientation = glm::quat_cast(modelMatrixDart);
+		obbDartLegoBody.c = glm::vec3(modelmatrixColliderDart[3][0], modelmatrixColliderDart[3][1], modelmatrixColliderDart[3][2]);
+		obbDartLegoBody.dims = modelDartLegoBody.getObb().dims * glm::vec3(0.5, 0.5, 0.5);
+		obbDartLegoBody.orientation = glm::quat_cast(modelMatrixDart);
 		modelmatrixColliderDart = glm::scale(modelmatrixColliderDart,
 				glm::vec3(modelDartLegoBody.getObb().dims.x,
 						modelDartLegoBody.getObb().dims.y,
@@ -1049,7 +1055,7 @@ void applicationLoop() {
 		boxCollider.enableWireMode();
 		boxCollider.render(modelMatrixColliderRail);
 		// Collider del aricraft
-		AbstractModel::SBB sbb;
+		AbstractModel::SBB sbbAircraft;
 		glm::mat4 modelMatrixColliderAircraft = glm::mat4(matrixModelAirCraft);
 		modelMatrixColliderAircraft = glm::scale(modelMatrixColliderAircraft,
 				glm::vec3(1.0, 1.0, 1.0));
@@ -1058,8 +1064,8 @@ void applicationLoop() {
 				glm::vec3(modelAirCraft.getSbb().c.x,
 						modelAirCraft.getSbb().c.y,
 						modelAirCraft.getSbb().c.z));
-		sbb.c = glm::vec3(modelMatrixColliderAircraft[3][0], modelMatrixColliderAircraft[3][1], modelMatrixColliderAircraft[3][2]);
-		sbb.ratio = modelAirCraft.getSbb().ratio * 1.0;
+		sbbAircraft.c = glm::vec3(modelMatrixColliderAircraft[3][0], modelMatrixColliderAircraft[3][1], modelMatrixColliderAircraft[3][2]);
+		sbbAircraft.ratio = modelAirCraft.getSbb().ratio * 1.0;
 		modelMatrixColliderAircraft = glm::scale(modelMatrixColliderAircraft,
 				glm::vec3(modelAirCraft.getSbb().ratio * 2.0,
 						modelAirCraft.getSbb().ratio * 2.0,
@@ -1081,20 +1087,36 @@ void applicationLoop() {
 						modelAirCraft.getObb().dims.z));
 		boxCollider.enableWireMode();
 		boxCollider.render(modelMatrixColliderAircraft);
+		//Collider del la rock
+		glm::mat4 modelMatrixColliderRock= glm::mat4(1.0);
+		AbstractModel::SBB sbbRock;
+		modelMatrixColliderRock = glm::translate(modelMatrixColliderRock, glm::vec3(5.0, -1.0, 5.0));
+		modelMatrixColliderRock = glm::scale(modelMatrixColliderRock, glm::vec3(1.0, 1.0, 1.0));
+		modelMatrixColliderRock = glm::translate(modelMatrixColliderRock,
+				glm::vec3(modelRock.getSbb().c.x, modelRock.getSbb().c.y,
+						modelRock.getSbb().c.z));
+		sbbRock.c = glm::vec3(modelMatrixColliderRock[3][0], modelMatrixColliderRock[3][1], modelMatrixColliderRock[3][2]);
+		sbbRock.ratio = modelRock.getSbb().ratio * 1.0;
+		modelMatrixColliderRock = glm::scale(modelMatrixColliderRock,
+				glm::vec3(modelRock.getSbb().ratio * 2.0,
+						modelRock.getSbb().ratio * 2.0,
+						modelRock.getSbb().ratio * 2.0));
+		sphereCollider.enableWireMode();
+		sphereCollider.render(modelMatrixColliderRock);
 
 		// Esto es para ilustrar la transformacion inversa de los coliders
-		glm::vec3 cinv = glm::inverse(obb.orientation) * glm::vec4(sbb.c, 1.0);
+		glm::vec3 cinv = glm::inverse(obbDartLegoBody.orientation) * glm::vec4(sbbAircraft.c, 1.0);
 		glm::mat4 invColliderS = glm::mat4(1.0);
 		invColliderS = glm::translate(invColliderS, cinv);
-		invColliderS = glm::scale(invColliderS, glm::vec3(sbb.ratio * 2.0, sbb.ratio * 2.0, sbb.ratio * 2.0));
+		invColliderS = glm::scale(invColliderS, glm::vec3(sbbAircraft.ratio * 2.0, sbbAircraft.ratio * 2.0, sbbAircraft.ratio * 2.0));
 		sphereCollider.setColor(glm::vec4(1.0, 1.0, 0.0, 1.0));
 		sphereCollider.enableWireMode();
 		sphereCollider.render(invColliderS);
 
-		glm::vec3 cinv2 = glm::inverse(obb.orientation) * glm::vec4(obb.c, 1.0);
+		glm::vec3 cinv2 = glm::inverse(obbDartLegoBody.orientation) * glm::vec4(obbDartLegoBody.c, 1.0);
 		glm::mat4 invColliderB = glm::mat4(1.0);
 		invColliderB = glm::translate(invColliderB, cinv2);
-		invColliderB = glm::scale(invColliderB, obb.dims);
+		invColliderB = glm::scale(invColliderB, obbDartLegoBody.dims);
 		boxCollider.setColor(glm::vec4(1.0, 1.0, 0.0, 1.0));
 		boxCollider.enableWireMode();
 		boxCollider.render(invColliderB);
@@ -1104,10 +1126,29 @@ void applicationLoop() {
 		boxCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 
 
-		if(testSphereOBox(sbb, obb))
+		if(testSphereOBox(sbbAircraft, obbDartLegoBody))
 			std::cout << "Colision aircraft vs dart vader" << std::endl;
+		if(testSphereOBox(sbbRock, obbDartLegoBody))
+			std::cout << "Colision Rock vs dart vader" << std::endl;
 
+		// Generación de un rayo
+		if(rayGenerate){
+			std::cout << "Generate ray:" << std::endl;
+			glm::vec4 viewport = glm::vec4(0.0f, 0.0f, screenWidth, screenHeight);
+			glm::vec3 o = glm::unProject(
+					glm::vec3(lastMousePosX, screenHeight - lastMousePosY,
+							0.0f), view, projection, viewport);
+			glm::vec3 p = glm::unProject(
+					glm::vec3(lastMousePosX, screenHeight - lastMousePosY,
+							1.0f), view, projection, viewport);
 
+			glm::vec3 dir = glm::normalize(p - o);
+			float t;
+			if (raySphereIntersect(o, p, dir, sbbRock, t))
+				std::cout << "Picking rock" << std::endl;
+			if (raySphereIntersect(o, p, dir, sbbAircraft, t))
+				std::cout << "Picking aircraft" << std::endl;
+		}
 
 		// Se Dibuja el Skybox
 		GLint oldCullFaceMode;
