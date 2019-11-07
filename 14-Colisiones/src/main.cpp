@@ -1105,7 +1105,7 @@ void applicationLoop() {
 		sphereCollider.render(modelMatrixColliderRock);
 
 		// Esto es para ilustrar la transformacion inversa de los coliders
-		glm::vec3 cinv = glm::inverse(obbDartLegoBody.orientation) * glm::vec4(sbbAircraft.c, 1.0);
+		/*glm::vec3 cinv = glm::inverse(obbDartLegoBody.orientation) * glm::vec4(sbbAircraft.c, 1.0);
 		glm::mat4 invColliderS = glm::mat4(1.0);
 		invColliderS = glm::translate(invColliderS, cinv);
 		invColliderS = glm::scale(invColliderS, glm::vec3(sbbAircraft.ratio * 2.0, sbbAircraft.ratio * 2.0, sbbAircraft.ratio * 2.0));
@@ -1123,7 +1123,7 @@ void applicationLoop() {
 
 		// Se regresa el color blanco
 		sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
-		boxCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
+		boxCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));*/
 
 
 		if(testSphereOBox(sbbAircraft, obbDartLegoBody))
