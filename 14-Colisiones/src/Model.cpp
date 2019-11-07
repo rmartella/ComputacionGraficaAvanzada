@@ -53,15 +53,6 @@ void Model::loadModel(const std::string & path) {
 	// Se procesa el nodo raiz recursivamente.
 	this->processNode(scene->mRootNode, scene);
 
-	// Se crea la SBB
-	this->sbb.c = glm::vec3((this->aabb.mins.x + this->aabb.maxs.x) / 2.0f,
-			(this->aabb.mins.y + this->aabb.maxs.y) / 2.0f,
-			(this->aabb.mins.z + this->aabb.maxs.z) / 2.0f);
-	this->sbb.ratio = sqrt(
-			pow(this->aabb.mins.x - this->aabb.maxs.x, 2)
-					+ pow(this->aabb.mins.y - this->aabb.maxs.y, 2)
-					+ pow(this->aabb.mins.z - this->aabb.maxs.z, 2)) / 2.0f;
-
 	// Se crea la obb
 	this->obb.c = this->sbb.c;
 	this->obb.dims.x = aabb.maxs.x - aabb.mins.x;
@@ -90,8 +81,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
 	for (GLuint i = 0; i < mesh->mNumVertices; i++) {
 		AbstractModel::Vertex vertex;
 		glm::vec3 vector;
-		// Positions
-
+		// Compute the AABB
 		if (mesh->mVertices[i].x < aabb.mins.x)
 			aabb.mins.x = mesh->mVertices[i].x;
 		if (mesh->mVertices[i].x > aabb.maxs.x)
@@ -105,6 +95,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
 		if (mesh->mVertices[i].z > aabb.maxs.z)
 			aabb.maxs.z = mesh->mVertices[i].z;
 
+		// Positions
 		vector.x = mesh->mVertices[i].x;
 		vector.y = mesh->mVertices[i].y;
 		vector.z = mesh->mVertices[i].z;

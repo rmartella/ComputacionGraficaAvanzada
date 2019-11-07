@@ -665,7 +665,7 @@ void applicationLoop() {
 		//glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.01f, 100.0f);
 		glm::vec3 axis = glm::axis(glm::quat_cast(modelMatrixDart));
 		float angleTarget = glm::angle(glm::quat_cast(modelMatrixDart));
-		if(isnanf(angleTarget))
+		if(std::isnan(angleTarget))
 			angleTarget = 0.0;
 		if(axis.y < 0)
 			angleTarget = -angleTarget;

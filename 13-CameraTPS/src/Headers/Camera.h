@@ -4,6 +4,9 @@
 #define SPEED 3.0f
 #define SENSITIVTY 25.0f
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include <iostream>
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
