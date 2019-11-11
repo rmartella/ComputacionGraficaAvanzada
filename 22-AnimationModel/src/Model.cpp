@@ -40,7 +40,7 @@ void Model::render(glm::mat4 parentTrans) {
 				shader_ptr->setInt("numBones", this->meshes[i].bones->getNumBones());
 				std::vector<glm::mat4> transforms;
 				this->meshes[i].bones->bonesTransform(runningTime, transforms, scene);
-				for (uint j = 0; j < transforms.size(); j++) {
+				for (unsigned int j = 0; j < transforms.size(); j++) {
 					std::stringstream ss;
 					ss << "bones[" << j << "]";
 					shader_ptr->setMatrix4(ss.str(), 1, GL_FALSE,

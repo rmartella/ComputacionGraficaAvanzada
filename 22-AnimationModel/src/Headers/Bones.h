@@ -28,7 +28,7 @@ class Bones {
 public:
 	Bones(GLuint VAO, unsigned int numVertex);
 	virtual ~Bones();
-	void loadBones(uint meshIndex, const aiMesh* pMesh);
+	void loadBones(unsigned int meshIndex, const aiMesh* pMesh);
 	void bonesTransform(float timeInSeconds, std::vector<glm::mat4>& transforms,
 			const aiScene* scene);
 	int getNumBones(){
@@ -41,9 +41,9 @@ private:
 	const aiNodeAnim* findNodeAnim(const aiAnimation* pAnimation,
 			const std::string nodeName);
 
-	uint findPosition(float AnimationTime, const aiNodeAnim* pNodeAnim);
-	uint findRotation(float AnimationTime, const aiNodeAnim* pNodeAnim);
-	uint findScaling(float AnimationTime, const aiNodeAnim* pNodeAnim);
+	unsigned int findPosition(float AnimationTime, const aiNodeAnim* pNodeAnim);
+	unsigned int findRotation(float AnimationTime, const aiNodeAnim* pNodeAnim);
+	unsigned int findScaling(float AnimationTime, const aiNodeAnim* pNodeAnim);
 
 	void calcInterpolatedPosition(aiVector3D& Out, float AnimationTime,
 			const aiNodeAnim* pNodeAnim);
@@ -55,10 +55,10 @@ private:
 private:
 
 	struct VertexBoneData {
-		uint IDs[4];
+		unsigned int IDs[4];
 		float Weights[4];
-		void AddBoneData(uint boneID, float weight) {
-			for (uint i = 0; i < ARRAY_SIZE_IN_ELEMENTS(IDs); i++) {
+		void AddBoneData(unsigned int boneID, float weight) {
+			for (unsigned int i = 0; i < ARRAY_SIZE_IN_ELEMENTS(IDs); i++) {
 				if (Weights[i] == 0.0) {
 					IDs[i] = boneID;
 					Weights[i] = weight;
@@ -77,7 +77,7 @@ private:
 		}
 	};
 
-	std::map<std::string, uint> m_BoneMapping;
+	std::map<std::string, unsigned int> m_BoneMapping;
 	std::vector<BoneInfo> m_BoneInfo;
 	std::vector<VertexBoneData> bones;
 	int m_NumBones;

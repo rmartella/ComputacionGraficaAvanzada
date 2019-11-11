@@ -23,11 +23,11 @@ Bones::~Bones() {
 	glDeleteVertexArrays(1, &VAO);
 }
 
-void Bones::loadBones(uint meshIndex, const aiMesh *pMesh) {
+void Bones::loadBones(unsigned int meshIndex, const aiMesh *pMesh) {
 	if(pMesh->mNumBones > 0){
 		bones.resize(pMesh->mNumVertices);
-		for (uint i = 0; i < pMesh->mNumBones; i++) {
-			uint boneIndex = 0;
+		for (unsigned int i = 0; i < pMesh->mNumBones; i++) {
+			unsigned int boneIndex = 0;
 			std::string boneName(pMesh->mBones[i]->mName.data);
 
 			if (m_BoneMapping.find(boneName) == m_BoneMapping.end()) {
@@ -41,8 +41,8 @@ void Bones::loadBones(uint meshIndex, const aiMesh *pMesh) {
 				m_BoneMapping[boneName] = boneIndex;
 			} else
 				boneIndex = m_BoneMapping[boneName];
-			for (uint j = 0; j < pMesh->mBones[i]->mNumWeights; j++) {
-				uint vertexID = pMesh->mBones[i]->mWeights[j].mVertexId;
+			for (unsigned int j = 0; j < pMesh->mBones[i]->mNumWeights; j++) {
+				unsigned int vertexID = pMesh->mBones[i]->mWeights[j].mVertexId;
 				float weight = pMesh->mBones[i]->mWeights[j].mWeight;
 				bones[vertexID].AddBoneData(boneIndex, weight);
 			}
@@ -84,7 +84,7 @@ void Bones::bonesTransform(float timeInSeconds,
 
 	transforms.resize(m_NumBones);
 
-	for (uint i = 0; i < m_NumBones; i++) {
+	for (unsigned int i = 0; i < m_NumBones; i++) {
 		transforms[i] = m_BoneInfo[i].finalTransformation;
 	}
 
@@ -131,12 +131,12 @@ void Bones::readNodeHeirarchy(float animationTime, const aiScene *scene,
 	glm::mat4 GlobalTransformation = parentTransform * nodeTransformation;
 
 	if (m_BoneMapping.find(nodeName) != m_BoneMapping.end()) {
-		uint boneIndex = m_BoneMapping[nodeName];
+		unsigned int boneIndex = m_BoneMapping[nodeName];
 		m_BoneInfo[boneIndex].finalTransformation = GlobalTransformation
 				* m_BoneInfo[boneIndex].boneOffset;
 	}
 
-	for (uint i = 0; i < pNode->mNumChildren; i++) {
+	for (unsigned int i = 0; i < pNode->mNumChildren; i++) {
 		readNodeHeirarchy(animationTime, scene, pNode->mChildren[i],
 				GlobalTransformation);
 	}
@@ -145,7 +145,7 @@ void Bones::readNodeHeirarchy(float animationTime, const aiScene *scene,
 
 const aiNodeAnim* Bones::findNodeAnim(const aiAnimation *pAnimation,
 		const std::string nodeName) {
-	for (uint i = 0; i < pAnimation->mNumChannels; i++) {
+	for (unsigned int i = 0; i < pAnimation->mNumChannels; i++) {
 		const aiNodeAnim *pNodeAnim = pAnimation->mChannels[i];
 
 		if (std::string(pNodeAnim->mNodeName.data) == nodeName) {
@@ -156,8 +156,8 @@ const aiNodeAnim* Bones::findNodeAnim(const aiAnimation *pAnimation,
 	return NULL;
 }
 
-uint Bones::findPosition(float AnimationTime, const aiNodeAnim *pNodeAnim) {
-	for (uint i = 0; i < pNodeAnim->mNumPositionKeys - 1; i++) {
+unsigned int Bones::findPosition(float AnimationTime, const aiNodeAnim *pNodeAnim) {
+	for (unsigned int i = 0; i < pNodeAnim->mNumPositionKeys - 1; i++) {
 		if (AnimationTime < (float) pNodeAnim->mPositionKeys[i + 1].mTime) {
 			return i;
 		}
@@ -168,10 +168,10 @@ uint Bones::findPosition(float AnimationTime, const aiNodeAnim *pNodeAnim) {
 	return 0;
 }
 
-uint Bones::findRotation(float AnimationTime, const aiNodeAnim *pNodeAnim) {
+unsigned int Bones::findRotation(float AnimationTime, const aiNodeAnim *pNodeAnim) {
 	assert(pNodeAnim->mNumRotationKeys > 0);
 
-	for (uint i = 0; i < pNodeAnim->mNumRotationKeys - 1; i++) {
+	for (unsigned int i = 0; i < pNodeAnim->mNumRotationKeys - 1; i++) {
 		if (AnimationTime < (float) pNodeAnim->mRotationKeys[i + 1].mTime) {
 			return i;
 		}
@@ -182,10 +182,10 @@ uint Bones::findRotation(float AnimationTime, const aiNodeAnim *pNodeAnim) {
 	return 0;
 }
 
-uint Bones::findScaling(float AnimationTime, const aiNodeAnim *pNodeAnim) {
+unsigned int Bones::findScaling(float AnimationTime, const aiNodeAnim *pNodeAnim) {
 	assert(pNodeAnim->mNumScalingKeys > 0);
 
-	for (uint i = 0; i < pNodeAnim->mNumScalingKeys - 1; i++) {
+	for (unsigned int i = 0; i < pNodeAnim->mNumScalingKeys - 1; i++) {
 		if (AnimationTime < (float) pNodeAnim->mScalingKeys[i + 1].mTime) {
 			return i;
 		}
@@ -203,8 +203,8 @@ void Bones::calcInterpolatedPosition(aiVector3D &Out, float AnimationTime,
 		return;
 	}
 
-	uint PositionIndex = findPosition(AnimationTime, pNodeAnim);
-	uint NextPositionIndex = (PositionIndex + 1);
+	unsigned int PositionIndex = findPosition(AnimationTime, pNodeAnim);
+	unsigned int NextPositionIndex = (PositionIndex + 1);
 	assert(NextPositionIndex < pNodeAnim->mNumPositionKeys);
 	float DeltaTime = (float) (pNodeAnim->mPositionKeys[NextPositionIndex].mTime
 			- pNodeAnim->mPositionKeys[PositionIndex].mTime);
@@ -226,8 +226,8 @@ void Bones::calcInterpolatedRotation(aiQuaternion &Out, float AnimationTime,
 		return;
 	}
 
-	uint RotationIndex = findRotation(AnimationTime, pNodeAnim);
-	uint NextRotationIndex = (RotationIndex + 1);
+	unsigned int RotationIndex = findRotation(AnimationTime, pNodeAnim);
+	unsigned int NextRotationIndex = (RotationIndex + 1);
 	assert(NextRotationIndex < pNodeAnim->mNumRotationKeys);
 	float DeltaTime = (float) (pNodeAnim->mRotationKeys[NextRotationIndex].mTime
 			- pNodeAnim->mRotationKeys[RotationIndex].mTime);
@@ -250,8 +250,8 @@ void Bones::calcInterpolatedScaling(aiVector3D &Out, float AnimationTime,
 		return;
 	}
 
-	uint ScalingIndex = findScaling(AnimationTime, pNodeAnim);
-	uint NextScalingIndex = (ScalingIndex + 1);
+	unsigned int ScalingIndex = findScaling(AnimationTime, pNodeAnim);
+	unsigned int NextScalingIndex = (ScalingIndex + 1);
 	assert(NextScalingIndex < pNodeAnim->mNumScalingKeys);
 	float DeltaTime = (float) (pNodeAnim->mScalingKeys[NextScalingIndex].mTime
 			- pNodeAnim->mScalingKeys[ScalingIndex].mTime);

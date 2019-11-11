@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Bones.cpp" />
     <ClCompile Include="src\Box.cpp" />
     <ClCompile Include="src\Cylinder.cpp" />
     <ClCompile Include="src\FirstPersonCamera.cpp" />
@@ -34,10 +35,12 @@
   <ItemGroup>
     <ClInclude Include="src\Headers\AbstractModel.h" />
     <ClInclude Include="src\Headers\AnimationUtils.h" />
+    <ClInclude Include="src\Headers\Bones.h" />
     <ClInclude Include="src\Headers\Box.h" />
     <ClInclude Include="src\Headers\Camera.h" />
     <ClInclude Include="src\Headers\Cylinder.h" />
     <ClInclude Include="src\Headers\FirstPersonCamera.h" />
+    <ClInclude Include="src\Headers\mathUtil.h" />
     <ClInclude Include="src\Headers\Mesh.h" />
     <ClInclude Include="src\Headers\Model.h" />
     <ClInclude Include="src\Headers\Shader.h" />
@@ -48,8 +51,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{f76a630e-0f41-4f66-94be-f24391d4c71f}</ProjectGuid>
-    <RootNamespace>_21_OpenAL</RootNamespace>
+    <ProjectGuid>{786f0efa-af2a-468a-949c-b78cca3383f3}</ProjectGuid>
+    <RootNamespace>_22_AnimationModel</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
