@@ -16,12 +16,13 @@ Model::Model() {
 	this->aabb.maxs.x = -FLT_MAX;
 	this->aabb.maxs.y = -FLT_MAX;
 	this->aabb.maxs.z = -FLT_MAX;
+	this->animationIndex = 0;
 }
 
 Model::~Model() {
 	for (GLuint i = 0; i < this->meshes.size(); i++){
-		this->meshes[i].destroy();
-		delete  this->meshes[i].bones;
+		delete this->meshes[i]->bones;
+		delete this->meshes[i];
 	}
 	for (int i = 0; i < this->textureLoaded.size(); i++)
 		delete this->textureLoaded[i];
@@ -31,15 +32,16 @@ void Model::render(glm::mat4 parentTrans) {
 	float runningTime = TimeManager::Instance().GetRunningTime();
 	//float runningTime = TimeManager::Instance().DeltaTime;
 	for (GLuint i = 0; i < this->meshes.size(); i++) {
-		this->meshes[i].setShader(this->getShader());
-		this->meshes[i].setPosition(this->getPosition());
-		this->meshes[i].setScale(this->getScale());
-		this->meshes[i].setOrientation(this->getOrientation());
+		this->meshes[i]->setShader(this->getShader());
+		this->meshes[i]->setPosition(this->getPosition());
+		this->meshes[i]->setScale(this->getScale());
+		this->meshes[i]->setOrientation(this->getOrientation());
 		if(scene->mNumAnimations > 0){
-			if(this->meshes[i].bones != nullptr){
-				shader_ptr->setInt("numBones", this->meshes[i].bones->getNumBones());
+			this->meshes[i]->bones->setAnimationIndex(this->animationIndex);
+			if(this->meshes[i]->bones != nullptr){
+				shader_ptr->setInt("numBones", this->meshes[i]->bones->getNumBones());
 				std::vector<glm::mat4> transforms;
-				this->meshes[i].bones->bonesTransform(runningTime, transforms, scene);
+				this->meshes[i]->bones->bonesTransform(runningTime, transforms, scene);
 				for (unsigned int j = 0; j < transforms.size(); j++) {
 					std::stringstream ss;
 					ss << "bones[" << j << "]";
@@ -50,7 +52,7 @@ void Model::render(glm::mat4 parentTrans) {
 			else
 				parentTrans = m_GlobalInverseTransform * parentTrans;
 		}
-		this->meshes[i].render(parentTrans);
+		this->meshes[i]->render(parentTrans);
 		glActiveTexture(GL_TEXTURE0);
 		shader_ptr->setInt("numBones", 0);
 	}
@@ -102,10 +104,10 @@ void Model::processNode(aiNode* node, const aiScene* scene) {
 	// Procesa cada maya del nodo actual
 	for (GLuint i = 0; i < node->mNumMeshes; i++) {
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		Mesh meshModel = this->processMesh(mesh, scene);
-		Bones * bones = new Bones(meshModel.getVAO(), mesh->mNumVertices);
+		Mesh * meshModel = this->processMesh(mesh, scene);
+		Bones * bones = new Bones(meshModel->getVAO(), mesh->mNumVertices);
 		bones->loadBones(i, mesh);
-		meshModel.bones = bones;
+		meshModel->bones = bones;
 		this->meshes.push_back(meshModel);
 	}
 	for (GLuint i = 0; i < node->mNumChildren; i++) {
@@ -113,7 +115,7 @@ void Model::processNode(aiNode* node, const aiScene* scene) {
 	}
 }
 
-Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
+Mesh * Model::processMesh(aiMesh* mesh, const aiScene* scene) {
 	std::vector<AbstractModel::Vertex> vertices;
 	std::vector<GLuint> indices;
 	std::vector<Texture*> textures;
@@ -196,8 +198,9 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 	}
 
+	Mesh * meshModel = new Mesh(vertices, indices, textures);
 	// Regresa la maya de un objeto creado de los datos extraidos.
-	return Mesh(vertices, indices, textures);
+	return meshModel;
 }
 
 std::vector<Texture*> Model::loadMaterialTextures(aiMaterial* mat,

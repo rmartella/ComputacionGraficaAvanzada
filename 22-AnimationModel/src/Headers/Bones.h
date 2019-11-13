@@ -34,6 +34,12 @@ public:
 	int getNumBones(){
 		return m_NumBones;
 	}
+	int getAnimationIndex(){
+		return animationIndex;
+	}
+	void setAnimationIndex(int animationIndex){
+		this->animationIndex = animationIndex;
+	}
 
 private:
 	void readNodeHeirarchy(float animationTime, const aiScene* scene,
@@ -81,6 +87,7 @@ private:
 	std::vector<BoneInfo> m_BoneInfo;
 	std::vector<VertexBoneData> bones;
 	int m_NumBones;
+	int animationIndex;
 	GLuint VAO, VBO;
 };
 

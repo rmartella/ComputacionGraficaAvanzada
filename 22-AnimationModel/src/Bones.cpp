@@ -12,6 +12,7 @@ Bones::Bones(GLuint VAO, unsigned int numVertex) {
 	this->m_NumBones = 0;
 	this->VAO = VAO;
 	this->VBO = 0;
+	this->animationIndex = 0;
 }
 
 Bones::~Bones() {
@@ -74,11 +75,11 @@ void Bones::bonesTransform(float timeInSeconds,
 	glm::mat4 identity = glm::mat4(1.0f);
 
 	float ticksPerSecond = (float) (
-			scene->mAnimations[0]->mTicksPerSecond != 0 ?
-					scene->mAnimations[0]->mTicksPerSecond : 25.0f);
+			scene->mAnimations[animationIndex]->mTicksPerSecond != 0 ?
+					scene->mAnimations[animationIndex]->mTicksPerSecond : 25.0f);
 	float timeInTicks = timeInSeconds * ticksPerSecond;
 	float animationTime = fmod(timeInTicks,
-			(float) scene->mAnimations[0]->mDuration);
+			(float) scene->mAnimations[animationIndex]->mDuration);
 
 	readNodeHeirarchy(animationTime, scene, scene->mRootNode, identity);
 
@@ -95,7 +96,7 @@ void Bones::readNodeHeirarchy(float animationTime, const aiScene *scene,
 
 	std::string nodeName(pNode->mName.data);
 
-	const aiAnimation *pAnimation = scene->mAnimations[0];
+	const aiAnimation *pAnimation = scene->mAnimations[animationIndex];
 
 	glm::mat4 nodeTransformation = glm::mat4(1.0);
 	CopyMat(pNode->mTransformation, nodeTransformation);

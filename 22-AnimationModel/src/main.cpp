@@ -45,6 +45,8 @@ int screenHeight;
 
 float rotDartHead = 0.0, rotDartBody = 0.0, advanceDartBody = 0.0, rotDartLeftArm = 0.0,
 		rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
+float rotMayowBody = 0.0, advanceMayowBody = 0.0;
+int animationIndex = 1;
 float roty = 0.0;
 float advancez = 0.0;
 int modelSelected = 0;
@@ -362,7 +364,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	cowboyModelAnimate.loadModel("../objects/cowboy/Character Running.fbx");
 	cowboyModelAnimate.setShader(&multipleLights);
 
-	mayowModelAnimate.loadModel("../objects/mayow/personaje.fbx");
+	mayowModelAnimate.loadModel("../objects/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&multipleLights);
 
 	skyboxSphere.init();
@@ -714,6 +716,20 @@ bool processInput(bool continueApplication){
 	else if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		advanceDartBody = 0.02;
 
+	if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
+		rotMayowBody = 0.02;
+		animationIndex = 0;
+	}else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS){
+		rotMayowBody = -0.02;
+		animationIndex = 0;
+	}if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
+		advanceMayowBody = 0.02;
+		animationIndex = 0;
+	}else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
+		advanceMayowBody = -0.02;
+		animationIndex = 0;
+	}
+
 	if(glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 		rayGenerate = true;
 	if(glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_RELEASE || glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
@@ -738,6 +754,10 @@ void applicationLoop() {
 
 	glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 	modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(3.0, -1.7, 20.0));
+
+	glm::mat4 modelMatrixMayowModel = glm::mat4(1.0f);
+	modelMatrixMayowModel = glm::translate(modelMatrixMayowModel, glm::vec3(-10.0f, -1.7, 5.0));
+	modelMatrixMayowModel = glm::rotate(modelMatrixMayowModel, glm::radians(30.0f), glm::vec3(0, 1, 0));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -764,14 +784,28 @@ void applicationLoop() {
 
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) screenWidth / (float) screenHeight, 0.01f, 100.0f);
 		//glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.01f, 100.0f);
-		glm::vec3 axis = glm::axis(glm::quat_cast(modelMatrixDart));
-		float angleTarget = glm::angle(glm::quat_cast(modelMatrixDart));
+		glm::vec3 axis;
+		glm::vec3 target;
+		float angleTarget;
+		if(modelSelected == 1){
+			axis = glm::axis(glm::quat_cast(modelMatrixDart));
+			angleTarget = glm::angle(glm::quat_cast(modelMatrixDart));
+			target = modelMatrixDart[3];
+		}
+		else{
+			axis = glm::axis(glm::quat_cast(modelMatrixMayowModel));
+			angleTarget = glm::angle(glm::quat_cast(modelMatrixMayowModel));
+
+			target = modelMatrixMayowModel[3];
+		}
 		if(std::isnan(angleTarget))
 			angleTarget = 0.0;
 		if(axis.y < 0)
 			angleTarget = -angleTarget;
-		camera->setCameraTarget(modelMatrixDart * glm::vec4(0, 0, 0, 1) + glm::vec4(0, 1.7, 0.0, 0.0));
-		camera->setAngleTarget(angleTarget - glm::radians(90.0f));
+		if(modelSelected == 1)
+			angleTarget -= glm::radians(90.0f);
+		camera->setCameraTarget(target + glm::vec3(0, 1.7, 0.0));
+		camera->setAngleTarget(angleTarget);
 		glm::mat4 view = camera->getViewMatrix();
 
 		shaderColor.setMatrix4("projection", 1, false, glm::value_ptr(projection));
@@ -1060,11 +1094,12 @@ void applicationLoop() {
 		cowboyModelAnimate.render(modelMatrixCowboyModel);
 		glActiveTexture(GL_TEXTURE0);
 
-		glm::mat4 modelMatrixMayowModel = glm::mat4(1.0f);
-		modelMatrixMayowModel = glm::translate(modelMatrixMayowModel, glm::vec3(-10.0f, -1.7, 5.0));
-		modelMatrixMayowModel = glm::rotate(modelMatrixMayowModel, glm::radians(30.0f), glm::vec3(0, 1, 0));
-		modelMatrixMayowModel = glm::scale(modelMatrixMayowModel, glm::vec3(0.035, 0.035, 0.035));
-		mayowModelAnimate.render(modelMatrixMayowModel);
+		modelMatrixMayowModel = glm::translate(modelMatrixMayowModel, glm::vec3(0.0, 0.0, advanceMayowBody));
+		modelMatrixMayowModel = glm::rotate(modelMatrixMayowModel, rotMayowBody, glm::vec3(0, 1, 0));
+		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayowModel);
+		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.035, 0.035, 0.035));
+		mayowModelAnimate.setAnimationIndex(animationIndex);
+		mayowModelAnimate.render(modelMatrixMayowBody);
 		glActiveTexture(GL_TEXTURE0);
 
 		// render de colliders
@@ -1147,7 +1182,7 @@ void applicationLoop() {
 		sphereCollider.enableWireMode();
 		sphereCollider.render(modelMatrixColliderRock);
 		// Collider de mayow
-		glm::mat4 modelmatrixColliderMayow = glm::mat4(modelMatrixMayowModel);
+		glm::mat4 modelmatrixColliderMayow = glm::mat4(modelMatrixMayowBody);
 		// Se aplican las transformaciones de la Armature de blender.
 		modelmatrixColliderMayow = glm::rotate(modelmatrixColliderMayow,
 				glm::radians(-90.0f), glm::vec3(1, 0, 0));
@@ -1161,7 +1196,8 @@ void applicationLoop() {
 						mayowModelAnimate.getObb().dims.y,
 						mayowModelAnimate.getObb().dims.z));
 		// Ajuste del collider (Por la deformacion del modelo inicial).
-		modelmatrixColliderMayow = glm::scale(modelmatrixColliderMayow, glm::vec3(0.6,  0.8, 1.0));
+		modelmatrixColliderMayow = glm::translate(modelmatrixColliderMayow, glm::vec3(-0.02, -0.05, -0.025));
+		modelmatrixColliderMayow = glm::scale(modelmatrixColliderMayow, glm::vec3(0.2,  0.2, 0.28));
 		boxCollider.enableWireMode();
 		boxCollider.render(modelmatrixColliderMayow);
 
@@ -1259,6 +1295,10 @@ void applicationLoop() {
 
 		advanceDartBody = 0.0;
 		rotDartBody = 0.0;
+
+		advanceMayowBody = 0.0;
+		rotMayowBody = 0.0;
+		animationIndex = 1;
 
 		glfwSwapBuffers(window);
 	}

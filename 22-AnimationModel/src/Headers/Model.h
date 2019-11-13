@@ -22,23 +22,30 @@ public:
 	void loadModel(const std::string & path);
 	void render(glm::mat4 parentTrans = glm::mat4(1.0f));
 	virtual bool rayPicking(glm::vec3 init, glm::vec3 end, glm::vec3 &intersection);
-	std::vector<Mesh> getMeshes() {
+	std::vector<Mesh*> getMeshes() {
 		return meshes;
+	}
+	int getAnimationIndex(){
+		return animationIndex;
+	}
+	void setAnimationIndex(int animationIndex){
+		this->animationIndex = animationIndex;
 	}
 private:
 	void processNode(aiNode* node, const aiScene* scene);
-	Mesh processMesh(aiMesh* mesh, const aiScene* scene);
+	Mesh * processMesh(aiMesh* mesh, const aiScene* scene);
 	std::vector<Texture*> loadMaterialTextures(aiMaterial* mat,
 			aiTextureType type, std::string typeName);
 
 private:
-	std::vector<Mesh> meshes;
+	std::vector<Mesh*> meshes;
 	std::vector<Texture*> textureLoaded;
 	std::string directory;
 	//std::vector<Bones> vecBones;
 	glm::mat4 m_GlobalInverseTransform;
 	const aiScene* scene;
 	Assimp::Importer importer;
+	int animationIndex;
 	bool gammaCorrection;
 };
 

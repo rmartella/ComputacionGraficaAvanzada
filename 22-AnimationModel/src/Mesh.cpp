@@ -20,6 +20,7 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices,
 }
 
 Mesh::~Mesh() {
+	this->destroy();
 }
 
 void Mesh::render(glm::mat4 parentTrans) {
