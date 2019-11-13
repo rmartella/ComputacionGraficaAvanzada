@@ -49,7 +49,7 @@ float rotMayowBody = 0.0, advanceMayowBody = 0.0;
 int animationIndex = 1;
 float roty = 0.0;
 float advancez = 0.0;
-int modelSelected = 0;
+int modelSelected = 2;
 bool enableCountSelected = true;
 
 // Variables to animations keyframes
