@@ -6,7 +6,6 @@
 //std includes
 #include <string>
 #include <iostream>
-#include <map>
 
 //glfw include
 #include <GLFW/glfw3.h>
@@ -86,6 +85,7 @@ Shader shaderPoint;
 Shader shaderSpot;
 Shader multipleLights;
 Shader shaderSkybox;
+Shader shaderDepthTesting;
 
 Model modelRock;
 Model modelRail;
@@ -131,10 +131,9 @@ Cylinder cylinder2(20, 20, 0.5, 0.5);
 Cylinder cylinder3(30, 30, 0.5, 0.5);
 Box boxCollider;
 Sphere sphereCollider(20, 20);
-Box windowModel;
 
 // Descomentar
-GLuint textureID1, textureID2, textureID3, textureCespedID, textureWaterID, textureLaserID;
+GLuint textureID1, textureID2, textureID3, textureCespedID, textureWaterID;
 GLuint skyboxTextureID;
 
 bool exitApp = false;
@@ -265,13 +264,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	}
 
 	glViewport(0, 0, screenWidth, screenHeight);
-	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	shaderColor.initialize("../Shaders/colorShader.vs", "../Shaders/colorShader.fs");
 	shaderTexture.initialize("../Shaders/texturizado.vs", "../Shaders/texturizado.fs");
@@ -287,78 +283,77 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 		"../Shaders/multipleLights.fs");
 	shaderSkybox.initialize("../Shaders/cubeTexture.vs",
 		"../Shaders/cubeTexture.fs");
+	shaderDepthTesting.initialize("../Shaders/depthTesting.vs",
+		"../Shaders/depthTesting.fs");
 
 	sphere1.init();
-	sphere1.setShader(&multipleLights);
+	sphere1.setShader(&shaderDepthTesting);
 
 	sphereLamp.init();
-	sphereLamp.setShader(&shaderColor);
+	sphereLamp.setShader(&shaderDepthTesting);
 	sphereLamp.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 
 	cylinder1.init();
-	cylinder1.setShader(&multipleLights);
+	cylinder1.setShader(&shaderDepthTesting);
 
 	cylinder3.init();
-	cylinder3.setShader(&multipleLights);
+	cylinder3.setShader(&shaderDepthTesting);
 
 	box1.init();
-	box1.setShader(&multipleLights);
+	box1.setShader(&shaderDepthTesting);
 
 	box2.init();
-	box2.setShader(&multipleLights);
+	box2.setShader(&shaderDepthTesting);
 
 	cylinder2.init();
 	//cylinder2.setShader(&shaderDirectional);
 	//cylinder2.setShader(&shaderPoint);
-	cylinder2.setShader(&multipleLights);
+	cylinder2.setShader(&shaderDepthTesting);
 
 	boxWater.init();
-	boxWater.setShader(&multipleLights);
+	boxWater.setShader(&shaderDepthTesting);
 
 	boxCesped.init();
-	boxCesped.setShader(&multipleLights);
-
-	windowModel.init();
-	windowModel.setShader(&shaderTexture);
+	boxCesped.setShader(&shaderDepthTesting);
 
 	modelRock.loadModel("../objects/rock/rock.obj");
-	modelRock.setShader(&multipleLights);
+	modelRock.setShader(&shaderDepthTesting);
 
 	modelRail.loadModel("../objects/railroad/railroad_track.obj");
-	modelRail.setShader(&multipleLights);
+	modelRail.setShader(&shaderDepthTesting);
 
 	modelAirCraft.loadModel("../objects/Aircraft_obj/E 45 Aircraft_obj.obj");
-	modelAirCraft.setShader(&multipleLights);
+	modelAirCraft.setShader(&shaderDepthTesting);
 
 	// Dart Lego
 	modelDartLegoBody.loadModel("../objects/LegoDart/LeoDart_body.obj");
-	modelDartLegoBody.setShader(&multipleLights);
+	modelDartLegoBody.setShader(&shaderDepthTesting);
 	modelDartLegoMask.loadModel("../objects/LegoDart/LeoDart_mask.obj");
-	modelDartLegoMask.setShader(&multipleLights);
+	modelDartLegoMask.setShader(&shaderDepthTesting);
 	modelDartLegoHead.loadModel("../objects/LegoDart/LeoDart_head.obj");
-	modelDartLegoHead.setShader(&multipleLights);
+	modelDartLegoHead.setShader(&shaderDepthTesting);
 	modelDartLegoLeftArm.loadModel("../objects/LegoDart/LeoDart_left_arm.obj");
-	modelDartLegoLeftArm.setShader(&multipleLights);
+	modelDartLegoLeftArm.setShader(&shaderDepthTesting);
 	modelDartLegoRightArm.loadModel("../objects/LegoDart/LeoDart_right_arm.obj");
-	modelDartLegoRightArm.setShader(&multipleLights);
+	modelDartLegoRightArm.setShader(&shaderDepthTesting);
 	modelDartLegoLeftHand.loadModel("../objects/LegoDart/LeoDart_left_hand.obj");
-	modelDartLegoLeftHand.setShader(&multipleLights);
+	modelDartLegoLeftHand.setShader(&shaderDepthTesting);
 	modelDartLegoRightHand.loadModel("../objects/LegoDart/LeoDart_right_hand.obj");
-	modelDartLegoRightHand.setShader(&multipleLights);
+	modelDartLegoRightHand.setShader(&shaderDepthTesting);
 	modelDartLegoLeftLeg.loadModel("../objects/LegoDart/LeoDart_left_leg.obj");
-	modelDartLegoLeftLeg.setShader(&multipleLights);
+	modelDartLegoLeftLeg.setShader(&shaderDepthTesting);
 	modelDartLegoRightLeg.loadModel("../objects/LegoDart/LeoDart_right_leg.obj");
-	modelDartLegoRightLeg.setShader(&multipleLights);
+	modelDartLegoRightLeg.setShader(&shaderDepthTesting);
 
 	skyboxSphere.init();
-	skyboxSphere.setShader(&shaderSkybox);
+	skyboxSphere.setShader(&shaderDepthTesting);
 	skyboxSphere.setScale(glm::vec3(20.0f, 20.0f, 20.0f));
 
 	boxCollider.init();
-	boxCollider.setShader(&shaderColor);
+	boxCollider.setShader(&shaderDepthTesting);
 	boxCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 	sphereCollider.init();
-	sphereCollider.setShader(&shaderColor);
+	sphereCollider.setShader(&shaderDepthTesting);
 	sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 
 	camera->setPosition(glm::vec3(0.0, 0.0, 6.0));
@@ -488,25 +483,6 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	else
 		std::cout << "Failed to load texture" << std::endl;
 	texture5.freeImage(bitmap);
-
-	Texture texture6 = Texture("../Textures/ventana.png");
-	bitmap = texture6.loadImage(false);
-	data = texture6.convertToData(bitmap, imageWidth, imageHeight);
-	glGenTextures(1, &textureLaserID);
-	glBindTexture(GL_TEXTURE_2D, textureLaserID);
-	// set the texture wrapping parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	// set texture filtering parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-		std::cout << "Failed to load texture" << std::endl;
-	texture6.freeImage(bitmap);
 }
 
 void destroy() {
@@ -727,8 +703,6 @@ bool processInput(bool continueApplication){
 	return continueApplication;
 }
 
-bool vectorSorter (int i,int j) { return (i<j); }
-
 void applicationLoop() {
 	bool psi = true;
 
@@ -805,6 +779,9 @@ void applicationLoop() {
 
 		multipleLights.setMatrix4("projection", 1, false, glm::value_ptr(projection));
 		multipleLights.setMatrix4("view", 1, false, glm::value_ptr(view));
+
+		shaderDepthTesting.setMatrix4("projection", 1, false, glm::value_ptr(projection));
+		shaderDepthTesting.setMatrix4("view", 1, false, glm::value_ptr(view));
 
 		shaderDirectional.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
 		shaderDirectional.setVectorFloat3("light.direction", glm::value_ptr(glm::vec3(0.0, 0.0, 1.0)));
@@ -1180,7 +1157,7 @@ void applicationLoop() {
 		}
 
 		// Se Dibuja el Skybox
-		GLint oldCullFaceMode;
+		/*GLint oldCullFaceMode;
 		GLint oldDepthFuncMode;
 		// deshabilita el modo del recorte de caras ocultas para ver las esfera desde adentro
 		glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFaceMode);
@@ -1190,19 +1167,7 @@ void applicationLoop() {
 		glDepthFunc(GL_LEQUAL);
 		skyboxSphere.render();
 		glCullFace(oldCullFaceMode);
-		glDepthFunc(oldDepthFuncMode);
-
-		/**********
-		 * Render de las transparencias
-		 */
-		glm::mat4 windowCylinderModel = glm::mat4(1.0f);
-		glBindTexture(GL_TEXTURE_2D, textureLaserID);
-		glDisable(GL_CULL_FACE);
-		windowCylinderModel = glm::translate(windowCylinderModel, glm::vec3(3, 0.0, 15.0));
-		windowCylinderModel = glm::scale(windowCylinderModel, glm::vec3(2.0, 2.0, 2.0));
-		windowModel.render(0, 6, windowCylinderModel);
-		glEnable(GL_CULL_FACE);
-		glBindTexture(GL_TEXTURE_2D, 0);
+		glDepthFunc(oldDepthFuncMode);*/
 
 		off.x += 0.001;
 		off.y += 0.001;
