@@ -47,6 +47,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "12-MultiplesTexturas", "12-
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "22-AnimationModel", "22-AnimationModel\22-AnimationModel.vcxproj", "{786F0EFA-AF2A-468A-949C-B78CCA3383F3}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "23-Terrain", "23-Terrain\23-Terrain.vcxproj", "{AEF67514-0793-495B-AEBD-DB245C03D347}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -231,6 +233,14 @@ Global
 		{786F0EFA-AF2A-468A-949C-B78CCA3383F3}.Release|x64.Build.0 = Release|x64
 		{786F0EFA-AF2A-468A-949C-B78CCA3383F3}.Release|x86.ActiveCfg = Release|Win32
 		{786F0EFA-AF2A-468A-949C-B78CCA3383F3}.Release|x86.Build.0 = Release|Win32
+		{AEF67514-0793-495B-AEBD-DB245C03D347}.Debug|x64.ActiveCfg = Debug|x64
+		{AEF67514-0793-495B-AEBD-DB245C03D347}.Debug|x64.Build.0 = Debug|x64
+		{AEF67514-0793-495B-AEBD-DB245C03D347}.Debug|x86.ActiveCfg = Debug|Win32
+		{AEF67514-0793-495B-AEBD-DB245C03D347}.Debug|x86.Build.0 = Debug|Win32
+		{AEF67514-0793-495B-AEBD-DB245C03D347}.Release|x64.ActiveCfg = Release|x64
+		{AEF67514-0793-495B-AEBD-DB245C03D347}.Release|x64.Build.0 = Release|x64
+		{AEF67514-0793-495B-AEBD-DB245C03D347}.Release|x86.ActiveCfg = Release|Win32
+		{AEF67514-0793-495B-AEBD-DB245C03D347}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
