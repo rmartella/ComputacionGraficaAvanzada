@@ -134,7 +134,7 @@ Sphere sphereCollider(20, 20);
 Box windowModel;
 
 // Descomentar
-GLuint textureID1, textureID2, textureID3, textureCespedID, textureWaterID, textureLaserID;
+GLuint textureID1, textureID2, textureID3, textureCespedID, textureWaterID, textureWindowID;
 GLuint skyboxTextureID;
 
 bool exitApp = false;
@@ -492,8 +492,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	Texture texture6 = Texture("../Textures/ventana.png");
 	bitmap = texture6.loadImage(false);
 	data = texture6.convertToData(bitmap, imageWidth, imageHeight);
-	glGenTextures(1, &textureLaserID);
-	glBindTexture(GL_TEXTURE_2D, textureLaserID);
+	glGenTextures(1, &textureWindowID);
+	glBindTexture(GL_TEXTURE_2D, textureWindowID);
 	// set the texture wrapping parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -1196,7 +1196,7 @@ void applicationLoop() {
 		 * Render de las transparencias
 		 */
 		glm::mat4 windowCylinderModel = glm::mat4(1.0f);
-		glBindTexture(GL_TEXTURE_2D, textureLaserID);
+		glBindTexture(GL_TEXTURE_2D, textureWindowID);
 		glDisable(GL_CULL_FACE);
 		windowCylinderModel = glm::translate(windowCylinderModel, glm::vec3(3, 0.0, 15.0));
 		windowCylinderModel = glm::scale(windowCylinderModel, glm::vec3(2.0, 2.0, 2.0));

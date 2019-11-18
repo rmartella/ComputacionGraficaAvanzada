@@ -19,7 +19,7 @@ Texture::Texture(GLenum TextureTarget, const std::string& FileName) :
 }
 
 Texture::~Texture() {
-	glDeleteTextures(1, &m_textureObj);
+	// glDeleteTextures(1, &m_textureObj);
 }
 
 FIBITMAP* Texture::loadImage(bool flipImage) {
