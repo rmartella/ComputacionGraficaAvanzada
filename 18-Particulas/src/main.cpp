@@ -44,8 +44,6 @@ float distanceFromTarget = 4.0;
 int screenWidth;
 int screenHeight;
 
-const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-
 float rotDartHead = 0.0, rotDartBody = 0.0, advanceDartBody = 0.0, rotDartLeftArm = 0.0,
 		rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 float roty = 0.0;
@@ -82,11 +80,13 @@ GLFWwindow * window;
 
 Shader shaderColor;
 Shader shaderTexture;
+Shader shaderIluminacion;
+Shader shaderDirectional;
+Shader shaderPoint;
+Shader shaderSpot;
 Shader multipleLights;
 Shader shaderSkybox;
 Shader shaderParticles;
-Shader shaderViewDepth;
-Shader shaderDepth;
 
 Model modelRock;
 Model modelRail;
@@ -133,7 +133,6 @@ Cylinder cylinder3(30, 30, 0.5, 0.5);
 Box boxCollider;
 Sphere sphereCollider(20, 20);
 Box windowModel;
-Box viewDepthModel;
 
 // Descomentar
 GLuint textureID1, textureID2, textureParticle, textureCespedID, textureWaterID, textureWindowID;
@@ -144,9 +143,6 @@ GLuint initVel, startTime;
 GLuint VAOParticles;
 GLuint nParticles;
 
-GLuint depthMap;
-GLuint depthMapFBO;
-
 bool exitApp = false;
 int lastMousePosX, offsetX = 0;
 int lastMousePosY, offsetY = 0;
@@ -154,16 +150,6 @@ int lastMousePosY, offsetY = 0;
 double deltaTime;
 double currTime, lastTime;
 double currTimeParticlesAnimation, lastTimeParticlesAnimation;
-
-std::vector<glm::vec3> blendingUnsorted = { glm::vec3(3, 0.0, 15.0), glm::vec3(3.0, 0.0,
-				-4.0), glm::vec3(-2.0, 0.0, -3.0), glm::vec3(-2.0, 0.0, -10.0), glm::vec3(0.0, 0.0, 0.0)};
-
-// Global variables to render with shadow mapping
-glm::mat4 modelMatrixDart = glm::mat4(1.0f);
-glm::mat4 matrixModelAirCraft = glm::mat4(1.0f);
-glm::vec2 off = glm::vec2(0.0, 0.0);
-glm::mat4 projection;
-glm::mat4 view;
 
 // Se definen todos las funciones.
 void reshapeCallback(GLFWwindow* Window, int widthRes, int heightRes);
@@ -174,7 +160,6 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 void init(int width, int height, std::string strTitle, bool bFullScreen);
 void destroy();
 bool processInput(bool continueApplication = true);
-void renderScene(Shader *shader);
 
 bool raySphereIntersect(glm::vec3 orig, glm::vec3 dest, glm::vec3 dir, AbstractModel::SBB sbb, float &t) {
 	// Vector del Origen del rayo al centro de la esfera.
@@ -357,20 +342,22 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 	shaderColor.initialize("../Shaders/colorShader.vs", "../Shaders/colorShader.fs");
 	shaderTexture.initialize("../Shaders/texturizado.vs", "../Shaders/texturizado.fs");
-	multipleLights.initialize(
-			"../Shaders/iluminacion_textura_shadow_mapping.vs",
-			"../Shaders/multipleLights_shadow_mapping.fs");
+	shaderIluminacion.initialize("../Shaders/iluminacion_textura.vs",
+			"../Shaders/iluminacion_textura.fs");
+	shaderDirectional.initialize("../Shaders/iluminacion_textura.vs",
+			"../Shaders/directionalLight.fs");
+	shaderPoint.initialize("../Shaders/iluminacion_textura.vs",
+			"../Shaders/pointLight.fs");
+	shaderSpot.initialize("../Shaders/iluminacion_textura.vs",
+			"../Shaders/spotLight.fs");
+	multipleLights.initialize("../Shaders/iluminacion_textura.vs",
+		"../Shaders/multipleLights.fs");
 	shaderSkybox.initialize("../Shaders/cubeTexture.vs",
-			"../Shaders/cubeTexture.fs");
+		"../Shaders/cubeTexture.fs");
 	shaderParticles.initialize("../Shaders/particles.vs",
-				"../Shaders/particles.fs");
-	shaderViewDepth.initialize("../Shaders/texturizado.vs", "../Shaders/texturizado_depth_view.fs");
-	shaderDepth.initialize("../Shaders/shadow_mapping_depth.vs", "../Shaders/shadow_mapping_depth.fs");
+			"../Shaders/particles.fs");
 
 	sphere1.init();
 	sphere1.setShader(&multipleLights);
@@ -403,7 +390,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	boxCesped.setShader(&multipleLights);
 
 	windowModel.init();
-	windowModel.setShader(&multipleLights);
+	windowModel.setShader(&shaderTexture);
 
 	modelRock.loadModel("../objects/rock/rock.obj");
 	modelRock.setShader(&multipleLights);
@@ -444,9 +431,6 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	sphereCollider.init();
 	sphereCollider.setShader(&shaderColor);
 	sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
-
-	viewDepthModel.init();
-	viewDepthModel.setShader(&shaderViewDepth);
 
 	camera->setPosition(glm::vec3(0.0, 0.0, 6.0));
 	camera->setDistanceFromTarget(distanceFromTarget);
@@ -595,26 +579,6 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 		std::cout << "Failed to load texture" << std::endl;
 	texture6.freeImage(bitmap);
 
-	// Shadow mapping
-	glGenFramebuffers(1, &depthMapFBO);
-	glGenTextures(1, &depthMap);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-	             SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);*/
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 	initParticleBuffers();
 }
 
@@ -631,6 +595,7 @@ void destroy() {
 
 	shaderColor.destroy();
 	shaderTexture.destroy();
+	shaderIluminacion.destroy();
 }
 
 void reshapeCallback(GLFWwindow* Window, int widthRes, int heightRes) {
@@ -835,22 +800,31 @@ bool processInput(bool continueApplication){
 	return continueApplication;
 }
 
+bool vectorSorter (int i,int j) { return (i<j); }
+
 void applicationLoop() {
 	bool psi = true;
 
+	float angle = 0.0;
+	float ratio = 5.0;
+	glm::vec2 off = glm::vec2(0.0, 0.0);
+
+	glm::mat4 matrixModelAirCraft = glm::mat4(1.0f);
 	matrixModelAirCraft = glm::translate(matrixModelAirCraft,
 			glm::vec3(10.0, 0.2, 20.0));
 	int state = 0;
 	float offsetAircraft = 0.0;
 
-	glm::vec3 lightPos = glm::vec3(-2.0f, 4.0f, -1.0f);
-
+	glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 	modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(3.0, -1.7, 20.0));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
 	keyFramesJoints = getKeyRotFrames(fileName);
 	keyFramesDart = getKeyFrames("../animaciones/animation_dart.txt");
+
+	std::vector<glm::vec3> blendingUnsorted = { glm::vec3(3, 0.0, 15.0), glm::vec3(3.0, 0.0,
+			-4.0), glm::vec3(-2.0, 0.0, -3.0), glm::vec3(-2.0, 0.0, -10.0), glm::vec3(0.0, 0.0, 0.0)};
 
 	lastTime = TimeManager::Instance().GetTime();
 
@@ -859,6 +833,9 @@ void applicationLoop() {
 	lastTimeParticlesAnimation = lastTime;
 
 	while (psi) {
+		// Variables to animations keyframes
+		std::vector<float> matrixDartJoints;
+
 		currTime = TimeManager::Instance().GetTime();
 		if(currTime - lastTime < 0.016666667){
 			glfwPollEvents();
@@ -869,54 +846,9 @@ void applicationLoop() {
 		deltaTime = TimeManager::Instance().DeltaTime;
 
 		psi = processInput(true);
-
-		// 1.- We render the depth buffer
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glm::mat4 lightProjection, lightView;
-		glm::mat4 lightSpaceMatrix;
-		float near_plane = 1.0f, far_plane = 7.5f;
-		//lightProjection = glm::perspective(glm::radians(45.0f), (GLfloat)SHADOW_WIDTH / (GLfloat)SHADOW_HEIGHT, near_plane, far_plane); // note that if you use a perspective projection matrix you'll have to change the light position as the current light position isn't enough to reflect the whole scene
-		lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-		lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-		lightSpaceMatrix = lightProjection * lightView;
-		shaderDepth.setMatrix4("lightSpaceMatrix", 1, false, glm::value_ptr(lightSpaceMatrix));
-		// render scene from light's point of view
-		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-		glClear(GL_DEPTH_BUFFER_BIT);
-		glActiveTexture(GL_TEXTURE0);
-		glCullFace(GL_FRONT);
-		renderScene(&shaderDepth);
-		glCullFace(GL_BACK);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		// reset viewport
-		glViewport(0, 0, screenWidth, screenHeight);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		/*// Debug to view the texture view map
-		// reset viewport
-		glViewport(0, 0, screenWidth, screenHeight);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		// render Depth map to quad for visual debugging
-		// ---------------------------------------------
-		shaderViewDepth.setMatrix4("projection", 1, false, glm::value_ptr(glm::mat4(1.0)));
-		shaderViewDepth.setMatrix4("view", 1, false, glm::value_ptr(glm::mat4(1.0)));
-		shaderViewDepth.setFloat("near_plane", near_plane);
-		shaderViewDepth.setFloat("far_plane", far_plane);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, depthMap);
-		viewDepthModel.setScale(glm::vec3(2.0, 2.0, 1.0));
-		viewDepthModel.render();*/
-
-
-		// 2.- We render the normal objects
-		glViewport(0, 0, screenWidth, screenHeight);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		projection = glm::perspective(glm::radians(45.0f), (float) screenWidth / (float) screenHeight, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) screenWidth / (float) screenHeight, 0.01f, 100.0f);
 		//glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.01f, 100.0f);
 		glm::vec3 axis = glm::axis(glm::quat_cast(modelMatrixDart));
 		float angleTarget = glm::angle(glm::quat_cast(modelMatrixDart));
@@ -926,7 +858,7 @@ void applicationLoop() {
 			angleTarget = -angleTarget;
 		camera->setCameraTarget(modelMatrixDart * glm::vec4(0, 0, 0, 1) + glm::vec4(0, 1.7, 0.0, 0.0));
 		camera->setAngleTarget(angleTarget - glm::radians(90.0f));
-		view = camera->getViewMatrix();
+		glm::mat4 view = camera->getViewMatrix();
 
 		shaderColor.setMatrix4("projection", 1, false, glm::value_ptr(projection));
 		shaderColor.setMatrix4("view", 1, false, glm::value_ptr(view));
@@ -934,29 +866,82 @@ void applicationLoop() {
 		shaderTexture.setMatrix4("projection", 1, false, glm::value_ptr(projection));
 		shaderTexture.setMatrix4("view", 1, false, glm::value_ptr(view));
 
+		shaderIluminacion.setMatrix4("projection", 1, false, glm::value_ptr(projection));
+		shaderIluminacion.setMatrix4("view", 1, false, glm::value_ptr(view));
+
+		shaderPoint.setMatrix4("projection", 1, false, glm::value_ptr(projection));
+		shaderPoint.setMatrix4("view", 1, false, glm::value_ptr(view));
+
+		shaderSpot.setMatrix4("projection", 1, false, glm::value_ptr(projection));
+		shaderSpot.setMatrix4("view", 1, false, glm::value_ptr(view));
+
+		shaderDirectional.setMatrix4("projection", 1, false, glm::value_ptr(projection));
+		shaderDirectional.setMatrix4("view", 1, false, glm::value_ptr(view));
+
 		shaderSkybox.setMatrix4("projection", 1, false,
 				glm::value_ptr(projection));
 		shaderSkybox.setMatrix4("view", 1, false,
 				glm::value_ptr(glm::mat4(glm::mat3(view))));
 
+		multipleLights.setMatrix4("projection", 1, false, glm::value_ptr(projection));
+		multipleLights.setMatrix4("view", 1, false, glm::value_ptr(view));
+
 		shaderParticles.setMatrix4("projection", 1, false, glm::value_ptr(projection));
 		shaderParticles.setMatrix4("view", 1, false, glm::value_ptr(view));
 
-		multipleLights.setMatrix4("projection", 1, false, glm::value_ptr(projection));
-		multipleLights.setMatrix4("view", 1, false, glm::value_ptr(view));
-		multipleLights.setMatrix4("lightSpaceMatrix", 1, false, glm::value_ptr(lightSpaceMatrix));
+		shaderDirectional.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
+		shaderDirectional.setVectorFloat3("light.direction", glm::value_ptr(glm::vec3(0.0, 0.0, 1.0)));
+		shaderDirectional.setVectorFloat3("light.ambient", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
+		shaderDirectional.setVectorFloat3("light.diffuse", glm::value_ptr(glm::vec3(0.6, 0.0, 0.6)));
+		shaderDirectional.setVectorFloat3("light.specular", glm::value_ptr(glm::vec3(0.0, 0.6, 0)));
+
+		shaderPoint.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
+		shaderPoint.setVectorFloat3("light.position",
+				glm::value_ptr(glm::vec3(0.0, 0.0, -3.0)));
+		shaderPoint.setVectorFloat3("light.ambient",
+				glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
+		shaderPoint.setVectorFloat3("light.diffuse",
+				glm::value_ptr(glm::vec3(0.6, 0.0, 0.6)));
+		shaderPoint.setVectorFloat3("light.specular",
+				glm::value_ptr(glm::vec3(0.0, 0.6, 0)));
+
+		shaderPoint.setFloat("light.constant", 1.0);
+		shaderPoint.setFloat("light.linear", 0.014);
+		shaderPoint.setFloat("light.quadratic", 0.044);
+
+		shaderSpot.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
+		shaderSpot.setVectorFloat3("light.position",
+				glm::value_ptr(camera->getPosition()));
+		/*shaderSpot.setVectorFloat3("light.direction",
+				glm::value_ptr(camera->getFront()));*/
+		shaderSpot.setVectorFloat3("light.direction",
+				glm::value_ptr(camera->getFront()));
+		shaderSpot.setFloat("light.cutOff", cos(glm::radians(5.5)));
+		shaderSpot.setFloat("light.outerCutOff", cos(glm::radians(7.0)));
+		shaderSpot.setVectorFloat3("light.ambient",
+				glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
+		shaderSpot.setVectorFloat3("light.diffuse",
+				glm::value_ptr(glm::vec3(0.6, 0.0, 0.6)));
+		shaderSpot.setVectorFloat3("light.specular",
+				glm::value_ptr(glm::vec3(0.0, 0.6, 0)));
+
+		shaderSpot.setFloat("light.constant", 1.0);
+		shaderSpot.setFloat("light.linear", 0.014);
+		shaderSpot.setFloat("light.quadratic", 0.044);
+
+		if (angle > 2 * M_PI)
+			angle = 0.0;
+		else
+			angle += 0.0001;
+
 
 		multipleLights.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
-		multipleLights.setFloat("pointLightCount", 0.0);
+		multipleLights.setFloat("pointLightCount", 2.0);
 		multipleLights.setFloat("spotLightCount", 1.0);
-		multipleLights.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.1, 0.1, 0.1)));
-		multipleLights.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::normalize(glm::vec3(0.0, 0.0 , 0.0) - lightPos)));
-		multipleLights.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
-		multipleLights.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.6, 0.6, 0.6)));
-
-		glm::mat4 lightModelmatrix = glm::translate(glm::mat4(1.0f), lightPos);
-		sphereLamp.render(lightModelmatrix);
-
+		multipleLights.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
+		multipleLights.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-1.0, 0.0, 0.0)));
+		multipleLights.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.6, 0.6, 0.6)));
+		multipleLights.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.0, 0.8, 0.8)));
 		multipleLights.setVectorFloat3("pointLights[0].light.ambient", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
 		multipleLights.setVectorFloat3("pointLights[0].light.diffuse", glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
 		multipleLights.setVectorFloat3("pointLights[0].light.specular", glm::value_ptr(glm::vec3(0.8, 0.0, 0.0)));
@@ -970,10 +955,6 @@ void applicationLoop() {
 		multipleLights.setFloat("pointLights[1].constant", 1);
 		multipleLights.setFloat("pointLights[1].linear", 0.14);
 		multipleLights.setFloat("pointLights[1].quadratic", 0.07);
-		//se coloca la direccion de la trayectoria de la luz
-		multipleLights.setVectorFloat3("pointLights[0].position",
-			glm::value_ptr(
-				glm::vec3(lightModelmatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f))));
 
 		multipleLights.setVectorFloat3("spotLights[0].position", camera->getPosition().x, camera->getPosition().y, camera->getPosition().z);
 		multipleLights.setVectorFloat3("spotLights[0].direction", glm::value_ptr(camera->getFront()));
@@ -986,8 +967,155 @@ void applicationLoop() {
 		multipleLights.setFloat("spotLights[0].linear", 0.03);
 		multipleLights.setFloat("spotLights[0].quadratic", 0.01);
 
+		glm::mat4 lightModelmatrix = glm::rotate(glm::mat4(1.0f), angle,
+				glm::vec3(1.0f, 0.0f, 0.0f));
+		lightModelmatrix = glm::translate(lightModelmatrix,
+				glm::vec3(0.0f, 0.0f, -ratio));
+		sphereLamp.render(lightModelmatrix);
+		//se coloca la direccion de la trayectoria de la luz
+		multipleLights.setVectorFloat3("pointLights[0].position",
+			glm::value_ptr(
+				glm::vec3(lightModelmatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f))));
+
+		multipleLights.setVectorFloat3("pointLights[1].position",
+			glm::value_ptr(
+				glm::vec3(-3.0,-2.0, 0.0)));
+
+		shaderIluminacion.setVectorFloat3("light.position",
+				glm::value_ptr(
+						glm::vec3(lightModelmatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f))));
+		shaderIluminacion.setVectorFloat3("light.ambient", glm::value_ptr(glm::vec3(0.0, 0.5, 0.0)));
+		shaderIluminacion.setVectorFloat3("light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.0, 0.0)));
+		shaderIluminacion.setVectorFloat3("light.specular", glm::value_ptr(glm::vec3(0.9, 0.9, 0.0)));
+		shaderIluminacion.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
+
+		// Renders functions
+		glm::mat4 modelocilindro3 = glm::mat4(1.0);
+		modelocilindro3 = glm::translate(modelocilindro3, glm::vec3(1.0, 2.0, -5.0));
+		glBindTexture(GL_TEXTURE_2D, textureID1);
+		cylinder3.render(modelocilindro3);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glBindTexture(GL_TEXTURE_2D, textureCespedID);
+		boxCesped.setPosition(glm::vec3(0.0, -1.7, 0.0));
+		boxCesped.setScale(glm::vec3(100.0, 0.001, 100.0));
+		multipleLights.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(40.0, 40.0)));
+		boxCesped.render();
+		multipleLights.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(0.0, 0.0)));
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glBindTexture(GL_TEXTURE_2D, textureWaterID);
+		boxWater.setPosition(glm::vec3(3.0, 2.0, -5.0));
+		boxWater.setScale(glm::vec3(10.0, 0.001, 10.0));
+		multipleLights.setVectorFloat2("offset", glm::value_ptr(off));
+		boxWater.render();
+		multipleLights.setVectorFloat2("offset", glm::value_ptr(glm::vec2(0.0, 0.0)));
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		modelRock.setPosition(glm::vec3(5.0, -1.0, 5.0));
+		modelRock.setScale(glm::vec3(1.0, 1.0, 1.0));
+		modelRock.render();
+		glActiveTexture(GL_TEXTURE0);
+
+		modelRail.setPosition(glm::vec3(-10.0, -1.7, 25.0));
+		modelRail.setScale(glm::vec3(1.0, 1.0, 1.0));
+		modelRail.render();
+		glActiveTexture(GL_TEXTURE0);
+
+		modelAirCraft.setScale(glm::vec3(1.0, 1.0, 1.0));
+		//modelAirCraft.setPosition(glm::vec3(10.0, 2.0, 15.0));
+		modelAirCraft.render(matrixModelAirCraft);
+		glActiveTexture(GL_TEXTURE0);
+
+		// Dart lego
+		// Se deshabilita el cull faces IMPORTANTE para la capa
+		glDisable(GL_CULL_FACE);
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(advanceDartBody, 0.0, 0.0));
 		modelMatrixDart = glm::rotate(modelMatrixDart, rotDartBody, glm::vec3(0, 1, 0));
+		glm::mat4 modelMatrixDartBody = glm::mat4(modelMatrixDart);
+		modelMatrixDartBody = glm::scale(modelMatrixDartBody, glm::vec3(0.5, 0.5, 0.5));
+		modelDartLegoBody.render(modelMatrixDartBody);
+		glm::mat4 modelMatrixDartHead = glm::mat4(modelMatrixDartBody);
+		modelMatrixDartHead = glm::rotate(modelMatrixDartHead, rotDartHead, glm::vec3(0, 1, 0));
+		modelDartLegoHead.render(modelMatrixDartHead);
+		modelDartLegoMask.render(modelMatrixDartHead);
+		glm::mat4 modelMatrixDartLeftArm = glm::mat4(modelMatrixDartBody);
+		modelMatrixDartLeftArm = glm::translate(modelMatrixDartLeftArm, glm::vec3(-0.023515, 2.43607, 0.446066));
+		modelMatrixDartLeftArm = glm::rotate(modelMatrixDartLeftArm, glm::radians(-5.0f), glm::vec3(1, 0, 0));
+		modelMatrixDartLeftArm = glm::rotate(modelMatrixDartLeftArm, rotDartLeftArm, glm::vec3(0, 0, 1));
+		modelMatrixDartLeftArm = glm::rotate(modelMatrixDartLeftArm, glm::radians(5.0f), glm::vec3(1, 0, 0));
+		modelMatrixDartLeftArm = glm::translate(modelMatrixDartLeftArm, glm::vec3(0.023515, -2.43607, -0.446066));
+		modelDartLegoLeftArm.render(modelMatrixDartLeftArm);
+		glm::mat4 modelMatrixDartLeftHand = glm::mat4(modelMatrixDartLeftArm);
+		modelMatrixDartLeftHand = glm::translate(modelMatrixDartLeftHand, glm::vec3(0.201343, 1.68317, 0.99774));
+		modelMatrixDartLeftHand = glm::rotate(modelMatrixDartLeftHand, glm::radians(-5.0f), glm::vec3(1, 0, 0));
+		modelMatrixDartLeftHand = glm::rotate(modelMatrixDartLeftHand, rotDartLeftHand, glm::vec3(0, 1, 0));
+		modelMatrixDartLeftHand = glm::rotate(modelMatrixDartLeftHand, glm::radians(5.0f), glm::vec3(1, 0, 0));
+		modelMatrixDartLeftHand = glm::translate(modelMatrixDartLeftHand, glm::vec3(-0.201343, -1.68317, -0.99774));
+		modelDartLegoLeftHand.render(modelMatrixDartLeftHand);
+		glm::mat4 modelMatrixDartRightArm = glm::mat4(modelMatrixDartBody);
+		modelMatrixDartRightArm = glm::translate(modelMatrixDartRightArm, glm::vec3(-0.023515, 2.43607, -0.446066));
+		modelMatrixDartRightArm = glm::rotate(modelMatrixDartRightArm, glm::radians(5.0f), glm::vec3(1, 0, 0));
+		modelMatrixDartRightArm = glm::rotate(modelMatrixDartRightArm, rotDartRightArm, glm::vec3(0, 0, 1));
+		modelMatrixDartRightArm = glm::rotate(modelMatrixDartRightArm, glm::radians(-5.0f), glm::vec3(1, 0, 0));
+		modelMatrixDartRightArm = glm::translate(modelMatrixDartRightArm, glm::vec3(0.023515, -2.43607, 0.446066));
+		modelDartLegoRightArm.render(modelMatrixDartRightArm);
+		glm::mat4 modelMatrixDartRightHand = glm::mat4(modelMatrixDartRightArm);
+		modelMatrixDartRightHand = glm::translate(modelMatrixDartRightHand, glm::vec3(0.201343, 1.68317, -0.99774));
+		modelMatrixDartRightHand = glm::rotate(modelMatrixDartRightHand, glm::radians(5.0f), glm::vec3(1, 0, 0));
+		modelMatrixDartRightHand = glm::rotate(modelMatrixDartRightHand, rotDartRightHand, glm::vec3(0, 1, 0));
+		modelMatrixDartRightHand = glm::rotate(modelMatrixDartRightHand, glm::radians(-5.0f), glm::vec3(1, 0, 0));
+		modelMatrixDartRightHand = glm::translate(modelMatrixDartRightHand, glm::vec3(-0.201343, -1.68317, 0.99774));
+		modelDartLegoRightHand.render(modelMatrixDartRightHand);
+		glm::mat4 modelMatrixDartLeftLeg = glm::mat4(modelMatrixDartBody);
+		modelMatrixDartLeftLeg = glm::translate(modelMatrixDartLeftLeg, glm::vec3(0, 1.12632, 0.423349));
+		modelMatrixDartLeftLeg = glm::rotate(modelMatrixDartLeftLeg, rotDartLeftLeg, glm::vec3(0, 0, 1));
+		modelMatrixDartLeftLeg = glm::translate(modelMatrixDartLeftLeg, glm::vec3(0, -1.12632, -0.423349));
+		modelDartLegoLeftLeg.render(modelMatrixDartLeftLeg);
+		glm::mat4 modelMatrixDartRightLeg = glm::mat4(modelMatrixDartBody);
+		modelMatrixDartRightLeg = glm::translate(modelMatrixDartRightLeg, glm::vec3(0, 1.12632, -0.423349));
+		modelMatrixDartRightLeg = glm::rotate(modelMatrixDartRightLeg, rotDartRightLeg, glm::vec3(0, 0, 1));
+		modelMatrixDartRightLeg = glm::translate(modelMatrixDartRightLeg, glm::vec3(0, -1.12632, 0.423349));
+		modelDartLegoRightLeg.render(modelMatrixDartRightLeg);
+		glActiveTexture(GL_TEXTURE0); // IMPORTANTE regresar a la textura 0
+		// Se regresa el cull faces IMPORTANTE para la capa
+		glEnable(GL_CULL_FACE);
+
+		// Para salvar el frame
+		if(record && modelSelected == 1){
+			matrixDartJoints.push_back(rotDartHead);
+			matrixDartJoints.push_back(rotDartLeftArm);
+			matrixDartJoints.push_back(rotDartLeftHand);
+			matrixDartJoints.push_back(rotDartRightArm);
+			matrixDartJoints.push_back(rotDartRightHand);
+			matrixDartJoints.push_back(rotDartLeftLeg);
+			matrixDartJoints.push_back(rotDartRightLeg);
+			if (saveFrame) {
+				appendFrame(myfile, matrixDartJoints);
+				saveFrame = false;
+			}
+		}
+		else if(keyFramesJoints.size() > 0){
+			// Para reproducir el frame
+			interpolationJoints = numPasosJoints / (float) maxNumPasosJoints;
+			numPasosJoints++;
+			if (interpolationJoints > 1.0) {
+				numPasosJoints = 0;
+				interpolationJoints = 0;
+				indexFrameJoints = indexFrameJointsNext;
+				indexFrameJointsNext++;
+			}
+			if (indexFrameJointsNext > keyFramesJoints.size() - 1)
+				indexFrameJointsNext = 0;
+
+			rotDartHead = interpolate(keyFramesJoints, indexFrameJoints, indexFrameJointsNext, 0, interpolationJoints);
+			rotDartLeftArm = interpolate(keyFramesJoints, indexFrameJoints, indexFrameJointsNext, 1, interpolationJoints);
+			rotDartLeftHand = interpolate(keyFramesJoints, indexFrameJoints, indexFrameJointsNext, 2, interpolationJoints);
+			rotDartRightArm = interpolate(keyFramesJoints, indexFrameJoints, indexFrameJointsNext, 3, interpolationJoints);
+			rotDartRightHand = interpolate(keyFramesJoints, indexFrameJoints, indexFrameJointsNext, 4, interpolationJoints);
+			rotDartLeftLeg = interpolate(keyFramesJoints, indexFrameJoints, indexFrameJointsNext, 5, interpolationJoints);
+			rotDartRightLeg = interpolate(keyFramesJoints, indexFrameJoints, indexFrameJointsNext, 6, interpolationJoints);
+		}
 
 		// render de colliders
 		// Collider del dart vader lego
@@ -1069,8 +1197,8 @@ void applicationLoop() {
 		sphereCollider.enableWireMode();
 		sphereCollider.render(modelMatrixColliderRock);
 
-		/*// Esto es para ilustrar la transformacion inversa de los coliders
-		glm::vec3 cinv = glm::inverse(obbDartLegoBody.orientation) * glm::vec4(sbbAircraft.c, 1.0);
+		// Esto es para ilustrar la transformacion inversa de los coliders
+		/*glm::vec3 cinv = glm::inverse(obbDartLegoBody.orientation) * glm::vec4(sbbAircraft.c, 1.0);
 		glm::mat4 invColliderS = glm::mat4(1.0);
 		invColliderS = glm::translate(invColliderS, cinv);
 		invColliderS = glm::scale(invColliderS, glm::vec3(sbbAircraft.ratio * 2.0, sbbAircraft.ratio * 2.0, sbbAircraft.ratio * 2.0));
@@ -1128,10 +1256,73 @@ void applicationLoop() {
 		glCullFace(oldCullFaceMode);
 		glDepthFunc(oldDepthFuncMode);
 
-		glActiveTexture(GL_TEXTURE10);
-		glBindTexture(GL_TEXTURE_2D, depthMap);
-		multipleLights.setInt("shadowMap", 10);
-		renderScene(&multipleLights);
+		/**********
+		 * Sorter with alpha objects
+		 */
+		std::map<float, std::pair<int, glm::vec3>> blendingSorted;
+		for(unsigned int i = 0; i < blendingUnsorted.size(); i++){
+			float distanceFromView = glm::length(camera->getPosition() - blendingUnsorted[i]);
+			blendingSorted[distanceFromView] = std::make_pair(i, blendingUnsorted[i]);
+		}
+
+		/**********
+		 * Render de las transparencias
+		 */
+		for(std::map<float, std::pair<int, glm::vec3> >::reverse_iterator it = blendingSorted.rbegin(); it != blendingSorted.rend(); it++){
+			glm::mat4 modelMatrixBlendObject = glm::mat4(1.0f);
+			if(it->second.first == 0){
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glBindTexture(GL_TEXTURE_2D, textureWindowID);
+				glDisable(GL_CULL_FACE);
+				modelMatrixBlendObject = glm::translate(modelMatrixBlendObject, it->second.second);
+				modelMatrixBlendObject = glm::scale(modelMatrixBlendObject, glm::vec3(2.0, 2.0, 2.0));
+				windowModel.render(0, 6, modelMatrixBlendObject);
+				glEnable(GL_CULL_FACE);
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glDisable(GL_BLEND);
+			}
+			else if(it->second.first == 1 || it->second.first == 2 || it->second.first == 3){
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				modelMatrixBlendObject = glm::translate(modelMatrixBlendObject, it->second.second);
+				glBindTexture(GL_TEXTURE_2D, textureParticle);
+				cylinder2.render(modelMatrixBlendObject);
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glDisable(GL_BLEND);
+			}
+			else{
+				/**********
+				 * Init Render particles systems
+				 */
+				currTimeParticlesAnimation = TimeManager::Instance().GetTime();
+				if(currTimeParticlesAnimation - lastTimeParticlesAnimation > 10.0)
+					lastTimeParticlesAnimation = currTimeParticlesAnimation;
+				//glDisable(GL_DEPTH_TEST);
+				glDepthMask(GL_FALSE);
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				// Set the point size
+				glPointSize(10.0f);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, textureParticle);
+				shaderParticles.turnOn();
+				shaderParticles.setFloat("Time", float(currTimeParticlesAnimation - lastTimeParticlesAnimation));
+				shaderParticles.setFloat("ParticleLifetime", 3.5f);
+				shaderParticles.setInt("ParticleTex", 0);
+				shaderParticles.setVectorFloat3("Gravity", glm::value_ptr(glm::vec3(0.0f, -0.2f, 0.0f)));
+				shaderParticles.setMatrix4("model", 1, false, glm::value_ptr(glm::mat4(1.0f)));
+				glBindVertexArray(VAOParticles);
+				glDrawArrays(GL_POINTS, 0, nParticles);
+				glDisable(GL_BLEND);
+				glDepthMask(GL_TRUE);
+				//glEnable(GL_DEPTH_TEST);
+				shaderParticles.turnOff();
+				/**********
+				 * End Render particles systems
+				 */
+			}
+		}
 
 		off.x += 0.001;
 		off.y += 0.001;
@@ -1173,236 +1364,6 @@ void applicationLoop() {
 	}
 	if(record)
 		myfile.close();
-}
-
-void renderScene(Shader *shader){
-
-	cylinder1.setShader(shader);
-	cylinder2.setShader(shader);
-
-	modelRock.setShader(shader);
-	modelRail.setShader(shader);
-	modelAirCraft.setShader(shader);
-	arturito.setShader(shader);
-	modelTrain.setShader(shader);
-
-	// Dart lego
-	modelDartLegoBody.setShader(shader);
-	modelDartLegoHead.setShader(shader);
-	modelDartLegoMask.setShader(shader);
-	modelDartLegoLeftArm.setShader(shader);
-	modelDartLegoRightArm.setShader(shader);
-	modelDartLegoLeftHand.setShader(shader);
-	modelDartLegoRightHand.setShader(shader);
-	modelDartLegoLeftLeg.setShader(shader);
-	modelDartLegoRightLeg.setShader(shader);
-
-	sphere1.setShader(shader);
-	cylinder1.setShader(shader);
-	box1.setShader(shader);
-	box2.setShader(shader);
-	boxWater.setShader(shader);
-	boxCesped.setShader(shader);
-	cylinder2.setShader(shader);
-	cylinder3.setShader(shader);
-	windowModel.setShader(shader);
-
-	// Variables to animations keyframes
-	std::vector<float> matrixDartJoints;
-
-	glm::mat4 modelocilindro3 = glm::mat4(1.0);
-	modelocilindro3 = glm::translate(modelocilindro3, glm::vec3(0.0f, -1.2f, 0.0));
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureID1);
-	cylinder3.render(modelocilindro3);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureCespedID);
-	boxCesped.setPosition(glm::vec3(0.0, -1.7, 0.0));
-	boxCesped.setScale(glm::vec3(100.0, 0.001, 100.0));
-	multipleLights.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(40.0, 40.0)));
-	boxCesped.render();
-	multipleLights.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(0.0, 0.0)));
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureWaterID);
-	boxWater.setPosition(glm::vec3(3.0, 2.0, -7.0));
-	boxWater.setScale(glm::vec3(10.0, 0.001, 10.0));
-	multipleLights.setVectorFloat2("offset", glm::value_ptr(off));
-	boxWater.render();
-	multipleLights.setVectorFloat2("offset", glm::value_ptr(glm::vec2(0.0, 0.0)));
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	modelRock.setPosition(glm::vec3(5.0, -1.0, 5.0));
-	modelRock.setScale(glm::vec3(1.0, 1.0, 1.0));
-	modelRock.render();
-	glActiveTexture(GL_TEXTURE0);
-
-	modelRail.setPosition(glm::vec3(-10.0, -1.7, 25.0));
-	modelRail.setScale(glm::vec3(1.0, 1.0, 1.0));
-	modelRail.render();
-	glActiveTexture(GL_TEXTURE0);
-
-	modelAirCraft.setScale(glm::vec3(1.0, 1.0, 1.0));
-	//modelAirCraft.setPosition(glm::vec3(10.0, 2.0, 15.0));
-	modelAirCraft.render(matrixModelAirCraft);
-	glActiveTexture(GL_TEXTURE0);
-
-	// Dart lego
-	// Se deshabilita el cull faces IMPORTANTE para la capa
-	glDisable(GL_CULL_FACE);
-	glm::mat4 modelMatrixDartBody = glm::mat4(modelMatrixDart);
-	modelMatrixDartBody = glm::scale(modelMatrixDartBody, glm::vec3(0.5, 0.5, 0.5));
-	modelDartLegoBody.render(modelMatrixDartBody);
-	glm::mat4 modelMatrixDartHead = glm::mat4(modelMatrixDartBody);
-	modelMatrixDartHead = glm::rotate(modelMatrixDartHead, rotDartHead, glm::vec3(0, 1, 0));
-	modelDartLegoHead.render(modelMatrixDartHead);
-	modelDartLegoMask.render(modelMatrixDartHead);
-	glm::mat4 modelMatrixDartLeftArm = glm::mat4(modelMatrixDartBody);
-	modelMatrixDartLeftArm = glm::translate(modelMatrixDartLeftArm, glm::vec3(-0.023515, 2.43607, 0.446066));
-	modelMatrixDartLeftArm = glm::rotate(modelMatrixDartLeftArm, glm::radians(-5.0f), glm::vec3(1, 0, 0));
-	modelMatrixDartLeftArm = glm::rotate(modelMatrixDartLeftArm, rotDartLeftArm, glm::vec3(0, 0, 1));
-	modelMatrixDartLeftArm = glm::rotate(modelMatrixDartLeftArm, glm::radians(5.0f), glm::vec3(1, 0, 0));
-	modelMatrixDartLeftArm = glm::translate(modelMatrixDartLeftArm, glm::vec3(0.023515, -2.43607, -0.446066));
-	modelDartLegoLeftArm.render(modelMatrixDartLeftArm);
-	glm::mat4 modelMatrixDartLeftHand = glm::mat4(modelMatrixDartLeftArm);
-	modelMatrixDartLeftHand = glm::translate(modelMatrixDartLeftHand, glm::vec3(0.201343, 1.68317, 0.99774));
-	modelMatrixDartLeftHand = glm::rotate(modelMatrixDartLeftHand, glm::radians(-5.0f), glm::vec3(1, 0, 0));
-	modelMatrixDartLeftHand = glm::rotate(modelMatrixDartLeftHand, rotDartLeftHand, glm::vec3(0, 1, 0));
-	modelMatrixDartLeftHand = glm::rotate(modelMatrixDartLeftHand, glm::radians(5.0f), glm::vec3(1, 0, 0));
-	modelMatrixDartLeftHand = glm::translate(modelMatrixDartLeftHand, glm::vec3(-0.201343, -1.68317, -0.99774));
-	modelDartLegoLeftHand.render(modelMatrixDartLeftHand);
-	glm::mat4 modelMatrixDartRightArm = glm::mat4(modelMatrixDartBody);
-	modelMatrixDartRightArm = glm::translate(modelMatrixDartRightArm, glm::vec3(-0.023515, 2.43607, -0.446066));
-	modelMatrixDartRightArm = glm::rotate(modelMatrixDartRightArm, glm::radians(5.0f), glm::vec3(1, 0, 0));
-	modelMatrixDartRightArm = glm::rotate(modelMatrixDartRightArm, rotDartRightArm, glm::vec3(0, 0, 1));
-	modelMatrixDartRightArm = glm::rotate(modelMatrixDartRightArm, glm::radians(-5.0f), glm::vec3(1, 0, 0));
-	modelMatrixDartRightArm = glm::translate(modelMatrixDartRightArm, glm::vec3(0.023515, -2.43607, 0.446066));
-	modelDartLegoRightArm.render(modelMatrixDartRightArm);
-	glm::mat4 modelMatrixDartRightHand = glm::mat4(modelMatrixDartRightArm);
-	modelMatrixDartRightHand = glm::translate(modelMatrixDartRightHand, glm::vec3(0.201343, 1.68317, -0.99774));
-	modelMatrixDartRightHand = glm::rotate(modelMatrixDartRightHand, glm::radians(5.0f), glm::vec3(1, 0, 0));
-	modelMatrixDartRightHand = glm::rotate(modelMatrixDartRightHand, rotDartRightHand, glm::vec3(0, 1, 0));
-	modelMatrixDartRightHand = glm::rotate(modelMatrixDartRightHand, glm::radians(-5.0f), glm::vec3(1, 0, 0));
-	modelMatrixDartRightHand = glm::translate(modelMatrixDartRightHand, glm::vec3(-0.201343, -1.68317, 0.99774));
-	modelDartLegoRightHand.render(modelMatrixDartRightHand);
-	glm::mat4 modelMatrixDartLeftLeg = glm::mat4(modelMatrixDartBody);
-	modelMatrixDartLeftLeg = glm::translate(modelMatrixDartLeftLeg, glm::vec3(0, 1.12632, 0.423349));
-	modelMatrixDartLeftLeg = glm::rotate(modelMatrixDartLeftLeg, rotDartLeftLeg, glm::vec3(0, 0, 1));
-	modelMatrixDartLeftLeg = glm::translate(modelMatrixDartLeftLeg, glm::vec3(0, -1.12632, -0.423349));
-	modelDartLegoLeftLeg.render(modelMatrixDartLeftLeg);
-	glm::mat4 modelMatrixDartRightLeg = glm::mat4(modelMatrixDartBody);
-	modelMatrixDartRightLeg = glm::translate(modelMatrixDartRightLeg, glm::vec3(0, 1.12632, -0.423349));
-	modelMatrixDartRightLeg = glm::rotate(modelMatrixDartRightLeg, rotDartRightLeg, glm::vec3(0, 0, 1));
-	modelMatrixDartRightLeg = glm::translate(modelMatrixDartRightLeg, glm::vec3(0, -1.12632, 0.423349));
-	modelDartLegoRightLeg.render(modelMatrixDartRightLeg);
-	glActiveTexture(GL_TEXTURE0); // IMPORTANTE regresar a la textura 0
-	// Se regresa el cull faces IMPORTANTE para la capa
-	glEnable(GL_CULL_FACE);
-
-	// Para salvar el frame
-	if(record && modelSelected == 1){
-		matrixDartJoints.push_back(rotDartHead);
-		matrixDartJoints.push_back(rotDartLeftArm);
-		matrixDartJoints.push_back(rotDartLeftHand);
-		matrixDartJoints.push_back(rotDartRightArm);
-		matrixDartJoints.push_back(rotDartRightHand);
-		matrixDartJoints.push_back(rotDartLeftLeg);
-		matrixDartJoints.push_back(rotDartRightLeg);
-		if (saveFrame) {
-			appendFrame(myfile, matrixDartJoints);
-			saveFrame = false;
-		}
-	}
-	else if(keyFramesJoints.size() > 0){
-		// Para reproducir el frame
-		interpolationJoints = numPasosJoints / (float) maxNumPasosJoints;
-		numPasosJoints++;
-		if (interpolationJoints > 1.0) {
-			numPasosJoints = 0;
-			interpolationJoints = 0;
-			indexFrameJoints = indexFrameJointsNext;
-			indexFrameJointsNext++;
-		}
-		if (indexFrameJointsNext > keyFramesJoints.size() - 1)
-			indexFrameJointsNext = 0;
-
-		rotDartHead = interpolate(keyFramesJoints, indexFrameJoints, indexFrameJointsNext, 0, interpolationJoints);
-		rotDartLeftArm = interpolate(keyFramesJoints, indexFrameJoints, indexFrameJointsNext, 1, interpolationJoints);
-		rotDartLeftHand = interpolate(keyFramesJoints, indexFrameJoints, indexFrameJointsNext, 2, interpolationJoints);
-		rotDartRightArm = interpolate(keyFramesJoints, indexFrameJoints, indexFrameJointsNext, 3, interpolationJoints);
-		rotDartRightHand = interpolate(keyFramesJoints, indexFrameJoints, indexFrameJointsNext, 4, interpolationJoints);
-		rotDartLeftLeg = interpolate(keyFramesJoints, indexFrameJoints, indexFrameJointsNext, 5, interpolationJoints);
-		rotDartRightLeg = interpolate(keyFramesJoints, indexFrameJoints, indexFrameJointsNext, 6, interpolationJoints);
-	}
-
-	/**********
-	 * Sorter with alpha objects
-	 */
-	std::map<float, std::pair<int, glm::vec3>> blendingSorted;
-	for(unsigned int i = 0; i < blendingUnsorted.size(); i++){
-		float distanceFromView = glm::length(camera->getPosition() - blendingUnsorted[i]);
-		blendingSorted[distanceFromView] = std::make_pair(i, blendingUnsorted[i]);
-	}
-
-	/**********
-	 * Render de las transparencias
-	 */
-	for(std::map<float, std::pair<int, glm::vec3> >::reverse_iterator it = blendingSorted.rbegin(); it != blendingSorted.rend(); it++){
-		glm::mat4 modelMatrixBlendObject = glm::mat4(1.0f);
-		if(it->second.first == 0){
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glBindTexture(GL_TEXTURE_2D, textureWindowID);
-			glDisable(GL_CULL_FACE);
-			modelMatrixBlendObject = glm::translate(modelMatrixBlendObject, it->second.second);
-			modelMatrixBlendObject = glm::scale(modelMatrixBlendObject, glm::vec3(2.0, 2.0, 2.0));
-			windowModel.render(0, 6, modelMatrixBlendObject);
-			glEnable(GL_CULL_FACE);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glDisable(GL_BLEND);
-		}
-		else if(it->second.first == 1 || it->second.first == 2 || it->second.first == 3){
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			modelMatrixBlendObject = glm::translate(modelMatrixBlendObject, it->second.second);
-			glBindTexture(GL_TEXTURE_2D, textureParticle);
-			cylinder2.render(modelMatrixBlendObject);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glDisable(GL_BLEND);
-		}
-		else{
-			/**********
-			 * Init Render particles systems
-			 */
-			currTimeParticlesAnimation = TimeManager::Instance().GetTime();
-			if(currTimeParticlesAnimation - lastTimeParticlesAnimation > 10.0)
-				lastTimeParticlesAnimation = currTimeParticlesAnimation;
-			glDepthMask(GL_FALSE);
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			// Set the point size
-			glPointSize(10.0f);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, textureParticle);
-			shaderParticles.turnOn();
-			shaderParticles.setFloat("Time", float(currTimeParticlesAnimation - lastTimeParticlesAnimation));
-			shaderParticles.setFloat("ParticleLifetime", 3.5f);
-			shaderParticles.setInt("ParticleTex", 0);
-			shaderParticles.setVectorFloat3("Gravity", glm::value_ptr(glm::vec3(0.0f, -0.2f, 0.0f)));
-			shaderParticles.setMatrix4("model", 1, false, glm::value_ptr(glm::mat4(1.0f)));
-			glBindVertexArray(VAOParticles);
-			glDrawArrays(GL_POINTS, 0, nParticles);
-			glDisable(GL_BLEND);
-			glDepthMask(GL_TRUE);
-			shaderParticles.turnOff();
-			/**********
-			 * End Render particles systems
-			 */
-		}
-	}
 }
 
 int main(int argc, char ** argv) {

@@ -49,7 +49,7 @@ Box box1;
 Box box2;
 
 // Descomentar
-GLuint textureID1, textureID2, textureID3;
+GLuint textureID1, textureID2, textureParticle;
 
 bool exitApp = false;
 int lastMousePosX, offsetX = 0;
@@ -187,8 +187,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	Texture texture3("../Textures/bluewater.png");
 	bitmap = texture3.loadImage();
 	data = texture3.convertToData(bitmap, imageWidth, imageHeight);
-	glGenTextures(1, &textureID3);
-	glBindTexture(GL_TEXTURE_2D, textureID3);
+	glGenTextures(1, &textureParticle);
+	glBindTexture(GL_TEXTURE_2D, textureParticle);
 	// set the texture wrapping parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);// set texture wrapping to GL_REPEAT (default wrapping method)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -341,7 +341,7 @@ void applicationLoop() {
 		glm::mat4 l1 = glm::translate(j1, glm::vec3(0.25, 0.0, 0.0));
 		l1 = glm::rotate(l1, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		l1 = glm::scale(l1, glm::vec3(0.1, 0.5, 0.1));
-		glBindTexture(GL_TEXTURE_2D, textureID3);
+		glBindTexture(GL_TEXTURE_2D, textureParticle);
 		//cylinder1.enableWireMode();
 		cylinder1.render(l1);
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -357,7 +357,7 @@ void applicationLoop() {
 		glm::mat4 l2 = glm::translate(j2, glm::vec3(0.25, 0.0, 0.0));
 		l2 = glm::rotate(l2, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		l2 = glm::scale(l2, glm::vec3(0.1, 0.5, 0.1));
-		glBindTexture(GL_TEXTURE_2D, textureID3);
+		glBindTexture(GL_TEXTURE_2D, textureParticle);
 		cylinder1.enableWireMode();
 		cylinder1.render(l2);
 
@@ -377,7 +377,7 @@ void applicationLoop() {
 
 		// Hueso (Pierna)
 		glm::mat4 l3 = glm::translate(j4, glm::vec3(0.0f, -0.25f, 0.0f));
-		glBindTexture(GL_TEXTURE_2D, textureID3);
+		glBindTexture(GL_TEXTURE_2D, textureParticle);
 		//cylinder1.enableWireMode();
 		cylinder1.render(glm::scale(l3, glm::vec3(0.1, 0.5, 0.1)));
 
@@ -390,7 +390,7 @@ void applicationLoop() {
 		// Hueso (Pierna)
 		glm::mat4 l4 = glm::translate(j5, glm::vec3(0.0f, -0.25f, 0.0f));
 		//cylinder1.enableWireMode();
-		glBindTexture(GL_TEXTURE_2D, textureID3);
+		glBindTexture(GL_TEXTURE_2D, textureParticle);
 		cylinder1.render(glm::scale(l4, glm::vec3(0.1, 0.5, 0.1)));
 		glBindTexture(GL_TEXTURE_2D, 0);
 

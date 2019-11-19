@@ -148,7 +148,7 @@ Sphere sphereCollider(20, 20);
 Terrain terrain(-1, -1, 800, 40, "../Textures/heightmap.png");
 
 // Descomentar
-GLuint textureID1, textureID2, textureID3, textureCespedID, textureWaterID;
+GLuint textureID1, textureID2, textureParticle, textureCespedID, textureWaterID;
 GLuint skyboxTextureID;
 
 bool exitApp = false;
@@ -434,8 +434,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	Texture texture3("../Textures/bluewater.png");
 	bitmap = texture3.loadImage();
 	data = texture3.convertToData(bitmap, imageWidth, imageHeight);
-	glGenTextures(1, &textureID3);
-	glBindTexture(GL_TEXTURE_2D, textureID3);
+	glGenTextures(1, &textureParticle);
+	glBindTexture(GL_TEXTURE_2D, textureParticle);
 	// set the texture wrapping parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);// set texture wrapping to GL_REPEAT (default wrapping method)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -952,19 +952,19 @@ void applicationLoop() {
 		glm::mat4 modelCylinder = glm::mat4(1.0);
 		modelCylinder = glm::translate(modelCylinder,
 				glm::vec3(3.0, 0.0, -4.0));
-		glBindTexture(GL_TEXTURE_2D, textureID3);
+		glBindTexture(GL_TEXTURE_2D, textureParticle);
 		cylinder2.render(modelCylinder);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		modelCylinder = glm::translate(glm::mat4(1.0),
 				glm::vec3(-2.0, 0.0, -3.0));
-		glBindTexture(GL_TEXTURE_2D, textureID3);
+		glBindTexture(GL_TEXTURE_2D, textureParticle);
 		cylinder2.render(modelCylinder);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		modelCylinder = glm::translate(glm::mat4(1.0),
 				glm::vec3(-2.0, 0.0, -10.0));
-		glBindTexture(GL_TEXTURE_2D, textureID3);
+		glBindTexture(GL_TEXTURE_2D, textureParticle);
 		cylinder2.render(modelCylinder);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
