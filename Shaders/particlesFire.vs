@@ -66,7 +66,6 @@ void main()
 	else{
 		Transp = 0.0;
 	    if(VertexAge >= 0.0) {
-	        // posCam = (projection * view * model * vec4(VertexPosition,1)).xyz + offsets[gl_VertexID] * ParticleSize;
 	        gl_Position = projection * vec4((view * model * vec4(VertexPosition,1)).xyz + offsets[gl_VertexID] * ParticleSize, 1.0);
 	        if( VertexAge < 0 ) 
 	        	Transp = 0.0;
