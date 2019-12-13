@@ -36,6 +36,10 @@ public:
 		return this->up;
 	}
 
+	void setUp(glm::vec3 up){
+		this->up = up;
+	}
+
 	glm::vec3 getFront() {
 		return this->front;
 	}
