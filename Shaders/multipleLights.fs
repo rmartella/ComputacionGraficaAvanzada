@@ -37,7 +37,7 @@ struct  SpotLight{
 };
 
 const int MAX_POINT_LIGHTS = 3;
-const int MAX_SPOT_LIGHTS = 10;
+const int MAX_SPOT_LIGHTS = 5;
 
 out vec4 color;
 
@@ -45,8 +45,8 @@ in vec3 fragPos;
 in vec3 our_normal;
 in vec2 our_uv;
 
-uniform float pointLightCount;
-uniform float spotLightCount;
+uniform int pointLightCount;
+uniform int spotLightCount;
 
 uniform DirectionalLight directionalLight;
 uniform PointLight pointLights[MAX_POINT_LIGHTS];
@@ -105,5 +105,5 @@ void main()
 	vec4 colorText = texture(texture1, our_uv);
 	if(colorText.a < 0.1)
 		discard;
-    color = vec4(calculateDirectionalLight(directionalLight.light, directionalLight.direction) + calculatePointLights() + calculateSpotLights(), colorText.a);
+    color = vec4(calculateDirectionalLight(directionalLight.light, directionalLight.direction) + calculatePointLights() + calculateSpotLights(), 1.0);
 }

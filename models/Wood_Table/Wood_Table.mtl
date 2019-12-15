@@ -1,0 +1,29 @@
+# Blender MTL File: 'Wood_Table.blend'
+# Material Count: 2
+
+newmtl Wood_Table
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.779450 0.779450 0.779450
+Ks 0.206477 0.106529 0.011122
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd textures/Wood_Table_C.jpg
+map_Bump textures/Wood_Table_N.jpg
+map_Ks textures/Wood_Table_C_2.jpg
+map_Ns textures/Wood_Table_C_2.jpg
+
+newmtl Wood_Table_Glass
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 0.400000
+illum 2
+map_Kd textures/Wood_Table_N.jpg
+map_Bump textures/Wood_Table_N.jpg
+refl textures/Reflexion.jpg

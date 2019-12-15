@@ -1,8 +1,10 @@
 .vs
 */*/Debug/*
 */Debug/*
+Debug/*
 Debug/*.exe
 Debug/*.ilk
 Debug/*.pdb
+CGALib/ide/CGALib/Debug/*
 RemoteSystemsTempFiles/
 .metadata/
