@@ -1,0 +1,87 @@
+14:01:38 **** Build of configuration Debug for project SharedLib ****
+make all 
+Building file: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Bones.cpp
+Invoking: GCC C++ Compiler
+g++ -std=c++0x -I"/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/ide/SharedLib/../../include" -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/Bones.d" -MT"src/Bones.o" -o "src/Bones.o" "/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Bones.cpp"
+/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Bones.cpp: In member function ‘void Bones::bonesTransform(float, std::vector<glm::mat<4, 4, float, (glm::qualifier)0> >&, const aiScene*)’:
+/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Bones.cpp:88:29: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+  for (unsigned int i = 0; i < m_NumBones; i++) {
+                           ~~^~~~~~~~~~~~
+Finished building: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Bones.cpp
+ 
+Building file: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Box.cpp
+Invoking: GCC C++ Compiler
+g++ -std=c++0x -I"/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/ide/SharedLib/../../include" -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/Box.d" -MT"src/Box.o" -o "src/Box.o" "/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Box.cpp"
+Finished building: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Box.cpp
+ 
+Building file: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Cylinder.cpp
+Invoking: GCC C++ Compiler
+g++ -std=c++0x -I"/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/ide/SharedLib/../../include" -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/Cylinder.d" -MT"src/Cylinder.o" -o "src/Cylinder.o" "/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Cylinder.cpp"
+Finished building: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Cylinder.cpp
+ 
+Building file: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/FirstPersonCamera.cpp
+Invoking: GCC C++ Compiler
+g++ -std=c++0x -I"/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/ide/SharedLib/../../include" -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/FirstPersonCamera.d" -MT"src/FirstPersonCamera.o" -o "src/FirstPersonCamera.o" "/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/FirstPersonCamera.cpp"
+Finished building: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/FirstPersonCamera.cpp
+ 
+Building file: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Mesh.cpp
+Invoking: GCC C++ Compiler
+g++ -std=c++0x -I"/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/ide/SharedLib/../../include" -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/Mesh.d" -MT"src/Mesh.o" -o "src/Mesh.o" "/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Mesh.cpp"
+Finished building: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Mesh.cpp
+ 
+Building file: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Model.cpp
+Invoking: GCC C++ Compiler
+g++ -std=c++0x -I"/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/ide/SharedLib/../../include" -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/Model.d" -MT"src/Model.o" -o "src/Model.o" "/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Model.cpp"
+/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Model.cpp: In destructor ‘virtual Model::~Model()’:
+/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Model.cpp:25:24: warning: deleting object of polymorphic class type ‘Mesh’ which has non-virtual destructor might cause undefined behavior [-Wdelete-non-virtual-dtor]
+   delete this->meshes[i];
+                        ^
+/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Model.cpp:27:20: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+  for (int i = 0; i < this->textureLoaded.size(); i++)
+                  ~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Finished building: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Model.cpp
+ 
+Building file: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Shader.cpp
+Invoking: GCC C++ Compiler
+g++ -std=c++0x -I"/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/ide/SharedLib/../../include" -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/Shader.d" -MT"src/Shader.o" -o "src/Shader.o" "/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Shader.cpp"
+Finished building: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Shader.cpp
+ 
+Building file: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Sphere.cpp
+Invoking: GCC C++ Compiler
+g++ -std=c++0x -I"/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/ide/SharedLib/../../include" -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/Sphere.d" -MT"src/Sphere.o" -o "src/Sphere.o" "/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Sphere.cpp"
+Finished building: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Sphere.cpp
+ 
+Building file: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Terrain.cpp
+Invoking: GCC C++ Compiler
+g++ -std=c++0x -I"/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/ide/SharedLib/../../include" -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/Terrain.d" -MT"src/Terrain.o" -o "src/Terrain.o" "/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Terrain.cpp"
+Finished building: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Terrain.cpp
+ 
+Building file: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Texture.cpp
+Invoking: GCC C++ Compiler
+g++ -std=c++0x -I"/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/ide/SharedLib/../../include" -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/Texture.d" -MT"src/Texture.o" -o "src/Texture.o" "/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Texture.cpp"
+Finished building: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/Texture.cpp
+ 
+Building file: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/ThirdPersonCamera.cpp
+Invoking: GCC C++ Compiler
+g++ -std=c++0x -I"/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/ide/SharedLib/../../include" -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/ThirdPersonCamera.d" -MT"src/ThirdPersonCamera.o" -o "src/ThirdPersonCamera.o" "/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/ThirdPersonCamera.cpp"
+Finished building: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/ThirdPersonCamera.cpp
+ 
+Building file: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/TimeManager.cpp
+Invoking: GCC C++ Compiler
+g++ -std=c++0x -I"/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/ide/SharedLib/../../include" -O0 -g3 -Wall -c -fmessage-length=0 -fPIC -MMD -MP -MF"src/TimeManager.d" -MT"src/TimeManager.o" -o "src/TimeManager.o" "/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/TimeManager.cpp"
+/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/TimeManager.cpp: In member function ‘double TimeManager::CalculateFrameRate(bool)’:
+/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/TimeManager.cpp:15:14: warning: unused variable ‘strFrameRate’ [-Wunused-variable]
+  static char strFrameRate[50] = { 0 }; // Almacenamos la cadena para el titulo de la ventana
+              ^~~~~~~~~~~~
+/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/TimeManager.cpp: At global scope:
+/opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/TimeManager.cpp:15:14: warning: ‘strFrameRate’ defined but not used [-Wunused-variable]
+Finished building: /opt/codigo/openGL/ComputacionGraficaAvanzada/shared-lib/src/TimeManager.cpp
+ 
+Building target: ../../../../build/libSharedLib.so
+Invoking: GCC C++ Linker
+g++ -shared -o "../../../../build/libSharedLib.so"  ./src/Bones.o ./src/Box.o ./src/Cylinder.o ./src/FirstPersonCamera.o ./src/Mesh.o ./src/Model.o ./src/Shader.o ./src/Sphere.o ./src/Terrain.o ./src/Texture.o ./src/ThirdPersonCamera.o ./src/TimeManager.o   -lglut -lglfw -lGLEW -lGLU -lGL -lfreeimage -lassimp
+Finished building target: ../../../../build/libSharedLib.so
+ 
+
+14:01:57 Build Finished. 0 errors, 5 warnings. (took 18s.759ms)
+

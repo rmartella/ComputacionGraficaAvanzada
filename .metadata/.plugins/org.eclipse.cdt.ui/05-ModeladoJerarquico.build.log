@@ -1,0 +1,6 @@
+23:59:49 **** Incremental Build of configuration Debug for project 05-ModeladoJerarquico ****
+make all 
+make: Nothing to be done for 'all'.
+
+23:59:49 Build Finished. 0 errors, 0 warnings. (took 71ms)
+

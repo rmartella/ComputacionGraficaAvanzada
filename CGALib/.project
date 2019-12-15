@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>CGALib</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+	</buildSpec>
+	<natures>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>Shaders</name>
+			<type>2</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Shaders</locationURI>
+		</link>
+	</linkedResources>
+</projectDescription>

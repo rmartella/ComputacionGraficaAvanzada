@@ -1,0 +1,15 @@
+16:05:23 **** Incremental Build of configuration Debug for project 10-Animacion ****
+make all 
+Building file: ../src/Texture.cpp
+Invoking: GCC C++ Compiler
+g++ -std=c++0x -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"src/Texture.d" -MT"src/Texture.o" -o "src/Texture.o" "../src/Texture.cpp"
+Finished building: ../src/Texture.cpp
+ 
+Building target: 10-Animacion
+Invoking: GCC C++ Linker
+g++  -o "10-Animacion"  ./src/Box.o ./src/Cylinder.o ./src/FirstPersonCamera.o ./src/Mesh.o ./src/Model.o ./src/Shader.o ./src/Sphere.o ./src/Texture.o ./src/TimeManager.o ./src/main.o   -lglut -lglfw -lGLEW -lGLU -lGL -lfreeimage -lassimp
+Finished building target: 10-Animacion
+ 
+
+16:05:24 Build Finished. 0 errors, 0 warnings. (took 1s.326ms)
+

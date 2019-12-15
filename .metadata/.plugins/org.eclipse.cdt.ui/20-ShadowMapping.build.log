@@ -1,0 +1,6 @@
+16:05:48 **** Incremental Build of configuration Debug for project 20-ShadowMapping ****
+make all 
+make: Nothing to be done for 'all'.
+
+16:05:48 Build Finished. 0 errors, 0 warnings. (took 64ms)
+

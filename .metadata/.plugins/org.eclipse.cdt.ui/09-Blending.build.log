@@ -1,0 +1,31 @@
+13:45:53 **** Incremental Build of configuration Debug for project 09-Blending ****
+make all 
+Building file: ../src/main.cpp
+Invoking: GCC C++ Compiler
+g++ -std=c++0x -I"/opt/codigo/openGL/ComputacionGraficaAvanzada/09-Blending/../CGALib/include" -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"src/main.d" -MT"src/main.o" -o "src/main.o" "../src/main.cpp"
+In file included from ../src/main.cpp:36:0:
+/opt/codigo/openGL/ComputacionGraficaAvanzada/09-Blending/../CGALib/include/Headers/AnimationUtils.h: In function ‘std::vector<std::vector<glm::mat<4, 4, float, (glm::qualifier)0> > > getKeyFrames(std::__cxx11::string)’:
+/opt/codigo/openGL/ComputacionGraficaAvanzada/09-Blending/../CGALib/include/Headers/AnimationUtils.h:70:8: warning: unused variable ‘j’ [-Wunused-variable]
+    int j = 0;
+        ^
+../src/main.cpp: In function ‘void init(int, int, std::__cxx11::string, bool)’:
+../src/main.cpp:296:20: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+  for (int i = 0; i < ARRAY_SIZE_IN_ELEMENTS(types); i++) {
+                    ^
+../src/main.cpp: In function ‘void applicationLoop()’:
+../src/main.cpp:986:33: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+    if (indexFrameDartJointsNext > keyFramesDartJoints.size() - 1)
+        ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../src/main.cpp:1014:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+    if (indexFrameDartNext > keyFramesDart.size() - 1)
+        ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+Finished building: ../src/main.cpp
+ 
+Building target: ../../Debug/09-Blending
+Invoking: GCC C++ Linker
+g++ -L"/opt/codigo/openGL/ComputacionGraficaAvanzada/09-Blending/../Debug" -o "../../Debug/09-Blending"  ./src/main.o   -lglut -lglfw -lGLEW -lGLU -lGL -lfreeimage -lassimp -lCGALib
+Finished building target: ../../Debug/09-Blending
+ 
+
+13:45:56 Build Finished. 0 errors, 4 warnings. (took 2s.955ms)
+
