@@ -5,13 +5,38 @@
  *      Author: rey
  */
 
-#ifndef SRC_TERRAIN_H_
-#define SRC_TERRAIN_H_
+#ifndef TERRAIN_H_
+#define TERRAIN_H_
+
+#if defined _WIN32 || defined __CYGWIN__
+  #ifdef BUILDING_DLL
+    #ifdef __GNUC__
+      #define DLL_PUBLIC __attribute__ ((dllexport))
+    #else
+      #define DLL_PUBLIC __declspec(dllexport) // Note: actually gcc seems to also supports this syntax.
+    #endif
+  #else
+    #ifdef __GNUC__
+      #define DLL_PUBLIC __attribute__ ((dllimport))
+    #else
+      #define DLL_PUBLIC __declspec(dllimport) // Note: actually gcc seems to also supports this syntax.
+    #endif
+  #endif
+  #define DLL_LOCAL
+#else
+  #if __GNUC__ >= 4
+    #define DLL_PUBLIC __attribute__ ((visibility ("default")))
+    #define DLL_LOCAL  __attribute__ ((visibility ("hidden")))
+  #else
+    #define DLL_PUBLIC
+    #define DLL_LOCAL
+  #endif
+#endif
 
 #include "AbstractModel.h"
 #include "Texture.h"
 
-class Terrain : public AbstractModel{
+class DLL_PUBLIC Terrain : public AbstractModel{
 public:
 	Terrain(float gridX, float gridZ, float size, float maxHeight, std::string heightMap);
 	float getHeightTerrain(float worldX, float worldZ);

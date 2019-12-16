@@ -32,7 +32,7 @@
 class DLL_PUBLIC TimeManager {
 public:
 
-	DLL_PUBLIC static TimeManager& Instance() {
+	static TimeManager& Instance() {
 		static TimeManager instance;
 
 		return instance;

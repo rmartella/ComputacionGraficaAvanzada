@@ -5,8 +5,33 @@
  *      Author: rey
  */
 
-#ifndef SRC_HEADERS_ANIMATIONUTILS_H_
-#define SRC_HEADERS_ANIMATIONUTILS_H_
+#ifndef HEADERS_ANIMATIONUTILS_H_
+#define HEADERS_ANIMATIONUTILS_H_
+
+#if defined _WIN32 || defined __CYGWIN__
+  #ifdef BUILDING_DLL
+    #ifdef __GNUC__
+      #define DLL_PUBLIC __attribute__ ((dllexport))
+    #else
+      #define DLL_PUBLIC __declspec(dllexport) // Note: actually gcc seems to also supports this syntax.
+    #endif
+  #else
+    #ifdef __GNUC__
+      #define DLL_PUBLIC __attribute__ ((dllimport))
+    #else
+      #define DLL_PUBLIC __declspec(dllimport) // Note: actually gcc seems to also supports this syntax.
+    #endif
+  #endif
+  #define DLL_LOCAL
+#else
+  #if __GNUC__ >= 4
+    #define DLL_PUBLIC __attribute__ ((visibility ("default")))
+    #define DLL_LOCAL  __attribute__ ((visibility ("hidden")))
+  #else
+    #define DLL_PUBLIC
+    #define DLL_LOCAL
+  #endif
+#endif
 
 #include <string>
 #include <iostream>
@@ -16,6 +41,18 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+std::string DLL_PUBLIC matToString(glm::mat4 matrix);
+void DLL_PUBLIC appendFrame(std::ofstream &outputFile,
+	std::vector<glm::mat4> matrixList);
+void DLL_PUBLIC appendFrame(std::ofstream &outputFile,
+	std::vector<float> jointsList);
+std::vector<std::vector<glm::mat4>> DLL_PUBLIC getKeyFrames(std::string fileName);
+std::vector<std::vector<float>> DLL_PUBLIC getKeyRotFrames(std::string fileName);
+glm::mat4 DLL_PUBLIC interpolate(std::vector<std::vector<glm::mat4>> keyFrames, int index,
+	int indexNext, int jointID, float interpolation);
+float DLL_PUBLIC interpolate(std::vector<std::vector<float>> keyFrames, int index,
+	int indexNext, int jointID, float interpolation);
 
 std::string matToString(glm::mat4 matrix) {
 	std::stringstream ss;
