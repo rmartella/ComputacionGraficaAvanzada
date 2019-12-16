@@ -7,7 +7,7 @@
 class TimeManager {
 public:
 
-	static TimeManager& Instance() {
+	static __declspec(dllexport) TimeManager& Instance() {
 		static TimeManager instance;
 
 		return instance;
