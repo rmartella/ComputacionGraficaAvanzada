@@ -468,7 +468,54 @@ void destroy() {
 	// --------- IMPORTANTE ----------
 	// Eliminar los shader y buffers creados.
 
+	// Shaders Delete
 	shader.destroy();
+	shaderMulLighting.destroy();
+	shaderSkybox.destroy();
+
+	// Basic objects Delete
+	skyboxSphere.destroy();
+	boxCesped.destroy();
+	boxWalls.destroy();
+	boxHighway.destroy();
+	boxLandingPad.destroy();
+
+	// Custom objects Delete
+	modelAircraft.destroy();
+	modelDartLegoBody.destroy();
+	modelDartLegoHead.destroy();
+	modelDartLegoLeftArm.destroy();
+	modelDartLegoLeftHand.destroy();
+	modelDartLegoLeftLeg.destroy();
+	modelDartLegoMask.destroy();
+	modelDartLegoRightArm.destroy();
+	modelDartLegoRightHand.destroy();
+	modelDartLegoRightLeg.destroy();
+	modelEclipseChasis.destroy();
+	modelEclipseFrontalWheels.destroy();
+	modelEclipseRearWheels.destroy();
+	modelHeliChasis.destroy();
+	modelHeliHeli.destroy();
+	modelLambo.destroy();
+	modelLamboFrontLeftWheel.destroy();
+	modelLamboFrontRightWheel.destroy();
+	modelLamboLeftDor.destroy();
+	modelLamboRearLeftWheel.destroy();
+	modelLamboRearRightWheel.destroy();
+	modelLamboRightDor.destroy();
+	modelRock.destroy();
+
+	// Textures Delete
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glDeleteTextures(1, &textureCespedID);
+	glDeleteTextures(1, &textureWallID);
+	glDeleteTextures(1, &textureWindowID);
+	glDeleteTextures(1, &textureHighwayID);
+	glDeleteTextures(1, &textureLandingPadID);
+
+	// Cube Maps Delete
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	glDeleteTextures(1, &skyboxTextureID);
 }
 
 void reshapeCallback(GLFWwindow *Window, int widthRes, int heightRes) {

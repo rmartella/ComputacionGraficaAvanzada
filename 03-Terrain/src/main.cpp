@@ -54,16 +54,10 @@ Shader shaderMulLighting;
 std::shared_ptr<FirstPersonCamera> camera(new FirstPersonCamera());
 
 Sphere skyboxSphere(20, 20);
-Box boxCesped;
-Box boxWalls;
-Box boxHighway;
-Box boxLandingPad;
+
 // Models complex instances
 Model modelRock;
 Model modelAircraft;
-Model modelEclipseChasis;
-Model modelEclipseRearWheels;
-Model modelEclipseFrontalWheels;
 Model modelHeliChasis;
 Model modelHeliHeli;
 Model modelLambo;
@@ -87,7 +81,7 @@ Model modelDartLegoRightLeg;
 // Mayow
 Model mayowModelAnimate;
 // Terrain model instance
-Terrain terrain(-1, -1, 800, 40, "../Textures/heightmap.png");
+Terrain terrain(-1, -1, 200, 8, "../Textures/heightmap.png");
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
@@ -213,18 +207,6 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	skyboxSphere.setShader(&shaderSkybox);
 	skyboxSphere.setScale(glm::vec3(20.0f, 20.0f, 20.0f));
 
-	boxCesped.init();
-	boxCesped.setShader(&shaderMulLighting);
-
-	boxWalls.init();
-	boxWalls.setShader(&shaderMulLighting);
-
-	boxHighway.init();
-	boxHighway.setShader(&shaderMulLighting);
-
-	boxLandingPad.init();
-	boxLandingPad.setShader(&shaderMulLighting);
-
 	modelRock.loadModel("../models/rock/rock.obj");
 	modelRock.setShader(&shaderMulLighting);
 
@@ -234,13 +216,6 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	terrain.init();
 	terrain.setShader(&shaderMulLighting);
 
-	// Eclipse
-	modelEclipseChasis.loadModel("../models/Eclipse/2003eclipse_chasis.obj");
-	modelEclipseChasis.setShader(&shaderMulLighting);
-	modelEclipseFrontalWheels.loadModel("../models/Eclipse/2003eclipse_frontal_wheels.obj");
-	modelEclipseFrontalWheels.setShader(&shaderMulLighting);
-	modelEclipseRearWheels.loadModel("../models/Eclipse/2003eclipse_rear_wheels.obj");
-	modelEclipseRearWheels.setShader(&shaderMulLighting);
 	// Helicopter
 	modelHeliChasis.loadModel("../models/Helicopter/Mi_24_chasis.obj");
 	modelHeliChasis.setShader(&shaderMulLighting);
@@ -484,6 +459,54 @@ void destroy() {
 	// --------- IMPORTANTE ----------
 	// Eliminar los shader y buffers creados.
 
+	// Shaders Delete
+	shader.destroy();
+	shaderMulLighting.destroy();
+	shaderSkybox.destroy();
+
+	// Basic objects Delete
+	skyboxSphere.destroy();
+
+	// Terrains objects Delete
+	terrain.destroy();
+
+	// Custom objects Delete
+	modelAircraft.destroy();
+	modelDartLegoBody.destroy();
+	modelDartLegoHead.destroy();
+	modelDartLegoLeftArm.destroy();
+	modelDartLegoLeftHand.destroy();
+	modelDartLegoLeftLeg.destroy();
+	modelDartLegoMask.destroy();
+	modelDartLegoRightArm.destroy();
+	modelDartLegoRightHand.destroy();
+	modelDartLegoRightLeg.destroy();
+	modelHeliChasis.destroy();
+	modelHeliHeli.destroy();
+	modelLambo.destroy();
+	modelLamboFrontLeftWheel.destroy();
+	modelLamboFrontRightWheel.destroy();
+	modelLamboLeftDor.destroy();
+	modelLamboRearLeftWheel.destroy();
+	modelLamboRearRightWheel.destroy();
+	modelLamboRightDor.destroy();
+	modelRock.destroy();
+
+	// Custom objects animate
+	mayowModelAnimate.destroy();
+
+	// Textures Delete
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glDeleteTextures(1, &textureCespedID);
+	glDeleteTextures(1, &textureWallID);
+	glDeleteTextures(1, &textureWindowID);
+	glDeleteTextures(1, &textureHighwayID);
+	glDeleteTextures(1, &textureLandingPadID);
+
+	// Cube Maps Delete
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	glDeleteTextures(1, &skyboxTextureID);
+
 	shader.destroy();
 }
 
@@ -643,18 +666,6 @@ bool processInput(bool continueApplication) {
 void applicationLoop() {
 	bool psi = true;
 
-
-	glm::mat4 modelMatrixEclipse = glm::mat4(1.0f);
-	modelMatrixEclipse = glm::translate(modelMatrixEclipse, glm::vec3(27.5, 0, 30.0));
-	modelMatrixEclipse = glm::rotate(modelMatrixEclipse, glm::radians(180.0f), glm::vec3(0, 1, 0));
-	int state = 0;
-	float advanceCount = 0.0;
-	float rotCount = 0.0;
-	float rotWheelsX = 0.0;
-	float rotWheelsY = 0.0;
-	int numberAdvance = 0;
-	int maxAdvance = 0.0;
-
 	glm::mat4 modelMatrixHeli = glm::mat4(1.0f);
 	modelMatrixHeli = glm::translate(modelMatrixHeli, glm::vec3(5.0, 10.0, -5.0));
 	float rotHelHelY = 0.0;
@@ -738,7 +749,7 @@ void applicationLoop() {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textureCespedID);
 		shaderMulLighting.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(80, 80)));
-		terrain.setPosition(glm::vec3(200, -7, 200));
+		terrain.setPosition(glm::vec3(100, 0, 100));
 		terrain.render();
 		shaderMulLighting.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(0, 0)));
 		glBindTexture(GL_TEXTURE_2D, 0);
