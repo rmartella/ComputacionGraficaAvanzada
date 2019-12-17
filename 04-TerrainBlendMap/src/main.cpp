@@ -50,20 +50,16 @@ Shader shader;
 Shader shaderSkybox;
 //Shader con multiples luces
 Shader shaderMulLighting;
+//Shader para el terreno
+Shader shaderTerrain;
 
 std::shared_ptr<FirstPersonCamera> camera(new FirstPersonCamera());
 
 Sphere skyboxSphere(20, 20);
-Box boxCesped;
-Box boxWalls;
-Box boxHighway;
-Box boxLandingPad;
+
 // Models complex instances
 Model modelRock;
 Model modelAircraft;
-Model modelEclipseChasis;
-Model modelEclipseRearWheels;
-Model modelEclipseFrontalWheels;
 Model modelHeliChasis;
 Model modelHeliHeli;
 Model modelLambo;
@@ -87,9 +83,10 @@ Model modelDartLegoRightLeg;
 // Mayow
 Model mayowModelAnimate;
 // Terrain model instance
-Terrain terrain(-1, -1, 800, 40, "../Textures/heightmap.png");
+Terrain terrain(-1, -1, 200, 8, "../Textures/heightmap.png");
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
+GLuint textureTerrainBackgroundID, textureTerrainRID, textureTerrainGID, textureTerrainBID, textureTerrainBlendMapID;
 GLuint skyboxTextureID;
 
 GLenum types[6] = {
@@ -207,23 +204,12 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shader.initialize("../Shaders/colorShader.vs", "../Shaders/colorShader.fs");
 	shaderSkybox.initialize("../Shaders/cubeTexture.vs", "../Shaders/cubeTexture.fs");
 	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation.vs", "../Shaders/multipleLights.fs");
+	shaderTerrain.initialize("../Shaders/terrain.vs", "../Shaders/terrain.fs");
 
 	// Inicializacion de los objetos.
 	skyboxSphere.init();
 	skyboxSphere.setShader(&shaderSkybox);
 	skyboxSphere.setScale(glm::vec3(20.0f, 20.0f, 20.0f));
-
-	boxCesped.init();
-	boxCesped.setShader(&shaderMulLighting);
-
-	boxWalls.init();
-	boxWalls.setShader(&shaderMulLighting);
-
-	boxHighway.init();
-	boxHighway.setShader(&shaderMulLighting);
-
-	boxLandingPad.init();
-	boxLandingPad.setShader(&shaderMulLighting);
 
 	modelRock.loadModel("../models/rock/rock.obj");
 	modelRock.setShader(&shaderMulLighting);
@@ -232,15 +218,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	modelAircraft.setShader(&shaderMulLighting);
 
 	terrain.init();
-	terrain.setShader(&shaderMulLighting);
+	terrain.setShader(&shaderTerrain);
 
-	// Eclipse
-	modelEclipseChasis.loadModel("../models/Eclipse/2003eclipse_chasis.obj");
-	modelEclipseChasis.setShader(&shaderMulLighting);
-	modelEclipseFrontalWheels.loadModel("../models/Eclipse/2003eclipse_frontal_wheels.obj");
-	modelEclipseFrontalWheels.setShader(&shaderMulLighting);
-	modelEclipseRearWheels.loadModel("../models/Eclipse/2003eclipse_rear_wheels.obj");
-	modelEclipseRearWheels.setShader(&shaderMulLighting);
 	// Helicopter
 	modelHeliChasis.loadModel("../models/Helicopter/Mi_24_chasis.obj");
 	modelHeliChasis.setShader(&shaderMulLighting);
@@ -476,6 +455,166 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 		std::cout << "Failed to load texture" << std::endl;
 	// Libera la memoria de la textura
 	textureLandingPad.freeImage(bitmap);
+
+	// Definiendo la textura a utilizar
+	Texture textureTerrainBackground("../Textures/grassy2.png");
+	// Carga el mapa de bits (FIBITMAP es el tipo de dato de la libreria)
+	bitmap = textureTerrainBackground.loadImage();
+	// Convertimos el mapa de bits en un arreglo unidimensional de tipo unsigned char
+	data = textureTerrainBackground.convertToData(bitmap, imageWidth,
+			imageHeight);
+	// Creando la textura con id 1
+	glGenTextures(1, &textureTerrainBackgroundID);
+	// Enlazar esa textura a una tipo de textura de 2D.
+	glBindTexture(GL_TEXTURE_2D, textureTerrainBackgroundID);
+	// set the texture wrapping parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// Verifica si se pudo abrir la textura
+	if (data) {
+		// Transferis los datos de la imagen a memoria
+		// Tipo de textura, Mipmaps, Formato interno de openGL, ancho, alto, Mipmaps,
+		// Formato interno de la libreria de la imagen, el tipo de dato y al apuntador
+		// a los datos
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0,
+		GL_BGRA, GL_UNSIGNED_BYTE, data);
+		// Generan los niveles del mipmap (OpenGL es el ecargado de realizarlos)
+		glGenerateMipmap(GL_TEXTURE_2D);
+	} else
+		std::cout << "Failed to load texture" << std::endl;
+	// Libera la memoria de la textura
+	textureTerrainBackground.freeImage(bitmap);
+
+	// Definiendo la textura a utilizar
+	Texture textureTerrainR("../Textures/mud.png");
+	// Carga el mapa de bits (FIBITMAP es el tipo de dato de la libreria)
+	bitmap = textureTerrainR.loadImage();
+	// Convertimos el mapa de bits en un arreglo unidimensional de tipo unsigned char
+	data = textureTerrainR.convertToData(bitmap, imageWidth,
+			imageHeight);
+	// Creando la textura con id 1
+	glGenTextures(1, &textureTerrainRID);
+	// Enlazar esa textura a una tipo de textura de 2D.
+	glBindTexture(GL_TEXTURE_2D, textureTerrainRID);
+	// set the texture wrapping parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// Verifica si se pudo abrir la textura
+	if (data) {
+		// Transferis los datos de la imagen a memoria
+		// Tipo de textura, Mipmaps, Formato interno de openGL, ancho, alto, Mipmaps,
+		// Formato interno de la libreria de la imagen, el tipo de dato y al apuntador
+		// a los datos
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0,
+		GL_BGRA, GL_UNSIGNED_BYTE, data);
+		// Generan los niveles del mipmap (OpenGL es el ecargado de realizarlos)
+		glGenerateMipmap(GL_TEXTURE_2D);
+	} else
+		std::cout << "Failed to load texture" << std::endl;
+	// Libera la memoria de la textura
+	textureTerrainR.freeImage(bitmap);
+
+	// Definiendo la textura a utilizar
+	Texture textureTerrainG("../Textures/grassFlowers.png");
+	// Carga el mapa de bits (FIBITMAP es el tipo de dato de la libreria)
+	bitmap = textureTerrainG.loadImage();
+	// Convertimos el mapa de bits en un arreglo unidimensional de tipo unsigned char
+	data = textureTerrainG.convertToData(bitmap, imageWidth,
+			imageHeight);
+	// Creando la textura con id 1
+	glGenTextures(1, &textureTerrainGID);
+	// Enlazar esa textura a una tipo de textura de 2D.
+	glBindTexture(GL_TEXTURE_2D, textureTerrainGID);
+	// set the texture wrapping parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// Verifica si se pudo abrir la textura
+	if (data) {
+		// Transferis los datos de la imagen a memoria
+		// Tipo de textura, Mipmaps, Formato interno de openGL, ancho, alto, Mipmaps,
+		// Formato interno de la libreria de la imagen, el tipo de dato y al apuntador
+		// a los datos
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0,
+		GL_BGRA, GL_UNSIGNED_BYTE, data);
+		// Generan los niveles del mipmap (OpenGL es el ecargado de realizarlos)
+		glGenerateMipmap(GL_TEXTURE_2D);
+	} else
+		std::cout << "Failed to load texture" << std::endl;
+	// Libera la memoria de la textura
+	textureTerrainG.freeImage(bitmap);
+
+	// Definiendo la textura a utilizar
+	Texture textureTerrainB("../Textures/path.png");
+	// Carga el mapa de bits (FIBITMAP es el tipo de dato de la libreria)
+	bitmap = textureTerrainB.loadImage();
+	// Convertimos el mapa de bits en un arreglo unidimensional de tipo unsigned char
+	data = textureTerrainB.convertToData(bitmap, imageWidth,
+			imageHeight);
+	// Creando la textura con id 1
+	glGenTextures(1, &textureTerrainBID);
+	// Enlazar esa textura a una tipo de textura de 2D.
+	glBindTexture(GL_TEXTURE_2D, textureTerrainBID);
+	// set the texture wrapping parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// Verifica si se pudo abrir la textura
+	if (data) {
+		// Transferis los datos de la imagen a memoria
+		// Tipo de textura, Mipmaps, Formato interno de openGL, ancho, alto, Mipmaps,
+		// Formato interno de la libreria de la imagen, el tipo de dato y al apuntador
+		// a los datos
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0,
+		GL_BGRA, GL_UNSIGNED_BYTE, data);
+		// Generan los niveles del mipmap (OpenGL es el ecargado de realizarlos)
+		glGenerateMipmap(GL_TEXTURE_2D);
+	} else
+		std::cout << "Failed to load texture" << std::endl;
+	// Libera la memoria de la textura
+	textureTerrainB.freeImage(bitmap);
+
+	// Definiendo la textura a utilizar
+	Texture textureTerrainBlendMap("../Textures/blendMap.png");
+	// Carga el mapa de bits (FIBITMAP es el tipo de dato de la libreria)
+	bitmap = textureTerrainBlendMap.loadImage();
+	// Convertimos el mapa de bits en un arreglo unidimensional de tipo unsigned char
+	data = textureTerrainBlendMap.convertToData(bitmap, imageWidth,
+			imageHeight);
+	// Creando la textura con id 1
+	glGenTextures(1, &textureTerrainBlendMapID);
+	// Enlazar esa textura a una tipo de textura de 2D.
+	glBindTexture(GL_TEXTURE_2D, textureTerrainBlendMapID);
+	// set the texture wrapping parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// Verifica si se pudo abrir la textura
+	if (data) {
+		// Transferis los datos de la imagen a memoria
+		// Tipo de textura, Mipmaps, Formato interno de openGL, ancho, alto, Mipmaps,
+		// Formato interno de la libreria de la imagen, el tipo de dato y al apuntador
+		// a los datos
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0,
+		GL_BGRA, GL_UNSIGNED_BYTE, data);
+		// Generan los niveles del mipmap (OpenGL es el ecargado de realizarlos)
+		glGenerateMipmap(GL_TEXTURE_2D);
+	} else
+		std::cout << "Failed to load texture" << std::endl;
+	// Libera la memoria de la textura
+	textureTerrainBlendMap.freeImage(bitmap);
 }
 
 void destroy() {
@@ -483,6 +622,60 @@ void destroy() {
 	glfwTerminate();
 	// --------- IMPORTANTE ----------
 	// Eliminar los shader y buffers creados.
+
+	// Shaders Delete
+	shader.destroy();
+	shaderMulLighting.destroy();
+	shaderSkybox.destroy();
+	shaderTerrain.destroy();
+
+	// Basic objects Delete
+	skyboxSphere.destroy();
+
+	// Terrains objects Delete
+	terrain.destroy();
+
+	// Custom objects Delete
+	modelAircraft.destroy();
+	modelDartLegoBody.destroy();
+	modelDartLegoHead.destroy();
+	modelDartLegoLeftArm.destroy();
+	modelDartLegoLeftHand.destroy();
+	modelDartLegoLeftLeg.destroy();
+	modelDartLegoMask.destroy();
+	modelDartLegoRightArm.destroy();
+	modelDartLegoRightHand.destroy();
+	modelDartLegoRightLeg.destroy();
+	modelHeliChasis.destroy();
+	modelHeliHeli.destroy();
+	modelLambo.destroy();
+	modelLamboFrontLeftWheel.destroy();
+	modelLamboFrontRightWheel.destroy();
+	modelLamboLeftDor.destroy();
+	modelLamboRearLeftWheel.destroy();
+	modelLamboRearRightWheel.destroy();
+	modelLamboRightDor.destroy();
+	modelRock.destroy();
+
+	// Custom objects animate
+	mayowModelAnimate.destroy();
+
+	// Textures Delete
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glDeleteTextures(1, &textureCespedID);
+	glDeleteTextures(1, &textureWallID);
+	glDeleteTextures(1, &textureWindowID);
+	glDeleteTextures(1, &textureHighwayID);
+	glDeleteTextures(1, &textureLandingPadID);
+	glDeleteTextures(1, &textureTerrainBackgroundID);
+	glDeleteTextures(1, &textureTerrainRID);
+	glDeleteTextures(1, &textureTerrainGID);
+	glDeleteTextures(1, &textureTerrainBID);
+	glDeleteTextures(1, &textureTerrainBlendMapID);
+
+	// Cube Maps Delete
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	glDeleteTextures(1, &skyboxTextureID);
 
 	shader.destroy();
 }
@@ -643,18 +836,6 @@ bool processInput(bool continueApplication) {
 void applicationLoop() {
 	bool psi = true;
 
-
-	glm::mat4 modelMatrixEclipse = glm::mat4(1.0f);
-	modelMatrixEclipse = glm::translate(modelMatrixEclipse, glm::vec3(27.5, 0, 30.0));
-	modelMatrixEclipse = glm::rotate(modelMatrixEclipse, glm::radians(180.0f), glm::vec3(0, 1, 0));
-	int state = 0;
-	float advanceCount = 0.0;
-	float rotCount = 0.0;
-	float rotWheelsX = 0.0;
-	float rotWheelsY = 0.0;
-	int numberAdvance = 0;
-	int maxAdvance = 0.0;
-
 	glm::mat4 modelMatrixHeli = glm::mat4(1.0f);
 	modelMatrixHeli = glm::translate(modelMatrixHeli, glm::vec3(5.0, 10.0, -5.0));
 	float rotHelHelY = 0.0;
@@ -708,6 +889,11 @@ void applicationLoop() {
 					glm::value_ptr(projection));
 		shaderMulLighting.setMatrix4("view", 1, false,
 				glm::value_ptr(view));
+		// Settea la matriz de vista y projection al shader con multiples luces
+		shaderTerrain.setMatrix4("projection", 1, false,
+					glm::value_ptr(projection));
+		shaderTerrain.setMatrix4("view", 1, false,
+				glm::value_ptr(view));
 
 		/*******************************************
 		 * Propiedades Luz direccional
@@ -719,14 +905,25 @@ void applicationLoop() {
 		shaderMulLighting.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-1.0, 0.0, 0.0)));
 
 		/*******************************************
+		 * Propiedades Luz direccional Terrain
+		 *******************************************/
+		shaderTerrain.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
+		shaderTerrain.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
+		shaderTerrain.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.7, 0.7, 0.7)));
+		shaderTerrain.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.9, 0.9, 0.9)));
+		shaderTerrain.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-1.0, 0.0, 0.0)));
+
+		/*******************************************
 		 * Propiedades SpotLights
 		 *******************************************/
 		shaderMulLighting.setInt("spotLightCount", 0);
+		shaderTerrain.setInt("spotLightCount", 0);
 
 		/*******************************************
 		 * Propiedades PointLights
 		 *******************************************/
 		shaderMulLighting.setInt("pointLightCount", 0);
+		shaderTerrain.setInt("pointLightCount", 0);
 
 		/*******************************************
 		 * Terrain Cesped
@@ -734,13 +931,30 @@ void applicationLoop() {
 		glm::mat4 modelCesped = glm::mat4(1.0);
 		modelCesped = glm::translate(modelCesped, glm::vec3(0.0, 0.0, 0.0));
 		modelCesped = glm::scale(modelCesped, glm::vec3(200.0, 0.001, 200.0));
-		// Se activa la textura del agua
+		// Se activa la textura del background
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureCespedID);
-		shaderMulLighting.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(80, 80)));
-		terrain.setPosition(glm::vec3(200, -7, 200));
+		glBindTexture(GL_TEXTURE_2D, textureTerrainBackgroundID);
+		shaderTerrain.setInt("backgroundTexture", 0);
+		// Se activa la textura de tierra
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, textureTerrainRID);
+		shaderTerrain.setInt("rTexture", 1);
+		// Se activa la textura de hierba
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, textureTerrainGID);
+		shaderTerrain.setInt("gTexture", 2);
+		// Se activa la textura del camino
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, textureTerrainBID);
+		shaderTerrain.setInt("bTexture", 3);
+		// Se activa la textura del blend map
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, textureTerrainBlendMapID);
+		shaderTerrain.setInt("blendMapTexture", 4);
+		shaderTerrain.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(40, 40)));
+		terrain.setPosition(glm::vec3(100, 0, 100));
 		terrain.render();
-		shaderMulLighting.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(0, 0)));
+		shaderTerrain.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(0, 0)));
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		/*******************************************
