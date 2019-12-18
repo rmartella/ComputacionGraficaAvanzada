@@ -219,6 +219,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	terrain.init();
 	terrain.setShader(&shaderTerrain);
+	terrain.setPosition(glm::vec3(100, 0, 100));
 
 	// Helicopter
 	modelHeliChasis.loadModel("../models/Helicopter/Mi_24_chasis.obj");
@@ -952,7 +953,6 @@ void applicationLoop() {
 		glBindTexture(GL_TEXTURE_2D, textureTerrainBlendMapID);
 		shaderTerrain.setInt("blendMapTexture", 4);
 		shaderTerrain.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(40, 40)));
-		terrain.setPosition(glm::vec3(100, 0, 100));
 		terrain.render();
 		shaderTerrain.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(0, 0)));
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -1116,7 +1116,7 @@ void applicationLoop() {
 		 *******************************************/
 		modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
 		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
-		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.035, 0.035, 0.035));
+		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
 		mayowModelAnimate.setAnimationIndex(0);
 		mayowModelAnimate.render(modelMatrixMayowBody);
 

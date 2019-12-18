@@ -16,7 +16,7 @@ Terrain::Terrain(float gridX, float gridZ, float size, float maxHeight, std::str
 	this->maxHeight = maxHeight;
 
 	Texture textureHeightMap = Texture(heightMap);
-	FIBITMAP * bitmap = textureHeightMap.loadImage(false);
+	FIBITMAP * bitmap = textureHeightMap.loadImage(true);
 	unsigned char * data = textureHeightMap.convertToData(bitmap, this->imageWidth, this->imageHeight);
 
 	int VERTEX_COUNT = this->imageHeight;
