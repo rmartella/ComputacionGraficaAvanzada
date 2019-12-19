@@ -5,8 +5,8 @@
  *      Author: rey
  */
 
-#ifndef HEADERS_MATHUTIL_H_
-#define HEADERS_MATHUTIL_H_
+#ifndef MATHUTIL_H_
+#define MATHUTIL_H_
 
 #if defined _WIN32 || defined __CYGWIN__
   #ifdef BUILDING_DLL
@@ -86,4 +86,4 @@ void DLL_PUBLIC CopyMat(const RM& from, CM& to) {
 	to[3][3] = from.d4;
 }
 
-#endif /* HEADERS_MATHUTIL_H_ */
+#endif /* MATHUTIL_H_ */

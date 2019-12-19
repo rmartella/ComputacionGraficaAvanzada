@@ -124,5 +124,11 @@
     <None Include="..\Shaders\multipleLights.fs">
       <Filter>Archivos de recursos</Filter>
     </None>
+    <None Include="..\Shaders\terrain.fs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\terrain.vs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
   </ItemGroup>
 </Project>
