@@ -200,7 +200,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	// Inicialización de los shaders
 	shader.initialize("../Shaders/colorShader.vs", "../Shaders/colorShader.fs");
-	shaderSkybox.initialize("../Shaders/cubeTexture.vs", "../Shaders/cubeTexture.fs");
+	shaderSkybox.initialize("../Shaders/skyBox.vs", "../Shaders/skyBox.fs");
 	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation.vs", "../Shaders/multipleLights.fs");
 
 	// Inicializacion de los objetos.
@@ -915,6 +915,7 @@ void applicationLoop() {
 		modelHeliHeli.render(modelMatrixHeliHeli);
 
 		// Lambo car
+		glDisable(GL_CULL_FACE);
 		glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 		modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(23.0, 0.0, 0.0));
 		modelMatrixLambo = glm::scale(modelMatrixLambo, glm::vec3(1.3, 1.3, 1.3));
@@ -930,6 +931,8 @@ void applicationLoop() {
 		modelLamboFrontRightWheel.render(modelMatrixLambo);
 		modelLamboRearLeftWheel.render(modelMatrixLambo);
 		modelLamboRearRightWheel.render(modelMatrixLambo);
+		// Se regresa el cull faces IMPORTANTE para las puertas
+		glEnable(GL_CULL_FACE);
 
 		// Dart lego
 		// Se deshabilita el cull faces IMPORTANTE para la capa
@@ -981,6 +984,30 @@ void applicationLoop() {
 		modelDartLegoRightLeg.render(modelMatrixDartRightLeg);
 		// Se regresa el cull faces IMPORTANTE para la capa
 		glEnable(GL_CULL_FACE);
+
+		/*******************************************
+		 * Custom Anim objects obj
+		 *******************************************/
+		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
+		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
+		mayowModelAnimate.setAnimationIndex(0);
+		mayowModelAnimate.render(modelMatrixMayowBody);
+
+		/*******************************************
+		 * Skybox
+		 *******************************************/
+		GLint oldCullFaceMode;
+		GLint oldDepthFuncMode;
+		// deshabilita el modo del recorte de caras ocultas para ver las esfera desde adentro
+		glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFaceMode);
+		glGetIntegerv(GL_DEPTH_FUNC, &oldDepthFuncMode);
+		shaderSkybox.setFloat("skybox", 0);
+		glCullFace(GL_FRONT);
+		glDepthFunc(GL_LEQUAL);
+		glActiveTexture(GL_TEXTURE0);
+		skyboxSphere.render();
+		glCullFace(oldCullFaceMode);
+		glDepthFunc(oldDepthFuncMode);
 
 		// Para salvar el frame
 		if(record && modelSelected == 1){
@@ -1038,30 +1065,6 @@ void applicationLoop() {
 				indexFrameDartNext = 0;
 			modelMatrixDart = interpolate(keyFramesDart, indexFrameDart, indexFrameDartNext, 0, interpolationDart);
 		}
-
-		/*******************************************
-		 * Custom Anim objects obj
-		 *******************************************/
-		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
-		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
-		mayowModelAnimate.setAnimationIndex(0);
-		mayowModelAnimate.render(modelMatrixMayowBody);
-
-		/*******************************************
-		 * Skybox
-		 *******************************************/
-		GLint oldCullFaceMode;
-		GLint oldDepthFuncMode;
-		// deshabilita el modo del recorte de caras ocultas para ver las esfera desde adentro
-		glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFaceMode);
-		glGetIntegerv(GL_DEPTH_FUNC, &oldDepthFuncMode);
-		shaderSkybox.setFloat("skybox", 0);
-		glCullFace(GL_FRONT);
-		glDepthFunc(GL_LEQUAL);
-		glActiveTexture(GL_TEXTURE0);
-		skyboxSphere.render();
-		glCullFace(oldCullFaceMode);
-		glDepthFunc(oldDepthFuncMode);
 
 		// Constantes de animaciones
 		rotHelHelY += 0.5;

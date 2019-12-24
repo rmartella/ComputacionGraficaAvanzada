@@ -40,7 +40,7 @@ public:
 
 	std::string loadShaderFile(std::string strFile);
 
-	void initialize(std::string strVertexFile, std::string strFragmentFile);
+	void initialize(std::string strVertexFile, std::string strFragmentFile, std::vector<std::string> nameFeedback = {});
 
 	GLint getUniformLocation(std::string strVariable);
 

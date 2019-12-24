@@ -31,8 +31,9 @@ void main(){
 	}
 	else
 		boneTransform = mat4(1.0);
-	gl_Position = projection * view * model * boneTransform * vec4(in_position, 1.0);
-	fragPos = vec3(model * boneTransform * vec4(in_position, 1.0));
+	vec4 fragPosWorldSpace = model * boneTransform * vec4(in_position, 1.0);
+	gl_Position = projection * view * fragPosWorldSpace;
+	fragPos = vec3(fragPosWorldSpace);
 	our_normal = mat3(transpose(inverse(model * boneTransform))) * in_normal;
 	if(scaleUV.x == 0 && scaleUV.y == 0)
 		our_uv = in_uv;

@@ -94,10 +94,11 @@ void Model::loadModel(const std::string & path) {
 
 	// Se crea la obb
 	this->obb.c = this->sbb.c;
-	this->obb.dims.x = aabb.maxs.x - aabb.mins.x;
-	this->obb.dims.y = aabb.maxs.y - aabb.mins.y;
-	this->obb.dims.z = aabb.maxs.z - aabb.mins.z;
-	this->obb.orientation = glm::quat(0.0, 0.0, 0.0, 1);
+	/*this->obb.e.x = aabb.maxs.x - aabb.mins.x;
+	this->obb.e.y = aabb.maxs.y - aabb.mins.y;
+	this->obb.e.z = aabb.maxs.z - aabb.mins.z;*/
+	this->obb.e = (aabb.maxs - aabb.mins) / 2.0f;
+	this->obb.u = glm::quat(0.0, 0.0, 0.0, 1);
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene) {

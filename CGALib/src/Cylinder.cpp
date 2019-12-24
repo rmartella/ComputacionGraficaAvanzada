@@ -81,7 +81,6 @@ Cylinder::Cylinder(int slices, int stacks, float topRadius, float bottomRadius, 
 		index[id++] = baseIndex + i;
 		index[id++] = baseIndex + i + 1;
 	}
-	typeModel = TypeModel::CYLINDER;
 }
 
 Cylinder::~Cylinder() {

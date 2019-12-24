@@ -36,7 +36,6 @@ Box::Box()
 	index.insert(index.begin(), indexArray, indexArray + sizeof(indexArray) / sizeof(GLuint));
 
 	aabb = AABB(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.5f, 0.5f, 0.5f));
-	typeModel = TypeModel::BOX;
 }
 
 Box::~Box() {

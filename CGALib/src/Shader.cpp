@@ -19,7 +19,7 @@ std::string Shader::loadShaderFile(std::string strFile) {
 }
 
 void Shader::initialize(std::string strVertexFile,
-		std::string strFragmentFile) {
+		std::string strFragmentFile, std::vector<std::string> nameFeedback) {
 
 	std::string strVShader, strFShader;
 
@@ -76,6 +76,15 @@ void Shader::initialize(std::string strVertexFile,
 
 	glAttachShader(ShaderProgramId, VertexShaderId);
 	glAttachShader(ShaderProgramId, FragmentShaderId);
+
+	if(nameFeedback.size() > 0){
+		const char * outputNames[nameFeedback.size()];
+		for(unsigned int i = 0; i < nameFeedback.size(); i++)
+			outputNames[i] = nameFeedback[i].c_str();
+			//= { "Position", "Velocity", "Age" };
+		glTransformFeedbackVaryings(ShaderProgramId, 3, outputNames, GL_SEPARATE_ATTRIBS);
+	}
+
 
 	glLinkProgram(ShaderProgramId);
 

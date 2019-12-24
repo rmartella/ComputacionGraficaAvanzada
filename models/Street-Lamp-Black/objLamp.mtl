@@ -1,32 +1,48 @@
+# Blender MTL File: 'None'
+# Material Count: 4
+
 newmtl blinn1SG
-illum 4
-Kd 0.61 0.61 0.61
-Ka 0.00 0.00 0.00
-Tf 0.20 0.20 0.20
-Ni 1.00
-Ks 0.50 0.50 0.50
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.610000 0.610000 0.610000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 0.000000
+illum 6
+
 newmtl blinn2SG
-illum 4
-Kd 0.00 0.00 0.00
-Ka 0.00 0.00 0.00
-Tf 1.00 1.00 1.00
-map_Kd -mm 0 0.710744 Marmite.jpg
-Ni 1.00
-Ks 0.00 0.00 0.00
-map_Ks -mm 0 0.432507 Marmitespecular.jpg
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 0.000000
+illum 6
+map_Kd Marmite.jpg
+map_Ks Marmitespecular.jpg
+
 newmtl lambert2SG
-illum 4
-Kd 0.00 0.00 0.00
-Ka 0.00 0.00 0.00
-Tf 1.00 1.00 1.00
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 0.000000
+illum 6
 map_Kd ground020.jpg
-bump ground020b.jpg
-Ni 1.00
+map_Bump ground020b.jpg
+
 newmtl lambert3SG
-illum 4
-Kd 0.00 0.00 0.00
-Ka 0.00 0.00 0.00
-Tf 1.00 1.00 1.00
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
 map_Kd germany010.jpg
-bump germany010b.jpg
-Ni 1.00
+map_Bump germany010b.jpg

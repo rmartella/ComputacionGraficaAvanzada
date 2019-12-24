@@ -210,7 +210,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	// Inicialización de los shaders
 	shader.initialize("../Shaders/colorShader.vs", "../Shaders/colorShader.fs");
-	shaderSkybox.initialize("../Shaders/cubeTexture.vs", "../Shaders/cubeTexture.fs");
+	shaderSkybox.initialize("../Shaders/skyBox.vs", "../Shaders/skyBox.fs");
 	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation.vs", "../Shaders/multipleLights.fs");
 	shaderTerrain.initialize("../Shaders/terrain.vs", "../Shaders/terrain.fs");
 
@@ -847,6 +847,7 @@ bool processInput(bool continueApplication) {
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(0.02, 0.0, 0.0));
 
+	// Mayow animate model movements
 	if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
 		modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(1.0f), glm::vec3(0, 1, 0));
 		animationIndex = 0;
@@ -1110,6 +1111,7 @@ void applicationLoop() {
 		modelHeliHeli.render(modelMatrixHeliHeli);
 
 		// Lambo car
+		glDisable(GL_CULL_FACE);
 		glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 		modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(23.0, 0.0, 0.0));
 		modelMatrixLambo[3][1] = terrain.getHeightTerrain(modelMatrixLambo[3][0], modelMatrixLambo[3][2]);
@@ -1126,6 +1128,8 @@ void applicationLoop() {
 		modelLamboFrontRightWheel.render(modelMatrixLambo);
 		modelLamboRearLeftWheel.render(modelMatrixLambo);
 		modelLamboRearRightWheel.render(modelMatrixLambo);
+		// Se regresa el cull faces IMPORTANTE para las puertas
+		glEnable(GL_CULL_FACE);
 
 		// Render the lamps
 		for (int i = 0; i < lamp1Position.size(); i++){
@@ -1194,6 +1198,31 @@ void applicationLoop() {
 		// Se regresa el cull faces IMPORTANTE para la capa
 		glEnable(GL_CULL_FACE);
 
+		/*******************************************
+		 * Custom Anim objects obj
+		 *******************************************/
+		modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
+		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
+		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
+		mayowModelAnimate.setAnimationIndex(animationIndex);
+		mayowModelAnimate.render(modelMatrixMayowBody);
+
+		/*******************************************
+		 * Skybox
+		 *******************************************/
+		GLint oldCullFaceMode;
+		GLint oldDepthFuncMode;
+		// deshabilita el modo del recorte de caras ocultas para ver las esfera desde adentro
+		glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFaceMode);
+		glGetIntegerv(GL_DEPTH_FUNC, &oldDepthFuncMode);
+		shaderSkybox.setFloat("skybox", 0);
+		glCullFace(GL_FRONT);
+		glDepthFunc(GL_LEQUAL);
+		glActiveTexture(GL_TEXTURE0);
+		skyboxSphere.render();
+		glCullFace(oldCullFaceMode);
+		glDepthFunc(oldDepthFuncMode);
+
 		// Para salvar el frame
 		if(record && modelSelected == 1){
 			matrixDartJoints.push_back(rotDartHead);
@@ -1250,31 +1279,6 @@ void applicationLoop() {
 				indexFrameDartNext = 0;
 			modelMatrixDart = interpolate(keyFramesDart, indexFrameDart, indexFrameDartNext, 0, interpolationDart);
 		}
-
-		/*******************************************
-		 * Custom Anim objects obj
-		 *******************************************/
-		modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
-		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
-		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
-		mayowModelAnimate.setAnimationIndex(animationIndex);
-		mayowModelAnimate.render(modelMatrixMayowBody);
-
-		/*******************************************
-		 * Skybox
-		 *******************************************/
-		GLint oldCullFaceMode;
-		GLint oldDepthFuncMode;
-		// deshabilita el modo del recorte de caras ocultas para ver las esfera desde adentro
-		glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFaceMode);
-		glGetIntegerv(GL_DEPTH_FUNC, &oldDepthFuncMode);
-		shaderSkybox.setFloat("skybox", 0);
-		glCullFace(GL_FRONT);
-		glDepthFunc(GL_LEQUAL);
-		glActiveTexture(GL_TEXTURE0);
-		skyboxSphere.render();
-		glCullFace(oldCullFaceMode);
-		glDepthFunc(oldDepthFuncMode);
 
 		// Constantes de animaciones
 		rotHelHelY += 0.5;

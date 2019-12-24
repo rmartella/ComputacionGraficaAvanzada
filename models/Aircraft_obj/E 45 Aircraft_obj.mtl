@@ -10,8 +10,8 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 0.375745
 illum 2
-map_Kd textures/E-45_glass_nor_.jpg
-map_Bump textures/E-45_glass_nor_.jpg
+map_Kd textures/E-45_glass_nor_.png
+map_Bump textures/E-45_glass_nor_.png
 
 newmtl ship
 Ns 17.647059

@@ -48,10 +48,6 @@ Fecha: 08/02/2018
 class DLL_PUBLIC AbstractModel
 {
 public:
-	enum TypeModel {
-		BOX, SPHERE, CYLINDER, QUAD, TRIANGLE, NUM_MODELS = TRIANGLE + 1
-	};
-
 	class SBB {
 	public:
 		SBB() {
@@ -99,15 +95,15 @@ public:
 	public:
 		OBB(){
 		}
-		OBB(glm::vec3 c, glm::vec3 dims, glm::quat orientation) {
+		OBB(glm::vec3 c, glm::vec3 e, glm::quat u) {
 			this->c = c;
-			this->dims = dims;
-			this->orientation = orientation;
+			this->e = e;
+			this->u = u;
 		}
 
 		glm::vec3 c;
-		glm::vec3 dims;
-		glm::quat orientation;
+		glm::vec3 e;
+		glm::quat u;
 	};
 
 	class Vertex {
@@ -239,14 +235,6 @@ public:
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
-	TypeModel getTypeModel() {
-		return typeModel;
-	}
-
-	void setTypeModel(TypeModel typeModel) {
-		this->typeModel = typeModel;
-	}
-
 	void setColor(const glm::vec4& color) {
 		this->shader_ptr->turnOn();
 		this->shader_ptr->setVectorFloat4("ourColor", glm::value_ptr(color));
@@ -283,7 +271,6 @@ protected:
 	AABB aabb;
 	SBB sbb;
 	OBB obb;
-	TypeModel typeModel;
 };
 
 #endif // ABSTRACTMODEL_H
