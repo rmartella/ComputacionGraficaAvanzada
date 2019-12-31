@@ -7,7 +7,7 @@ ThirdPersonCamera::ThirdPersonCamera(){
     angleTarget = 0.0;
     distanceFromTarget = 1.0f;
     sensitivity = SENSITIVTY;
-    up = glm::vec3(0.0, 1.0, 0.0);
+    worldUp = glm::vec3(0.0, 1.0, 0.0);
     updateCamera();
 }
 
@@ -55,4 +55,7 @@ void ThirdPersonCamera::updateCamera(){
     	front = glm::normalize(position - cameraTarget);
     else
     	front = glm::normalize(cameraTarget - position);
+
+    this->right = glm::normalize(glm::cross(this->front, this->worldUp));
+    this->up = glm::normalize(glm::cross(this->right, this->front));
 }

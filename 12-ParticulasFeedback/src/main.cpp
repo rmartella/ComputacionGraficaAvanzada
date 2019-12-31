@@ -132,8 +132,14 @@ bool exitApp = false;
 int lastMousePosX, offsetX = 0;
 int lastMousePosY, offsetY = 0;
 
+// Model matrix definitions
+glm::mat4 matrixModelRock = glm::mat4(1.0);
+glm::mat4 modelMatrixHeli = glm::mat4(1.0f);
+glm::mat4 modelMatrixLambo = glm::mat4(1.0);
+glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+
 int animationIndex = 1;
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 2;
@@ -158,6 +164,33 @@ int indexFrameDartNext = 1;
 float interpolationDart = 0.0;
 int maxNumPasosDart = 200;
 int numPasosDart = 0;
+
+// Var animate helicopter
+float rotHelHelY = 0.0;
+
+// Var animate lambo dor
+int stateDoor = 0;
+float dorRotCount = 0.0;
+
+// Lamps positions
+std::vector<glm::vec3> lamp1Position = {
+		glm::vec3( -7.03, terrain.getHeightTerrain(-7.03, -19.14), -19.14),
+		glm::vec3(24.41, terrain.getHeightTerrain(24.41, -34.57), -34.57),
+		glm::vec3(-10.15, terrain.getHeightTerrain(-10.15, -54.10), -54.10)};
+std::vector<float> lamp1Orientation = {-17.0, -82.67, 23.70};
+std::vector<glm::vec3> lamp2Position = {
+		glm::vec3(-36.52, terrain.getHeightTerrain( -36.52, -23.24), -23.24),
+		glm::vec3(-52.73, terrain.getHeightTerrain(-52.73, -3.90), -3.90)};
+std::vector<float> lamp2Orientation = {21.37 + 90, -65.0 + 90};
+
+// Blending model unsorted
+std::map<std::string, glm::vec3> blendingUnsorted = {
+		{"aircraft", glm::vec3(10.0, 0.0, -17.5)},
+		{"lambo", glm::vec3(23.0, 0.0, 0.0)},
+		{"heli", glm::vec3(5.0, 10.0, -5.0)},
+		{"fountain", glm::vec3(5.0, 0.0, -40.0)},
+		{"fire", glm::vec3(0.0, 0.0, 7.0)}
+};
 
 double deltaTime;
 double currTime, lastTime;
@@ -951,6 +984,8 @@ void destroy() {
 
 	// Basic objects Delete
 	skyboxSphere.destroy();
+	boxCollider.destroy();
+	sphereCollider.destroy();
 
 	// Terrains objects Delete
 	terrain.destroy();
@@ -1193,30 +1228,19 @@ bool processInput(bool continueApplication) {
 void applicationLoop() {
 	bool psi = true;
 
-	std::vector<glm::vec3> lamp1Position = {
-			glm::vec3( -7.03, terrain.getHeightTerrain(-7.03, -19.14), -19.14),
-			glm::vec3(24.41, terrain.getHeightTerrain(24.41, -34.57), -34.57),
-			glm::vec3(-10.15, terrain.getHeightTerrain(-10.15, -54.10), -54.10)};
-	std::vector<float> lamp1Orientation = {-17.0, -82.67, 23.70};
-
-	std::vector<glm::vec3> lamp2Position = {
-			glm::vec3(-36.52, terrain.getHeightTerrain( -36.52, -23.24), -23.24),
-			glm::vec3(-52.73, terrain.getHeightTerrain(-52.73, -3.90), -3.90)};
-	std::vector<float> lamp2Orientation = {21.37 + 90, -65.0 + 90};
-
 	glm::mat4 view;
 	glm::vec3 axis;
 	glm::vec3 target;
 	float angleTarget;
 
-	glm::mat4 modelMatrixHeli = glm::mat4(1.0f);
+	matrixModelRock = glm::translate(matrixModelRock, glm::vec3(-3.0, 0.0, 2.0));
+
 	modelMatrixHeli = glm::translate(modelMatrixHeli, glm::vec3(5.0, 10.0, -5.0));
-	float rotHelHelY = 0.0;
 
-	int stateDoor = 0;
-	float dorRotCount = 0.0;
+	modelMatrixAircraft = glm::translate(modelMatrixAircraft, glm::vec3(10.0, 2.0, -17.5));
 
-	// Matrices de modelos con movimientos.
+	modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(23.0, 0.0, 0.0));
+
 	modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(3.0, 0.0, 20.0));
 
 	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
@@ -1248,14 +1272,6 @@ void applicationLoop() {
 		psi = processInput(true);
 
 		std::map<std::string, bool> collisionDetection;
-
-		std::map<std::string, glm::vec3> blendingUnsorted = {
-				{"aircraft", glm::vec3(10.0, 0.0, -17.5)},
-				{"lambo", glm::vec3(23.0, 0.0, 0.0)},
-				{"heli", glm::vec3(5.0, 10.0, -5.0)},
-				{"fountain", glm::vec3(5.0, 0.0, -40.0)},
-				{"fire", glm::vec3(0.0, 0.0, 7.0)}
-		};
 
 		// Variables donde se guardan las matrices de cada articulacion por 1 frame
 		std::vector<float> matrixDartJoints;
@@ -1312,6 +1328,9 @@ void applicationLoop() {
 					glm::value_ptr(projection));
 		shaderParticlesFountain.setMatrix4("view", 1, false,
 				glm::value_ptr(view));
+		// Settea la matriz de vista y projection al shader para el fuego
+		shaderParticlesFire.setMatrix4("projection", 1, false, glm::value_ptr(projection));
+		shaderParticlesFire.setMatrix4("view", 1, false, glm::value_ptr(view));
 
 		/*******************************************
 		 * Propiedades de neblina
@@ -1450,8 +1469,6 @@ void applicationLoop() {
 		 * Custom objects obj
 		 *******************************************/
 		//Rock render
-		glm::mat4 matrixModelRock = glm::mat4(1.0);
-		matrixModelRock = glm::translate(matrixModelRock, glm::vec3(-3.0, 0.0, 2.0));
 		matrixModelRock[3][1] = terrain.getHeightTerrain(matrixModelRock[3][0], matrixModelRock[3][2]);
 		modelRock.render(matrixModelRock);
 		// Forze to enable the unit texture to 0 always ----------------- IMPORTANT
@@ -1571,6 +1588,16 @@ void applicationLoop() {
 		glDepthFunc(oldDepthFuncMode);
 
 		/**********
+		 * Update the position with alpha objects
+		 */
+		// Update the aircraft
+		blendingUnsorted.find("aircraft")->second = glm::vec3(modelMatrixAircraft[3]);
+		// Update the lambo
+		blendingUnsorted.find("lambo")->second = glm::vec3(modelMatrixLambo[3]);
+		// Update the helicopter
+		blendingUnsorted.find("heli")->second = glm::vec3(modelMatrixHeli[3]);
+
+		/**********
 		 * Sorter with alpha objects
 		 */
 		std::map<float, std::pair<std::string, glm::vec3>> blendingSorted;
@@ -1583,35 +1610,33 @@ void applicationLoop() {
 		/**********
 		 * Render de las transparencias
 		 */
-		glm::mat4 modelMatrixLambo = glm::mat4(1.0);
-		glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL_CULL_FACE);
 		for(std::map<float, std::pair<std::string, glm::vec3> >::reverse_iterator it = blendingSorted.rbegin(); it != blendingSorted.rend(); it++){
 			if(it->second.first.compare("aircraft") == 0){
 				// Render for the aircraft model
-				modelMatrixAircraft = glm::translate(modelMatrixAircraft, it->second.second);
-				modelMatrixAircraft[3][1] = terrain.getHeightTerrain(modelMatrixAircraft[3][0], modelMatrixAircraft[3][2]) + 2.0;
-				modelAircraft.render(modelMatrixAircraft);
+				glm::mat4 modelMatrixAircraftBlend = glm::mat4(modelMatrixAircraft);
+				modelMatrixAircraftBlend[3][1] = terrain.getHeightTerrain(modelMatrixAircraftBlend[3][0], modelMatrixAircraftBlend[3][2]) + 2.0;
+				modelAircraft.render(modelMatrixAircraftBlend);
 			}
 			else if(it->second.first.compare("lambo") == 0){
 				// Lambo car
-				modelMatrixLambo = glm::translate(modelMatrixLambo, it->second.second);
-				modelMatrixLambo[3][1] = terrain.getHeightTerrain(modelMatrixLambo[3][0], modelMatrixLambo[3][2]);
-				modelMatrixLambo = glm::scale(modelMatrixLambo, glm::vec3(1.3, 1.3, 1.3));
-				modelLambo.render(modelMatrixLambo);
+				glm::mat4 modelMatrixLamboBlend = glm::mat4(modelMatrixLambo);
+				modelMatrixLamboBlend[3][1] = terrain.getHeightTerrain(modelMatrixLamboBlend[3][0], modelMatrixLamboBlend[3][2]);
+				modelMatrixLamboBlend = glm::scale(modelMatrixLamboBlend, glm::vec3(1.3, 1.3, 1.3));
+				modelLambo.render(modelMatrixLamboBlend);
 				glActiveTexture(GL_TEXTURE0);
-				glm::mat4 modelMatrixLamboLeftDor = glm::mat4(modelMatrixLambo);
+				glm::mat4 modelMatrixLamboLeftDor = glm::mat4(modelMatrixLamboBlend);
 				modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(1.08676, 0.707316, 0.982601));
 				modelMatrixLamboLeftDor = glm::rotate(modelMatrixLamboLeftDor, glm::radians(dorRotCount), glm::vec3(1.0, 0, 0));
 				modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(-1.08676, -0.707316, -0.982601));
 				modelLamboLeftDor.render(modelMatrixLamboLeftDor);
-				modelLamboRightDor.render(modelMatrixLambo);
-				modelLamboFrontLeftWheel.render(modelMatrixLambo);
-				modelLamboFrontRightWheel.render(modelMatrixLambo);
-				modelLamboRearLeftWheel.render(modelMatrixLambo);
-				modelLamboRearRightWheel.render(modelMatrixLambo);
+				modelLamboRightDor.render(modelMatrixLamboBlend);
+				modelLamboFrontLeftWheel.render(modelMatrixLamboBlend);
+				modelLamboFrontRightWheel.render(modelMatrixLamboBlend);
+				modelLamboRearLeftWheel.render(modelMatrixLamboBlend);
+				modelLamboRearRightWheel.render(modelMatrixLamboBlend);
 				// Se regresa el cull faces IMPORTANTE para las puertas
 			}
 			else if(it->second.first.compare("heli") == 0){
@@ -1682,18 +1707,12 @@ void applicationLoop() {
 				glDisable(GL_RASTERIZER_DISCARD);
 
 				shaderParticlesFire.setInt("Pass", 2);
-				//shaderParticlesFire.setFloat("ParticleSize", particleSize);
-				shaderParticlesFire.setMatrix4("projection", 1, false, glm::value_ptr(projection));
-				shaderParticlesFire.setMatrix4("view", 1, false, glm::value_ptr(view));
-
 				glm::mat4 modelFireParticles = glm::mat4(1.0);
 				modelFireParticles = glm::translate(modelFireParticles, it->second.second);
 				modelFireParticles[3][1] = terrain.getHeightTerrain(modelFireParticles[3][0], modelFireParticles[3][2]);
 				shaderParticlesFire.setMatrix4("model", 1, false, glm::value_ptr(modelFireParticles));
 
 				shaderParticlesFire.turnOn();
-				/*glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, textureParticleFireID);
 				glDepthMask(GL_FALSE);
@@ -1701,7 +1720,6 @@ void applicationLoop() {
 				glVertexAttribDivisor(0,1);
 				glVertexAttribDivisor(1,1);
 				glVertexAttribDivisor(2,1);
-				//glDrawArrays(GL_POINTS, 0, nParticlesFire);
 				glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticlesFire);
 				glBindVertexArray(0);
 				glDepthMask(GL_TRUE);
@@ -1750,6 +1768,7 @@ void applicationLoop() {
 		//Collider del la rock
 		AbstractModel::SBB rockCollider;
 		glm::mat4 modelMatrixColliderRock= glm::mat4(matrixModelRock);
+		modelMatrixColliderRock = glm::scale(modelMatrixColliderRock, glm::vec3(1.0, 1.0, 1.0));
 		modelMatrixColliderRock = glm::translate(modelMatrixColliderRock, modelRock.getSbb().c);
 		rockCollider.c = glm::vec3(modelMatrixColliderRock[3]);
 		rockCollider.ratio = modelRock.getSbb().ratio * 1.0;
@@ -1841,7 +1860,7 @@ void applicationLoop() {
 		glm::vec3 cinv2 = glm::inverse(mayowCollider.u) * glm::vec4(mayowCollider.c, 1.0);
 		glm::mat4 invColliderB = glm::mat4(1.0);
 		invColliderB = glm::translate(invColliderB, cinv2);
-		invColliderB = glm::scale(invColliderB, mayowCollider.e);
+		invColliderB = glm::scale(invColliderB, mayowCollider.e * 2.0f);
 		boxCollider.setColor(glm::vec4(1.0, 1.0, 0.0, 1.0));
 		boxCollider.enableWireMode();
 		boxCollider.render(invColliderB);
@@ -1858,8 +1877,7 @@ void applicationLoop() {
 			bool isCollision = false;
 			for (std::map<std::string,
 					std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator jt =
-					collidersOBB.begin(); jt != collidersOBB.end() && !isCollision;
-					jt++) {
+					collidersOBB.begin(); jt != collidersOBB.end(); jt++) {
 				if (it != jt
 						&& testOBBOBB(std::get<0>(it->second),
 								std::get<0>(jt->second))) {
@@ -1877,8 +1895,7 @@ void applicationLoop() {
 			bool isCollision = false;
 			for (std::map<std::string,
 					std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> >::iterator jt =
-					collidersSBB.begin(); jt != collidersSBB.end() && !isCollision;
-					jt++) {
+					collidersSBB.begin(); jt != collidersSBB.end(); jt++) {
 				if (it != jt
 						&& testSphereSphereIntersection(std::get<0>(it->second),
 								std::get<0>(jt->second))) {
@@ -1897,8 +1914,7 @@ void applicationLoop() {
 			std::map<std::string,
 					std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator jt =
 					collidersOBB.begin();
-			for (; jt != collidersOBB.end() && !isCollision;
-					jt++) {
+			for (; jt != collidersOBB.end(); jt++) {
 				if (testSphereOBox(std::get<0>(it->second),
 								std::get<0>(jt->second))) {
 					std::cout << "Colision " << it->first << " with "

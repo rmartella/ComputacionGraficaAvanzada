@@ -60,9 +60,10 @@ void addOrUpdateColliders(
 void addOrUpdateCollisionDetection(std::map<std::string, bool> &collisionDetector,
 		std::string name, bool isCollision) {
 	std::map<std::string, bool>::iterator colIt = collisionDetector.find(name);
-	if(colIt != collisionDetector.end())
-		colIt->second = isCollision;
-	else
+	if(colIt != collisionDetector.end()){
+		if(!colIt->second)
+			colIt->second = isCollision;
+	}else
 		collisionDetector[name] = isCollision;
 }
 
@@ -112,8 +113,8 @@ bool testSphereOBox(AbstractModel::SBB sbb, AbstractModel::OBB obb){
 	sbb.c = qinv * glm::vec4(sbb.c, 1.0);
 	obb.c = qinv * glm::vec4(obb.c, 1.0);
 	AbstractModel::AABB aabb;
-	aabb.mins = obb.c - obb.e / 2.0f;
-	aabb.maxs = obb.c + obb.e / 2.0f;
+	aabb.mins = obb.c - obb.e;
+	aabb.maxs = obb.c + obb.e;
 	if (sbb.c[0] >= aabb.mins[0] && sbb.c[0] <= aabb.maxs[0]
 			&& sbb.c[1] >= aabb.mins[1] && sbb.c[1] <= aabb.maxs[1]
 			&& sbb.c[2] >= aabb.mins[2] && sbb.c[2] <= aabb.maxs[2])

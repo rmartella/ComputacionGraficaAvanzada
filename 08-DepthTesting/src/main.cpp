@@ -121,8 +121,14 @@ bool exitApp = false;
 int lastMousePosX, offsetX = 0;
 int lastMousePosY, offsetY = 0;
 
+// Model matrix definitions
+glm::mat4 matrixModelRock = glm::mat4(1.0);
+glm::mat4 modelMatrixHeli = glm::mat4(1.0f);
+glm::mat4 modelMatrixLambo = glm::mat4(1.0);
+glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+
 int animationIndex = 1;
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 2;
@@ -147,6 +153,24 @@ int indexFrameDartNext = 1;
 float interpolationDart = 0.0;
 int maxNumPasosDart = 200;
 int numPasosDart = 0;
+
+// Var animate helicopter
+float rotHelHelY = 0.0;
+
+// Var animate lambo dor
+int stateDoor = 0;
+float dorRotCount = 0.0;
+
+// Lamps positions
+std::vector<glm::vec3> lamp1Position = {
+		glm::vec3( -7.03, terrain.getHeightTerrain(-7.03, -19.14), -19.14),
+		glm::vec3(24.41, terrain.getHeightTerrain(24.41, -34.57), -34.57),
+		glm::vec3(-10.15, terrain.getHeightTerrain(-10.15, -54.10), -54.10)};
+std::vector<float> lamp1Orientation = {-17.0, -82.67, 23.70};
+std::vector<glm::vec3> lamp2Position = {
+		glm::vec3(-36.52, terrain.getHeightTerrain( -36.52, -23.24), -23.24),
+		glm::vec3(-52.73, terrain.getHeightTerrain(-52.73, -3.90), -3.90)};
+std::vector<float> lamp2Orientation = {21.37 + 90, -65.0 + 90};
 
 double deltaTime;
 double currTime, lastTime;
@@ -671,6 +695,8 @@ void destroy() {
 
 	// Basic objects Delete
 	skyboxSphere.destroy();
+	boxCollider.destroy();
+	sphereCollider.destroy();
 
 	// Terrains objects Delete
 	terrain.destroy();
@@ -892,30 +918,19 @@ bool processInput(bool continueApplication) {
 void applicationLoop() {
 	bool psi = true;
 
-	std::vector<glm::vec3> lamp1Position = {
-			glm::vec3( -7.03, terrain.getHeightTerrain(-7.03, -19.14), -19.14),
-			glm::vec3(24.41, terrain.getHeightTerrain(24.41, -34.57), -34.57),
-			glm::vec3(-10.15, terrain.getHeightTerrain(-10.15, -54.10), -54.10)};
-	std::vector<float> lamp1Orientation = {-17.0, -82.67, 23.70};
-
-	std::vector<glm::vec3> lamp2Position = {
-			glm::vec3(-36.52, terrain.getHeightTerrain( -36.52, -23.24), -23.24),
-			glm::vec3(-52.73, terrain.getHeightTerrain(-52.73, -3.90), -3.90)};
-	std::vector<float> lamp2Orientation = {21.37 + 90, -65.0 + 90};
-
 	glm::mat4 view;
 	glm::vec3 axis;
 	glm::vec3 target;
 	float angleTarget;
 
-	glm::mat4 modelMatrixHeli = glm::mat4(1.0f);
+	matrixModelRock = glm::translate(matrixModelRock, glm::vec3(-3.0, 0.0, 2.0));
+
 	modelMatrixHeli = glm::translate(modelMatrixHeli, glm::vec3(5.0, 10.0, -5.0));
-	float rotHelHelY = 0.0;
 
-	int stateDoor = 0;
-	float dorRotCount = 0.0;
+	modelMatrixAircraft = glm::translate(modelMatrixAircraft, glm::vec3(10.0, 2.0, -17.5));
 
-	// Matrices de modelos con movimientos.
+	modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(23.0, 0.0, 0.0));
+
 	modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(3.0, 0.0, 20.0));
 
 	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
@@ -1125,16 +1140,12 @@ void applicationLoop() {
 		 * Custom objects obj
 		 *******************************************/
 		//Rock render
-		glm::mat4 matrixModelRock = glm::mat4(1.0);
-		matrixModelRock = glm::translate(matrixModelRock, glm::vec3(-3.0, 0.0, 2.0));
 		matrixModelRock[3][1] = terrain.getHeightTerrain(matrixModelRock[3][0], matrixModelRock[3][2]);
 		modelRock.render(matrixModelRock);
 		// Forze to enable the unit texture to 0 always ----------------- IMPORTANT
 		glActiveTexture(GL_TEXTURE0);
 
 		// Render for the aircraft model
-		glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
-		modelMatrixAircraft = glm::translate(modelMatrixAircraft, glm::vec3(10.0, 0.0, -17.5));
 		modelMatrixAircraft[3][1] = terrain.getHeightTerrain(modelMatrixAircraft[3][0], modelMatrixAircraft[3][2]) + 2.0;
 		modelAircraft.render(modelMatrixAircraft);
 
@@ -1150,22 +1161,21 @@ void applicationLoop() {
 
 		// Lambo car
 		glDisable(GL_CULL_FACE);
-		glm::mat4 modelMatrixLambo = glm::mat4(1.0);
-		modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(23.0, 0.0, 0.0));
-		modelMatrixLambo[3][1] = terrain.getHeightTerrain(modelMatrixLambo[3][0], modelMatrixLambo[3][2]);
-		modelMatrixLambo = glm::scale(modelMatrixLambo, glm::vec3(1.3, 1.3, 1.3));
-		modelLambo.render(modelMatrixLambo);
+		glm::mat4 modelMatrixLamboChasis = glm::mat4(modelMatrixLambo);
+		modelMatrixLamboChasis[3][1] = terrain.getHeightTerrain(modelMatrixLamboChasis[3][0], modelMatrixLamboChasis[3][2]);
+		modelMatrixLamboChasis = glm::scale(modelMatrixLamboChasis, glm::vec3(1.3, 1.3, 1.3));
+		modelLambo.render(modelMatrixLamboChasis);
 		glActiveTexture(GL_TEXTURE0);
-		glm::mat4 modelMatrixLamboLeftDor = glm::mat4(modelMatrixLambo);
+		glm::mat4 modelMatrixLamboLeftDor = glm::mat4(modelMatrixLamboChasis);
 		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(1.08676, 0.707316, 0.982601));
 		modelMatrixLamboLeftDor = glm::rotate(modelMatrixLamboLeftDor, glm::radians(dorRotCount), glm::vec3(1.0, 0, 0));
 		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(-1.08676, -0.707316, -0.982601));
 		modelLamboLeftDor.render(modelMatrixLamboLeftDor);
-		modelLamboRightDor.render(modelMatrixLambo);
-		modelLamboFrontLeftWheel.render(modelMatrixLambo);
-		modelLamboFrontRightWheel.render(modelMatrixLambo);
-		modelLamboRearLeftWheel.render(modelMatrixLambo);
-		modelLamboRearRightWheel.render(modelMatrixLambo);
+		modelLamboRightDor.render(modelMatrixLamboChasis);
+		modelLamboFrontLeftWheel.render(modelMatrixLamboChasis);
+		modelLamboFrontRightWheel.render(modelMatrixLamboChasis);
+		modelLamboRearLeftWheel.render(modelMatrixLamboChasis);
+		modelLamboRearRightWheel.render(modelMatrixLamboChasis);
 		// Se regresa el cull faces IMPORTANTE para las puertas
 		glEnable(GL_CULL_FACE);
 
@@ -1299,6 +1309,7 @@ void applicationLoop() {
 		//Collider del la rock
 		AbstractModel::SBB rockCollider;
 		glm::mat4 modelMatrixColliderRock= glm::mat4(matrixModelRock);
+		modelMatrixColliderRock = glm::scale(modelMatrixColliderRock, glm::vec3(1.0, 1.0, 1.0));
 		modelMatrixColliderRock = glm::translate(modelMatrixColliderRock, modelRock.getSbb().c);
 		rockCollider.c = glm::vec3(modelMatrixColliderRock[3]);
 		rockCollider.ratio = modelRock.getSbb().ratio * 1.0;
@@ -1390,7 +1401,7 @@ void applicationLoop() {
 		glm::vec3 cinv2 = glm::inverse(mayowCollider.u) * glm::vec4(mayowCollider.c, 1.0);
 		glm::mat4 invColliderB = glm::mat4(1.0);
 		invColliderB = glm::translate(invColliderB, cinv2);
-		invColliderB = glm::scale(invColliderB, mayowCollider.e);
+		invColliderB = glm::scale(invColliderB, mayowCollider.e * 2.0f);
 		boxCollider.setColor(glm::vec4(1.0, 1.0, 0.0, 1.0));
 		boxCollider.enableWireMode();
 		boxCollider.render(invColliderB);
@@ -1407,8 +1418,7 @@ void applicationLoop() {
 			bool isCollision = false;
 			for (std::map<std::string,
 					std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator jt =
-					collidersOBB.begin(); jt != collidersOBB.end() && !isCollision;
-					jt++) {
+					collidersOBB.begin(); jt != collidersOBB.end(); jt++) {
 				if (it != jt
 						&& testOBBOBB(std::get<0>(it->second),
 								std::get<0>(jt->second))) {
@@ -1426,8 +1436,7 @@ void applicationLoop() {
 			bool isCollision = false;
 			for (std::map<std::string,
 					std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> >::iterator jt =
-					collidersSBB.begin(); jt != collidersSBB.end() && !isCollision;
-					jt++) {
+					collidersSBB.begin(); jt != collidersSBB.end(); jt++) {
 				if (it != jt
 						&& testSphereSphereIntersection(std::get<0>(it->second),
 								std::get<0>(jt->second))) {
@@ -1446,8 +1455,7 @@ void applicationLoop() {
 			std::map<std::string,
 					std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator jt =
 					collidersOBB.begin();
-			for (; jt != collidersOBB.end() && !isCollision;
-					jt++) {
+			for (; jt != collidersOBB.end(); jt++) {
 				if (testSphereOBox(std::get<0>(it->second),
 								std::get<0>(jt->second))) {
 					std::cout << "Colision " << it->first << " with "

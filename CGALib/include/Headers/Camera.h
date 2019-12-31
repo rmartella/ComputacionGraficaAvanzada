@@ -46,7 +46,7 @@ public:
 	virtual void scrollMoveCamera(float soffset, float dt) = 0;
 	virtual void updateCamera() = 0;
 	glm::mat4 getViewMatrix() {
-		return glm::lookAt(position, position + front, up);
+		return glm::lookAt(position, position + front, worldUp);
 	}
 
 	void setPosition(glm::vec3 position) {
@@ -67,6 +67,10 @@ public:
 
 	glm::vec3 getFront() {
 		return this->front;
+	}
+
+	glm::vec3 getRight() {
+		return this->right;
 	}
 
 	float getSensitivity() {
