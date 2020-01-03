@@ -133,6 +133,7 @@ glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+glm::mat4 modelMatrixFountain = glm::mat4(1.0f);
 
 int animationIndex = 1;
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
@@ -167,14 +168,11 @@ int stateDoor = 0;
 float dorRotCount = 0.0;
 
 // Lamps positions
-std::vector<glm::vec3> lamp1Position = {
-		glm::vec3( -7.03, terrain.getHeightTerrain(-7.03, -19.14), -19.14),
-		glm::vec3(24.41, terrain.getHeightTerrain(24.41, -34.57), -34.57),
-		glm::vec3(-10.15, terrain.getHeightTerrain(-10.15, -54.10), -54.10)};
-std::vector<float> lamp1Orientation = {-17.0, -82.67, 23.70};
-std::vector<glm::vec3> lamp2Position = {
-		glm::vec3(-36.52, terrain.getHeightTerrain( -36.52, -23.24), -23.24),
-		glm::vec3(-52.73, terrain.getHeightTerrain(-52.73, -3.90), -3.90)};
+std::vector<glm::vec3> lamp1Position = { glm::vec3(-7.03, 0, -19.14), glm::vec3(
+		24.41, 0, -34.57), glm::vec3(-10.15, 0, -54.10) };
+std::vector<float> lamp1Orientation = { -17.0, -82.67, 23.70 };
+std::vector<glm::vec3> lamp2Position = { glm::vec3(-36.52, 0, -23.24),
+		glm::vec3(-52.73, 0, -3.90) };
 std::vector<float> lamp2Orientation = {21.37 + 90, -65.0 + 90};
 
 // Blending model unsorted
@@ -872,8 +870,6 @@ void destroy() {
 	glDeleteBuffers(1, &startTime);
 	glBindVertexArray(0);
 	glDeleteVertexArrays(1, &VAOParticles);
-
-	shader.destroy();
 }
 
 void reshapeCallback(GLFWwindow *Window, int widthRes, int heightRes) {
@@ -1062,6 +1058,10 @@ void applicationLoop() {
 
 	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
 	modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+
+	modelMatrixFountain = glm::translate(modelMatrixFountain, glm::vec3(5.0, 0.0, -40.0));
+	modelMatrixFountain[3][1] = terrain.getHeightTerrain(modelMatrixFountain[3][0] , modelMatrixFountain[3][2]) + 0.2;
+	modelMatrixFountain = glm::scale(modelMatrixFountain, glm::vec3(10.0f, 10.0f, 10.0f));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -1283,6 +1283,7 @@ void applicationLoop() {
 
 		// Render the lamps
 		for (int i = 0; i < lamp1Position.size(); i++){
+			lamp1Position[i].y = terrain.getHeightTerrain(lamp1Position[i].x, lamp1Position[i].z);
 			modelLamp1.setPosition(lamp1Position[i]);
 			modelLamp1.setScale(glm::vec3(0.5, 0.5, 0.5));
 			modelLamp1.setOrientation(glm::vec3(0, lamp1Orientation[i], 0));
@@ -1290,6 +1291,7 @@ void applicationLoop() {
 		}
 
 		for (int i = 0; i < lamp2Position.size(); i++){
+			lamp2Position[i].y = terrain.getHeightTerrain(lamp2Position[i].x, lamp2Position[i].z);
 			modelLamp2.setPosition(lamp2Position[i]);
 			modelLamp2.setScale(glm::vec3(1.0, 1.0, 1.0));
 			modelLamp2.setOrientation(glm::vec3(0, lamp2Orientation[i], 0));
@@ -1310,10 +1312,6 @@ void applicationLoop() {
 
 		// Fountain
 		glDisable(GL_CULL_FACE);
-		glm::mat4 modelMatrixFountain = glm::mat4(1.0f);
-		modelMatrixFountain = glm::translate(modelMatrixFountain, glm::vec3(5.0, 0.0, -40.0));
-		modelMatrixFountain[3][1] = terrain.getHeightTerrain(modelMatrixFountain[3][0] , modelMatrixFountain[3][2]) + 0.2;
-		modelMatrixFountain = glm::scale(modelMatrixFountain, glm::vec3(10.0f, 10.0f, 10.0f));
 		modelFountain.render(modelMatrixFountain);
 		glEnable(GL_CULL_FACE);
 

@@ -541,8 +541,6 @@ void destroy() {
 	// Cube Maps Delete
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	glDeleteTextures(1, &skyboxTextureID);
-
-	shader.destroy();
 }
 
 void reshapeCallback(GLFWwindow *Window, int widthRes, int heightRes) {
