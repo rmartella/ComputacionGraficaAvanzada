@@ -30,6 +30,7 @@
 #include <fstream>
 #include <GL/glew.h>
 #include <vector>
+#include <algorithm>
 
 class DLL_PUBLIC Shader {
 public:
@@ -122,6 +123,9 @@ public:
 	}
 
 	void destroy();
+
+private:
+	char * convert(const std::string &s);
 
 private:
 

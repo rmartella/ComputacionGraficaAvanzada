@@ -19,87 +19,23 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Bones.cpp" />
-    <ClCompile Include="src\Box.cpp" />
-    <ClCompile Include="src\Cylinder.cpp" />
-    <ClCompile Include="src\FirstPersonCamera.cpp" />
-    <ClCompile Include="src\Mesh.cpp" />
-    <ClCompile Include="src\Model.cpp" />
-    <ClCompile Include="src\Shader.cpp" />
-    <ClCompile Include="src\ShadowBox.cpp" />
-    <ClCompile Include="src\Sphere.cpp" />
-    <ClCompile Include="src\Terrain.cpp" />
-    <ClCompile Include="src\Texture.cpp" />
-    <ClCompile Include="src\ThirdPersonCamera.cpp" />
-    <ClCompile Include="src\TimeManager.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\Headers\AbstractModel.h" />
-    <ClInclude Include="include\Headers\AnimationUtils.h" />
-    <ClInclude Include="include\Headers\Bones.h" />
-    <ClInclude Include="include\Headers\Box.h" />
-    <ClInclude Include="include\Headers\Camera.h" />
-    <ClInclude Include="include\Headers\Colisiones.h" />
-    <ClInclude Include="include\Headers\Cylinder.h" />
-    <ClInclude Include="include\Headers\FirstPersonCamera.h" />
-    <ClInclude Include="include\Headers\mathUtil.h" />
-    <ClInclude Include="include\Headers\Mesh.h" />
-    <ClInclude Include="include\Headers\Model.h" />
-    <ClInclude Include="include\Headers\Shader.h" />
-    <ClInclude Include="include\Headers\ShadowBox.h" />
-    <ClInclude Include="include\Headers\Sphere.h" />
-    <ClInclude Include="include\Headers\Terrain.h" />
-    <ClInclude Include="include\Headers\Texture.h" />
-    <ClInclude Include="include\Headers\ThirdPersonCamera.h" />
-    <ClInclude Include="include\Headers\TimeManager.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\Shaders\colorShader.fs" />
-    <None Include="..\Shaders\colorShader.vs" />
-    <None Include="..\Shaders\cubeTexture.fs" />
-    <None Include="..\Shaders\cubeTexture.vs" />
-    <None Include="..\Shaders\depthTesting.fs" />
-    <None Include="..\Shaders\depthTesting.vs" />
-    <None Include="..\Shaders\iluminacion_textura_animation.vs" />
-    <None Include="..\Shaders\iluminacion_textura_animation_fog.vs" />
-    <None Include="..\Shaders\iluminacion_textura_animation_shadow.vs" />
-    <None Include="..\Shaders\iluminacion_texture_res.vs" />
-    <None Include="..\Shaders\multipleLights.fs" />
-    <None Include="..\Shaders\multipleLights_fog.fs" />
-    <None Include="..\Shaders\multipleLights_shadow.fs" />
-    <None Include="..\Shaders\particlesFire.fs" />
-    <None Include="..\Shaders\particlesFire.vs" />
-    <None Include="..\Shaders\particlesFountain.fs" />
-    <None Include="..\Shaders\particlesFountain.vs" />
-    <None Include="..\Shaders\shadow_mapping_depth.fs" />
-    <None Include="..\Shaders\shadow_mapping_depth.vs" />
-    <None Include="..\Shaders\skyBox.fs" />
-    <None Include="..\Shaders\skyBox.vs" />
-    <None Include="..\Shaders\skyBox_fog.fs" />
-    <None Include="..\Shaders\terrain.fs" />
-    <None Include="..\Shaders\terrain.vs" />
-    <None Include="..\Shaders\terrain_fog.fs" />
-    <None Include="..\Shaders\terrain_fog.vs" />
-    <None Include="..\Shaders\terrain_shadow.fs" />
-    <None Include="..\Shaders\terrain_shadow.vs" />
-    <None Include="..\Shaders\texturizado.vs" />
-    <None Include="..\Shaders\texturizado_depth_view.fs" />
+    <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{172f046a-36b0-41d6-a3d8-5a9e12f214e6}</ProjectGuid>
-    <RootNamespace>CGALib</RootNamespace>
+    <ProjectGuid>{efc2fe8a-1ac7-4969-9970-e8ba7b89127b}</ProjectGuid>
+    <RootNamespace>_14_OpenAL</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -137,12 +73,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\external\glm;..\external\glew\include;..\external\glfw\include;..\external\FreeImage\include;..\external\assimp\include;..\external\OpenAL/include;..\external\freealut\include;include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;..\external\glew\lib\;..\external\glfw\lib;..\external\FreeImage\lib;..\external\assimp\lib;../external/OpenAL/lib;..\external\freealut\lib</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\external\glm;..\external\glew\include;..\external\glfw\include;..\external\FreeImage\include;..\external\assimp\include;..\external\OpenAL/include;..\external\freealut\include;..\CGALib\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;..\external\glew\lib\;..\external\glfw\lib;..\external\FreeImage\lib;..\external\assimp\lib;../external/OpenAL/lib;..\external\freealut\lib;../Debug</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\external\glm;..\external\glew\include;..\external\glfw\include;..\external\FreeImage\include;..\external\assimp\include;..\external\OpenAL/include;..\external\freealut\include;include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;..\external\glew\lib\;..\external\glfw\lib;..\external\FreeImage\lib;..\external\assimp\lib;../external/OpenAL/lib;..\external\freealut\lib</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\external\glm;..\external\glew\include;..\external\glfw\include;..\external\FreeImage\include;..\external\assimp\include;..\external\OpenAL/include;..\external\freealut\include;..\CGALib\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;..\external\glew\lib\;..\external\glfw\lib;..\external\FreeImage\lib;..\external\assimp\lib;../external/OpenAL/lib;..\external\freealut\lib;../Release</LibraryPath>
+    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -150,10 +87,9 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions);BUILDING_DLL</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);glew32d.lib;glfw3.lib;opengl32.lib;glu32.lib;assimp-vc140-mt.lib;FreeImaged.lib;alut.lib;OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);glew32d.lib;glfw3.lib;opengl32.lib;glu32.lib;assimp-vc140-mt.lib;FreeImaged.lib;alut.lib;OpenAL32.lib;CGALib.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -172,12 +108,12 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions);BUILDING_DLL</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);glew32d.lib;glfw3.lib;opengl32.lib;glu32.lib;assimp-vc140-mt.lib;FreeImaged.lib;alut.lib;OpenAL32.lib;</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);glew32d.lib;glfw3.lib;opengl32.lib;glu32.lib;assimp-vc140-mt.lib;FreeImaged.lib;alut.lib;OpenAL32.lib;CGALib.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

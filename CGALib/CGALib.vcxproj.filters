@@ -51,6 +51,9 @@
     <ClCompile Include="src\TimeManager.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\ShadowBox.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Headers\AbstractModel.h">
@@ -101,6 +104,12 @@
     <ClInclude Include="include\Headers\TimeManager.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="include\Headers\Colisiones.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Headers\ShadowBox.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Shaders\colorShader.fs">
@@ -128,6 +137,69 @@
       <Filter>Archivos de recursos</Filter>
     </None>
     <None Include="..\Shaders\terrain.vs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\depthTesting.fs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\depthTesting.vs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\iluminacion_textura_animation_fog.vs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\iluminacion_textura_animation_shadow.vs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\multipleLights_fog.fs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\multipleLights_shadow.fs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\particlesFire.fs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\particlesFire.vs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\particlesFountain.fs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\particlesFountain.vs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\shadow_mapping_depth.fs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\shadow_mapping_depth.vs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\skyBox.fs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\skyBox.vs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\skyBox_fog.fs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\terrain_fog.fs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\terrain_fog.vs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\terrain_shadow.fs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\terrain_shadow.vs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\texturizado.vs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="..\Shaders\texturizado_depth_view.fs">
       <Filter>Archivos de recursos</Filter>
     </None>
   </ItemGroup>
