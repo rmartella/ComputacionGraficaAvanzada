@@ -96,6 +96,9 @@ Model modelBuzzLeftWing1;
 Model modelBuzzLeftWing2;
 Model modelBuzzTorso;
 
+//Barril
+Model modelBarril;
+
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
 
@@ -127,7 +130,7 @@ glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixBuzz = glm::mat4(1.0f);
-
+glm::mat4 modelMatrixBarril = glm::mat4(1.0f);
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 float BuzzLeftArm = 0.0, rotBuzzLeftArm=0.0 ;
@@ -336,8 +339,9 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	modelBuzzTorso.loadModel("../models/buzz/buzzlightyTorso.obj");
 	modelBuzzTorso.setShader(&shaderMulLighting);
 
-
-
+	//Barril
+	modelBarril.loadModel("../models/BarrilExplosivo/barril.obj");
+	modelBarril.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -753,6 +757,8 @@ void applicationLoop() {
 	int numberAdvance = 0;
 	int maxAdvance = 0.0;
 
+	modelMatrixBarril = glm::translate(modelMatrixBarril, glm::vec3(0, 0, 0));
+
 	matrixModelRock = glm::translate(matrixModelRock, glm::vec3(-3.0, 0.0, 2.0));
 
 	modelMatrixHeli = glm::translate(modelMatrixHeli, glm::vec3(5.0, 10.0, -5.0));
@@ -774,7 +780,7 @@ void applicationLoop() {
 
 	while (psi) {
 		currTime = TimeManager::Instance().GetTime();
-		if(currTime - lastTime < 0.016666667){
+		if (currTime - lastTime < 0.016666667) {
 			glfwPollEvents();
 			continue;
 		}
@@ -789,7 +795,7 @@ void applicationLoop() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f),
-				(float) screenWidth / (float) screenHeight, 0.01f, 100.0f);
+			(float)screenWidth / (float)screenHeight, 0.01f, 100.0f);
 		glm::mat4 view = camera->getViewMatrix();
 
 		// Settea la matriz de vista y projection al shader con solo color
@@ -798,14 +804,14 @@ void applicationLoop() {
 
 		// Settea la matriz de vista y projection al shader con skybox
 		shaderSkybox.setMatrix4("projection", 1, false,
-				glm::value_ptr(projection));
+			glm::value_ptr(projection));
 		shaderSkybox.setMatrix4("view", 1, false,
-				glm::value_ptr(glm::mat4(glm::mat3(view))));
+			glm::value_ptr(glm::mat4(glm::mat3(view))));
 		// Settea la matriz de vista y projection al shader con multiples luces
 		shaderMulLighting.setMatrix4("projection", 1, false,
-					glm::value_ptr(projection));
+			glm::value_ptr(projection));
 		shaderMulLighting.setMatrix4("view", 1, false,
-				glm::value_ptr(view));
+			glm::value_ptr(view));
 
 		/*******************************************
 		 * Propiedades Luz direccional
@@ -919,19 +925,19 @@ void applicationLoop() {
 		boxHighway.render();
 		//Esfera1
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D,textureLandingPadID);
-//		esfera1.setPosition(glm::vec3(0.0, 5.0, -10.0));
-//		esfera1.setOrientation(glm::vec3(0.0, 0.0, 0.0));
-//		esfera1.render();
-		boxLandingPad.setScale(glm::vec3(10.0,0.05,10.0));
-		boxLandingPad.setPosition(glm::vec3(5.0,0.05,-5.0));
+		glBindTexture(GL_TEXTURE_2D, textureLandingPadID);
+		//		esfera1.setPosition(glm::vec3(0.0, 5.0, -10.0));
+		//		esfera1.setOrientation(glm::vec3(0.0, 0.0, 0.0));
+		//		esfera1.render();
+		boxLandingPad.setScale(glm::vec3(10.0, 0.05, 10.0));
+		boxLandingPad.setPosition(glm::vec3(5.0, 0.05, -5.0));
 		boxLandingPad.setOrientation(glm::vec3(0.0, 0.0, 0.0));
 		boxLandingPad.render();
 		glBindTexture(GL_TEXTURE_2D, 0);
 		/*******************************************
 		 * Custom objects obj
 		 *******************************************/
-		//Rock render
+		 //Rock render
 		modelRock.render(matrixModelRock);
 		// Forze to enable the unit texture to 0 always ----------------- IMPORTANT
 		glActiveTexture(GL_TEXTURE0);
@@ -945,14 +951,14 @@ void applicationLoop() {
 		modelEclipseChasis.render(modelMatrixEclipseChasis);
 
 		glm::mat4 modelMatrixFrontalWheels = glm::mat4(modelMatrixEclipseChasis);
-		modelMatrixFrontalWheels = glm::translate(modelMatrixFrontalWheels, glm::vec3(0.0, 1.05813, 4.11483 ));
+		modelMatrixFrontalWheels = glm::translate(modelMatrixFrontalWheels, glm::vec3(0.0, 1.05813, 4.11483));
 		modelMatrixFrontalWheels = glm::rotate(modelMatrixFrontalWheels, rotWheelsY, glm::vec3(0, 1, 0));
 		modelMatrixFrontalWheels = glm::rotate(modelMatrixFrontalWheels, rotWheelsX, glm::vec3(1, 0, 0));
 		modelMatrixFrontalWheels = glm::translate(modelMatrixFrontalWheels, glm::vec3(0.0, -1.05813, -4.11483));
 		modelEclipseFrontalWheels.render(modelMatrixFrontalWheels);
 
 		glm::mat4 modelMatrixRearWheels = glm::mat4(modelMatrixEclipseChasis);
-		modelMatrixRearWheels = glm::translate(modelMatrixRearWheels, glm::vec3(0.0, 1.05813, -4.35157 ));
+		modelMatrixRearWheels = glm::translate(modelMatrixRearWheels, glm::vec3(0.0, 1.05813, -4.35157));
 		modelMatrixRearWheels = glm::rotate(modelMatrixRearWheels, rotWheelsX, glm::vec3(1, 0, 0));
 		modelMatrixRearWheels = glm::translate(modelMatrixRearWheels, glm::vec3(0.0, -1.05813, 4.35157));
 		modelEclipseRearWheels.render(modelMatrixRearWheels);
@@ -968,7 +974,7 @@ void applicationLoop() {
 		modelHeliHeli.render(modelMatrixHeliHeli);
 
 		glm::mat4 modelMatrixHeliTras = glm::mat4(modelMatrixHeliChasis);
-		modelMatrixHeliTras = glm::translate(modelMatrixHeliTras,glm::vec3(0.40175,2.093,-5.6491));
+		modelMatrixHeliTras = glm::translate(modelMatrixHeliTras, glm::vec3(0.40175, 2.093, -5.6491));
 		modelMatrixHeliTras = glm::rotate(modelMatrixHeliTras, rotHelHelY, glm::vec3(1.0, 0.0, 0.0));
 		modelMatrixHeliTras = glm::translate(modelMatrixHeliTras, glm::vec3(-0.40175, -2.093, 5.6491));
 		modelHeliHeliTras.render(modelMatrixHeliTras);
@@ -1055,9 +1061,8 @@ void applicationLoop() {
 		modelMatrixBuzzBody = glm::scale(modelMatrixBuzzBody, glm::vec3(4.0, 4.0, 4.0));
 		modelBuzzHead.render(modelMatrixBuzzBody);
 		modelBuzzHip.render(modelMatrixBuzzBody);
-		
-		glm::mat4 modelMatrixBuzzLeftArm = glm::mat4(modelMatrixBuzzBody);
 
+		glm::mat4 modelMatrixBuzzLeftArm = glm::mat4(modelMatrixBuzzBody);
 		modelMatrixBuzzLeftArm = glm::translate(modelMatrixBuzzLeftArm, glm::vec3(0.179319, 0.580728, -0.025066));
 		modelMatrixBuzzLeftArm = glm::rotate(modelMatrixBuzzLeftArm, glm::radians(-60.0f), glm::vec3(0.0, 0.0, 1.0));
 		modelMatrixBuzzLeftArm = glm::rotate(modelMatrixBuzzLeftArm, rotBuzzLeftArm, glm::vec3(0.0, 1.0, 0.0));
@@ -1071,6 +1076,13 @@ void applicationLoop() {
 		modelBuzzLeftWing1.render(modelMatrixBuzzBody);
 		modelBuzzLeftWing2.render(modelMatrixBuzzBody);
 		modelBuzzTorso.render(modelMatrixBuzzBody);
+
+		//barril Render
+		glm::mat4 modelMatrixBarril = glm::mat4(1.0f);
+		modelMatrixBarril = glm::translate(modelMatrixBarril, glm::vec3(18.5, 0.0, 3.5));
+		modelMatrixBarril = glm::scale(modelMatrixBarril, glm::vec3(40.0,40.0,40.0));
+		modelBarril.render(modelMatrixBarril);
+		
 
 		/*******************************************
 		 * Skybox
