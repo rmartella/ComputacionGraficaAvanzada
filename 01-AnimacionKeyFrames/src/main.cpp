@@ -171,6 +171,7 @@ int numPasosDart = 0;
 
 // Var animate helicopter
 float rotHelHelY = 0.0;
+float desHelHelY = 0.0;
 
 // Var animate lambo dor
 int rotCountLambo = 0;
@@ -1017,27 +1018,27 @@ void applicationLoop() {
 
 		glm::mat4 modelMatrixLamboRightFrontalWheels = glm::mat4(modelMatrixLamboChasis);
 		modelMatrixLamboRightFrontalWheels = glm::translate(modelMatrixLamboRightFrontalWheels, glm::vec3(-0.937188, 0.396476, 1.405));
-		modelMatrixLamboRightFrontalWheels = glm::rotate(modelMatrixLamboRightFrontalWheels, rotWheelsY, glm::vec3(0, 1, 0));
-		modelMatrixLamboRightFrontalWheels = glm::rotate(modelMatrixLamboRightFrontalWheels, rotWheelsX, glm::vec3(1, 0, 0));
+		modelMatrixLamboRightFrontalWheels = glm::rotate(modelMatrixLamboRightFrontalWheels, rotWheelsYLambo, glm::vec3(0, 1, 0));
+		modelMatrixLamboRightFrontalWheels = glm::rotate(modelMatrixLamboRightFrontalWheels, rotWheelsXLambo, glm::vec3(1, 0, 0));
 		modelMatrixLamboRightFrontalWheels = glm::translate(modelMatrixLamboRightFrontalWheels, glm::vec3(0.937188, -0.396476, -1.405));
 		modelLamboFrontRightWheel.render(modelMatrixLamboRightFrontalWheels);
 
 		glm::mat4 modelMatrixLamboLeftFrontalWheels = glm::mat4(modelMatrixLamboChasis);
 		modelMatrixLamboLeftFrontalWheels = glm::translate(modelMatrixLamboLeftFrontalWheels, glm::vec3(0.937188, 0.396476, 1.405));
-		modelMatrixLamboLeftFrontalWheels = glm::rotate(modelMatrixLamboLeftFrontalWheels, rotWheelsY, glm::vec3(0, 1, 0));
-		modelMatrixLamboLeftFrontalWheels = glm::rotate(modelMatrixLamboLeftFrontalWheels, rotWheelsX, glm::vec3(1, 0, 0));
+		modelMatrixLamboLeftFrontalWheels = glm::rotate(modelMatrixLamboLeftFrontalWheels, rotWheelsYLambo, glm::vec3(0, 1, 0));
+		modelMatrixLamboLeftFrontalWheels = glm::rotate(modelMatrixLamboLeftFrontalWheels, rotWheelsXLambo, glm::vec3(1, 0, 0));
 		modelMatrixLamboLeftFrontalWheels = glm::translate(modelMatrixLamboLeftFrontalWheels, glm::vec3(-0.937188, -0.396476, -1.405));
 		modelLamboFrontLeftWheel.render(modelMatrixLamboLeftFrontalWheels);
 
 		glm::mat4 modelMatrixLamboRightRearWheels = glm::mat4(modelMatrixLamboChasis);
 		modelMatrixLamboRightRearWheels = glm::translate(modelMatrixLamboRightRearWheels, glm::vec3(-0.944403,0.392139,-1.60434));
-		modelMatrixLamboRightRearWheels = glm::rotate(modelMatrixLamboRightRearWheels, rotWheelsX, glm::vec3(1, 0, 0));
+		modelMatrixLamboRightRearWheels = glm::rotate(modelMatrixLamboRightRearWheels, rotWheelsXLambo, glm::vec3(1, 0, 0));
 		modelMatrixLamboRightRearWheels = glm::translate(modelMatrixLamboRightRearWheels, glm::vec3(0.944403, -0.392139, 1.60434));
 		modelLamboRearRightWheel.render(modelMatrixLamboRightRearWheels);
 
 		glm::mat4 modelMatrixLamboLeftRearWheels = glm::mat4(modelMatrixLamboChasis);
 		modelMatrixLamboLeftRearWheels = glm::translate(modelMatrixLamboLeftRearWheels, glm::vec3(0.944403, 0.392139, -1.60434));
-		modelMatrixLamboLeftRearWheels = glm::rotate(modelMatrixLamboLeftRearWheels, rotWheelsX, glm::vec3(1, 0, 0));
+		modelMatrixLamboLeftRearWheels = glm::rotate(modelMatrixLamboLeftRearWheels, rotWheelsXLambo, glm::vec3(1, 0, 0));
 		modelMatrixLamboLeftRearWheels = glm::translate(modelMatrixLamboLeftRearWheels, glm::vec3(-0.944403, -0.392139, 1.60434));
 		modelLamboRearLeftWheel.render(modelMatrixLamboLeftRearWheels);
 
@@ -1056,6 +1057,7 @@ void applicationLoop() {
 		
 		// Helicopter
 		glm::mat4 modelMatrixHeliChasis = glm::mat4(modelMatrixHeli);
+		modelMatrixHeli = glm::translate(modelMatrixHeli, glm::vec3(0.0, 0.0, desHelHelY));
 		modelHeliChasis.render(modelMatrixHeliChasis);
 
 		glm::mat4 modelMatrixHeliHeli = glm::mat4(modelMatrixHeliChasis);
@@ -1078,7 +1080,7 @@ void applicationLoop() {
 		// Se deshabilita el cull faces IMPORTANTE para la capa
 		glDisable(GL_CULL_FACE);
 		glm::mat4 modelMatrixDartBody = glm::mat4(modelMatrixDart);
-		modelMatrixDartBody = glm::scale(modelMatrixDartBody, glm::vec3(0.5, 0.5, 0.5));
+		modelMatrixDartBody = glm::scale(modelMatrixDartBody, glm::vec3(0.37, 0.37, 0.37));
 		modelDartLegoBody.render(modelMatrixDartBody);
 		glm::mat4 modelMatrixDartHead = glm::mat4(modelMatrixDartBody);
 		modelMatrixDartHead = glm::rotate(modelMatrixDartHead, rotDartHead, glm::vec3(0, 1, 0));
@@ -1132,10 +1134,10 @@ void applicationLoop() {
 		modelBuzzHip.render(modelMatrixBuzzBody);
 
 		glm::mat4 modelMatrixBuzzLeftArm = glm::mat4(modelMatrixBuzzBody);
-		modelMatrixBuzzLeftArm = glm::translate(modelMatrixBuzzLeftArm, glm::vec3(0.179319, 0.580728, -0.025066));
+		modelMatrixBuzzLeftArm = glm::translate(modelMatrixBuzzLeftArm, glm::vec3(0.179319, 0.580728, -0.048919));
 		modelMatrixBuzzLeftArm = glm::rotate(modelMatrixBuzzLeftArm, glm::radians(-60.0f), glm::vec3(0.0, 0.0, 1.0));
 		modelMatrixBuzzLeftArm = glm::rotate(modelMatrixBuzzLeftArm, rotBuzzLeftArm, glm::vec3(0.0, 1.0, 0.0));
-		modelMatrixBuzzLeftArm = glm::translate(modelMatrixBuzzLeftArm, glm::vec3(-0.179319, -0.580728, 0.025066));
+		modelMatrixBuzzLeftArm = glm::translate(modelMatrixBuzzLeftArm, glm::vec3(-0.179319, -0.580728, 0.048919));
 		modelBuzzLeftArm.render(modelMatrixBuzzLeftArm);
 		modelBuzzLeftForearm.render(modelMatrixBuzzLeftArm);
 		modelBuzzLeftHand.render(modelMatrixBuzzLeftArm);
@@ -1146,10 +1148,10 @@ void applicationLoop() {
 		modelBuzzLeftWing2.render(modelMatrixBuzzBody);
 
 		glm::mat4 modelMatrixBuzzRightArm = glm::mat4(modelMatrixBuzzBody);
-		modelMatrixBuzzRightArm = glm::translate(modelMatrixBuzzRightArm, glm::vec3(-0.13084, 0.57827, -0.048919));
+		modelMatrixBuzzRightArm = glm::translate(modelMatrixBuzzRightArm, glm::vec3(-0.179319, 0.580728, -0.048919));
 		modelMatrixBuzzRightArm = glm::rotate(modelMatrixBuzzRightArm, glm::radians(60.0f), glm::vec3(0.0, 0.0, 1.0));
 		modelMatrixBuzzRightArm = glm::rotate(modelMatrixBuzzRightArm, rotBuzzRightArm, glm::vec3(0.0, 1.0, 0.0));
-		modelMatrixBuzzRightArm = glm::translate(modelMatrixBuzzRightArm, glm::vec3(0.13084, -0.57827, 0.048919));
+		modelMatrixBuzzRightArm = glm::translate(modelMatrixBuzzRightArm, glm::vec3(0.179319, -0.580728, 0.048919));
 		modelBuzzRightArm.render(modelMatrixBuzzRightArm);
 		modelBuzzRightForearm.render(modelMatrixBuzzRightArm);
 		modelBuzzRightHand.render(modelMatrixBuzzRightArm);
@@ -1242,7 +1244,7 @@ void applicationLoop() {
 				indexFrameDartNext++;
 			}
 			if (indexFrameDartNext > keyFramesDart.size() - 1) {
-				indexFrameDartNext = 0;
+				indexFrameDartNext = 0;  
 			}
 			modelMatrixDart = interpolate(keyFramesDart, indexFrameDart, indexFrameDartNext, 0, interpolationDart);
 		}
@@ -1353,20 +1355,20 @@ void applicationLoop() {
 			}
 			break;
 		case 3:
-			if(dorRotCount <=75){
+			if(dorRotCount <=75)
 				dorRotCount += 0.5;
-			}
 			else
-				//hay que esperar que dart suba 
-				if (dartLambo == true) {
-					//stateLambo = 4;  
-				}
+				stateLambo = 4;
 			break;
 		case 4:
-			dorRotCount -= 0.5;
-			if (dorRotCount < 0) {
-				dorRotCount = 0.0;
+			if (indexFrameDartJointsNext >= 115) {
+				dorRotCount -= 0.5;
+				if (dorRotCount < 0) {
+					dorRotCount = 0.0;
+				}
 			}
+			else
+				stateLambo = 4;
 			break;
 		}
 
