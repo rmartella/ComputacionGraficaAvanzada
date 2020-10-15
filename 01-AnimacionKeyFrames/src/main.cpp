@@ -172,6 +172,7 @@ int numPasosDart = 0;
 // Var animate helicopter
 float rotHelHelY = 0.0;
 float desHelHelY = 0.0;
+int stateHeli= 0 ; 
 
 // Var animate lambo dor
 int rotCountLambo = 0;
@@ -1057,7 +1058,7 @@ void applicationLoop() {
 		
 		// Helicopter
 		glm::mat4 modelMatrixHeliChasis = glm::mat4(modelMatrixHeli);
-		modelMatrixHeli = glm::translate(modelMatrixHeli, glm::vec3(0.0, 0.0, desHelHelY));
+		modelMatrixHeli = glm::translate(modelMatrixHeli, glm::vec3(0.0, desHelHelY, 0.0));
 		modelHeliChasis.render(modelMatrixHeliChasis);
 
 		glm::mat4 modelMatrixHeliHeli = glm::mat4(modelMatrixHeliChasis);
@@ -1249,8 +1250,8 @@ void applicationLoop() {
 			modelMatrixDart = interpolate(keyFramesDart, indexFrameDart, indexFrameDartNext, 0, interpolationDart);
 		}
 
-		// Constantes de animaciones
-		rotHelHelY += 0.5;
+	
+		
 
 		/**************************
 		* State Machines
@@ -1371,6 +1372,45 @@ void applicationLoop() {
 				stateLambo = 4;
 			break;
 		}
+
+		// Animacion del Helicoptero Aterrizaje
+		switch (stateHeli)
+		{
+		case 0:
+			rotHelHelY += 0.5;
+			if (rotHelHelY >= 120)
+				stateHeli = 1;
+			break;
+		case 1:
+			rotHelHelY += 0.25;
+			desHelHelY -= 0.0005;
+			if (desHelHelY <= -0.099) {
+				stateHeli = 2;
+				rotHelHelY += 0.25;
+			}
+			break;
+		case 2:
+			desHelHelY = 0.0;
+			rotHelHelY += 0.10;
+			if (rotHelHelY >= 180)
+				stateHeli = 3;
+			break;
+		case 3:
+			rotHelHelY += 0.05;
+			if (rotHelHelY >= 190)
+				stateHeli = 4;
+			break;
+		case 4:
+			rotHelHelY += 0.025;
+			if (rotHelHelY >= 193)
+				stateHeli = 5;
+			break;
+		case 5:
+			rotHelHelY += 0.0;
+			break;
+		}
+
+
 
 
 		glfwSwapBuffers(window);
