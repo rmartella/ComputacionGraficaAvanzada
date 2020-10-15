@@ -94,10 +94,21 @@ Model modelBuzzLeftHand;
 Model modelBuzzLeftThigh;
 Model modelBuzzLeftWing1;
 Model modelBuzzLeftWing2;
+Model modelBuzzRightArm;
+Model modelBuzzRightCalf;
+Model modelBuzzRightFoot;
+Model modelBuzzRightForearm;
+Model modelBuzzRightHand;
+Model modelBuzzRightThigh;
+Model modelBuzzRightWing1;
+Model modelBuzzRightWing2;
 Model modelBuzzTorso;
 
-//Barril
+// Barril
 Model modelBarril;
+
+// Paleta
+Model modelPaleta;
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
@@ -132,8 +143,9 @@ glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixBuzz = glm::mat4(1.0f);
 glm::mat4 modelMatrixBarril = glm::mat4(1.0f);
 
+
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
-float BuzzLeftArm = 0.0, rotBuzzLeftArm=0.0 ;
+float BuzzLeftArm = 0.0, rotBuzzLeftArm=0.0,rotBuzzRightArm=0.0,BuzzRightArm ;
 int modelSelected = 0;
 bool enableCountSelected = true;
 
@@ -336,12 +348,32 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	modelBuzzLeftWing1.setShader(&shaderMulLighting);
 	modelBuzzLeftWing2.loadModel("../models/buzz/buzzlightyLeftWing2.obj");
 	modelBuzzLeftWing2.setShader(&shaderMulLighting);
+	modelBuzzRightArm.loadModel("../models/buzz/buzzlightyRightArm.obj");
+	modelBuzzRightArm.setShader(&shaderMulLighting);
+	modelBuzzRightCalf.loadModel("../models/buzz/buzzlightyRightCalf.obj");
+	modelBuzzRightCalf.setShader(&shaderMulLighting);
+	modelBuzzRightFoot.loadModel("../models/buzz/buzzlightyRightFoot.obj");
+	modelBuzzRightFoot.setShader(&shaderMulLighting);
+	modelBuzzRightForearm.loadModel("../models/buzz/buzzlightyRightForearm.obj");
+	modelBuzzRightForearm.setShader(&shaderMulLighting);
+	modelBuzzRightHand.loadModel("../models/buzz/buzzlightyRightHand.obj");
+	modelBuzzRightHand.setShader(&shaderMulLighting);
+	modelBuzzRightThigh.loadModel("../models/buzz/buzzlightyRightThigh.obj");
+	modelBuzzRightThigh.setShader(&shaderMulLighting);
+	modelBuzzRightWing1.loadModel("../models/buzz/buzzlightyRightWing1.obj");
+	modelBuzzRightWing1.setShader(&shaderMulLighting);
+	modelBuzzRightWing2.loadModel("../models/buzz/buzzlightyRightWing2.obj");
+	modelBuzzRightWing2.setShader(&shaderMulLighting);
 	modelBuzzTorso.loadModel("../models/buzz/buzzlightyTorso.obj");
 	modelBuzzTorso.setShader(&shaderMulLighting);
 
 	//Barril
 	modelBarril.loadModel("../models/BarrilExplosivo/barril.obj");
 	modelBarril.setShader(&shaderMulLighting);
+
+	//Paleta
+	modelPaleta.loadModel("../models/Paleta/paleta.obj");
+	modelPaleta.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -740,6 +772,12 @@ bool processInput(bool continueApplication) {
 	else if (modelSelected == 4 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS
 		&& glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
 		rotBuzzLeftArm -= 0.02;
+	if (modelSelected == 4 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE
+		&& glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+		rotBuzzRightArm += 0.02;
+	else if (modelSelected == 4 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS
+		&& glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+		rotBuzzRightArm -= 0.02;
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -1075,6 +1113,21 @@ void applicationLoop() {
 		modelBuzzLeftThigh.render(modelMatrixBuzzBody);
 		modelBuzzLeftWing1.render(modelMatrixBuzzBody);
 		modelBuzzLeftWing2.render(modelMatrixBuzzBody);
+
+		glm::mat4 modelMatrixBuzzRightArm = glm::mat4(modelMatrixBuzzBody);
+		modelMatrixBuzzRightArm = glm::translate(modelMatrixBuzzRightArm, glm::vec3(-0.13084, 0.57827, -0.048919));
+		modelMatrixBuzzRightArm = glm::rotate(modelMatrixBuzzRightArm, glm::radians(60.0f), glm::vec3(0.0, 0.0, 1.0));
+		modelMatrixBuzzRightArm = glm::rotate(modelMatrixBuzzRightArm, rotBuzzRightArm, glm::vec3(0.0, 1.0, 0.0));
+		modelMatrixBuzzRightArm = glm::translate(modelMatrixBuzzRightArm, glm::vec3(0.13084, -0.57827, 0.048919));
+		modelBuzzRightArm.render(modelMatrixBuzzRightArm);
+		modelBuzzRightForearm.render(modelMatrixBuzzRightArm);
+		modelBuzzRightHand.render(modelMatrixBuzzRightArm);
+		modelBuzzRightCalf.render(modelMatrixBuzzBody);
+		modelBuzzRightFoot.render(modelMatrixBuzzBody);
+		modelBuzzRightThigh.render(modelMatrixBuzzBody);
+		modelBuzzRightWing1.render(modelMatrixBuzzBody);
+		modelBuzzRightWing2.render(modelMatrixBuzzBody);
+
 		modelBuzzTorso.render(modelMatrixBuzzBody);
 
 		//barril Render
@@ -1083,6 +1136,10 @@ void applicationLoop() {
 		modelMatrixBarril = glm::scale(modelMatrixBarril, glm::vec3(40.0,40.0,40.0));
 		modelBarril.render(modelMatrixBarril);
 		
+		//paleta Render
+		glm::mat4 modelMatrixPaleta = glm::mat4(1.0f);
+		modelMatrixPaleta = glm::translate(modelMatrixPaleta, glm::vec3(2, 0.0, 2));
+		modelPaleta.render(modelMatrixPaleta);
 
 		/*******************************************
 		 * Skybox
