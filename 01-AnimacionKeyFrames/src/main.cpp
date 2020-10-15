@@ -145,7 +145,7 @@ glm::mat4 modelMatrixBarril = glm::mat4(1.0f);
 
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
-float BuzzLeftArm = 0.0, rotBuzzLeftArm=0.0,rotBuzzRightArm=0.0,BuzzRightArm ;
+float BuzzLeftArm = 0.0, rotBuzzLeftArm=0.0,rotBuzzRightArm=0.0,BuzzRightArm=0 ;
 int modelSelected = 0;
 bool enableCountSelected = true;
 
@@ -173,9 +173,9 @@ int numPasosDart = 0;
 float rotHelHelY = 0.0;
 
 // Var animate lambo dor
-int stateDoor = 0;
+int stateLambo = 0;
+int numberAdvanceLambo = 0, maxAdvanceLambo = 0, advanceCountLambo = 0, rotWheelsXLambo = 0, rotWheelsYLambo = 0, rotCountLambo = 0;
 float dorRotCount = 0.0;
-
 double deltaTime;
 double currTime, lastTime;
 
@@ -785,8 +785,21 @@ bool processInput(bool continueApplication) {
 void applicationLoop() {
 	bool psi = true;
 
+	modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(27.5, 0, 28.0));
+	modelMatrixLambo = glm::rotate(modelMatrixLambo, glm::radians(160.0f), glm::vec3(0, 1, 0));
+	advanceCountLambo = 0.0;
+	rotCountLambo = 0.0;
+	rotWheelsXLambo = 0.0;
+	rotWheelsYLambo = 0.0;
+	numberAdvanceLambo = 0;
+	maxAdvanceLambo = 0.0;
+	stateLambo = 0;
+
+
+
 	modelMatrixEclipse = glm::translate(modelMatrixEclipse, glm::vec3(27.5, 0, 30.0));
 	modelMatrixEclipse = glm::rotate(modelMatrixEclipse, glm::radians(180.0f), glm::vec3(0, 1, 0));
+	
 	int state = 0;
 	float advanceCount = 0.0;
 	float rotCount = 0.0;
@@ -804,8 +817,6 @@ void applicationLoop() {
 	modelMatrixHeliTras = glm::translate(modelMatrixHeliTras, glm::vec3(5.0, 10.0, -5.0));
 
 	modelMatrixAircraft = glm::translate(modelMatrixAircraft, glm::vec3(10.0, 2.0, -17.5));
-
-	modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(23.0, 0.0, 0.0));
 
 	modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(3.0, 0.0, 20.0));
 
@@ -1020,9 +1031,25 @@ void applicationLoop() {
 		// Lambo car
 		glDisable(GL_CULL_FACE);
 		glm::mat4 modelMatrixLamboChasis = glm::mat4(modelMatrixLambo);
+		modelMatrixLamboChasis = glm::rotate(modelMatrixLamboChasis, 180.0f, glm::vec3(0, 1, 0));
 		modelMatrixLamboChasis = glm::scale(modelMatrixLamboChasis, glm::vec3(1.3, 1.3, 1.3));
 		modelLambo.render(modelMatrixLamboChasis);
 		glActiveTexture(GL_TEXTURE0);
+
+		glm::mat4 modelMatrixLamboFrontalWheels = glm::mat4(modelMatrixLamboChasis);
+		modelMatrixLamboFrontalWheels = glm::translate(modelMatrixLamboFrontalWheels, glm::vec3(0.0, 1.05813, 4.11483));
+		modelMatrixLamboFrontalWheels = glm::rotate(modelMatrixLamboFrontalWheels, rotWheelsY, glm::vec3(0, 1, 0));
+		modelMatrixLamboFrontalWheels = glm::rotate(modelMatrixLamboFrontalWheels, rotWheelsX, glm::vec3(1, 0, 0));
+		modelMatrixLamboFrontalWheels = glm::translate(modelMatrixLamboFrontalWheels, glm::vec3(0.0, -1.05813, -4.11483));
+		modelLamboFrontLeftWheel.render(modelMatrixLamboFrontalWheels);
+		modelLamboFrontRightWheel.render(modelMatrixLamboFrontalWheels);
+
+		glm::mat4 modelMatrixLamboRearWheels = glm::mat4(modelMatrixLamboChasis);
+		modelMatrixLamboRearWheels = glm::translate(modelMatrixLamboRearWheels, glm::vec3(0.0, 1.05813, -4.35157));
+		modelMatrixLamboRearWheels = glm::rotate(modelMatrixLamboRearWheels, rotWheelsX, glm::vec3(1, 0, 0));
+		modelMatrixLamboRearWheels = glm::translate(modelMatrixLamboRearWheels, glm::vec3(0.0, -1.05813, 4.35157));
+		modelLamboRearLeftWheel.render(modelMatrixLamboRearWheels);
+		modelLamboRearRightWheel.render(modelMatrixLamboRearWheels);
 
 		glm::mat4 modelMatrixLamboLeftDor = glm::mat4(modelMatrixLamboChasis);
 		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(1.08676, 0.707316, 0.982601));
@@ -1036,10 +1063,7 @@ void applicationLoop() {
 		modelMatrixLamboRightDor = glm::translate(modelMatrixLamboRightDor, glm::vec3(1.08676, -0.707316, -0.982601));
 		modelLamboRightDor.render(modelMatrixLamboRightDor);
 
-		modelLamboFrontLeftWheel.render(modelMatrixLamboChasis);
-		modelLamboFrontRightWheel.render(modelMatrixLamboChasis);
-		modelLamboRearLeftWheel.render(modelMatrixLamboChasis);
-		modelLamboRearRightWheel.render(modelMatrixLamboChasis);
+	
 		// Se regresa el cull faces IMPORTANTE para las puertas
 		glEnable(GL_CULL_FACE);
 
@@ -1267,19 +1291,61 @@ void applicationLoop() {
 		}
 
 		//STATE MACHINE FOR THE LAMBO CAR			
-		switch (stateDoor) {
-		case 0:
+		switch (stateLambo) {
+
+		case 0: // Topes(hasta donde llega en cada avance)
+			if (numberAdvanceLambo == 0)
+				maxAdvanceLambo = 65.0;
+			else if (numberAdvanceLambo == 1)
+				maxAdvanceLambo = 49.0;
+			else if (numberAdvanceLambo == 2)
+				maxAdvanceLambo = 44.5;
+			else if (numberAdvanceLambo == 3)
+				maxAdvanceLambo = 49.0;
+			else if (numberAdvanceLambo == 4)
+				maxAdvanceLambo = 44.5;
+			stateLambo = 1;
+			break;
+		case 1: //avanza
+			modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0, 0.0, 0.1));
+			advanceCountLambo += 0.1;
+			rotWheelsXLambo += 0.05;
+			rotWheelsYLambo -= 0.02;
+			if (rotWheelsYLambo < 0)
+				rotWheelsYLambo = 0;
+			if (advanceCountLambo >= maxAdvanceLambo) {
+				advanceCountLambo = 0;
+				numberAdvanceLambo++;
+				stateLambo = 2;
+			}
+			break;
+
+		case 2:  //gira
+			modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0, 0.0, 0.025));
+			modelMatrixLambo = glm::rotate(modelMatrixLambo, glm::radians(0.5f), glm::vec3(0, 1, 0));
+			rotCountLambo += 0.5;
+			rotWheelsXLambo += 0.05;
+			rotWheelsYLambo += 0.02;
+			if (rotWheelsYLambo > 0.25)
+				rotWheelsYLambo = 0.25;
+			if (rotCountLambo >= 90.0) {
+				rotCountLambo = 0;
+				stateLambo = 0;
+				if (numberAdvanceLambo > 4)
+					numberAdvance = 1;
+			}
+			break;
+		case 3:
 			dorRotCount += 0.5;
 			if (dorRotCount > 75)
-				stateDoor = 1;
+				//hay que esperar que dart suba 
+				stateLambo = 4;
 			break;
-		case 1:
+		case 4:
 			dorRotCount -= 0.5;
 			if (dorRotCount < 0) {
 				dorRotCount = 0.0;
-				stateDoor = 0;
 			}
-
 			break;
 		}
 
