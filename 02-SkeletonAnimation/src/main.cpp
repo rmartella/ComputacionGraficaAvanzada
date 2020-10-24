@@ -85,6 +85,9 @@ Model modelDartLegoRightLeg;
 Model mayowModelAnimate;
 //Dragonite
 Model dragoniteModelAnimate;
+//Chica
+Model chicaModelAnimate;
+
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
@@ -117,6 +120,7 @@ glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
 glm::mat4 modelMatrixdragonite = glm::mat4(1.0f);
+glm::mat4 modelMatrixchica = glm::mat4(1.0f);
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 0;
@@ -298,6 +302,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//Dragonite
 	dragoniteModelAnimate.loadModel("../models/dragonite/dragonite.fbx");
 	dragoniteModelAnimate.setShader(&shaderMulLighting);
+
+	//chica
+	chicaModelAnimate.loadModel("../models/Chica/chica.fbx");
+	chicaModelAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -536,6 +544,8 @@ void destroy() {
 
 	// Custom objects animate
 	mayowModelAnimate.destroy();
+	dragoniteModelAnimate.destroy();
+	chicaModelAnimate.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -1011,6 +1021,11 @@ void applicationLoop() {
 		dragoniteModelAnimate.setAnimationIndex(2);
 		dragoniteModelAnimate.render(modelMatrixDragoniteBody);
 
+		glm::mat4 modelMatrixChicaBody = glm::mat4(modelMatrixchica);
+		modelMatrixChicaBody = glm::translate(modelMatrixChicaBody, glm::vec3(3, 0, 3));
+		modelMatrixChicaBody = glm::scale(modelMatrixChicaBody, glm::vec3(0.0015, 0.0015, 0.0015));
+		chicaModelAnimate.setAnimationIndex(0);
+		chicaModelAnimate.render(modelMatrixChicaBody);
 		/*******************************************
 		 * Skybox
 		 *******************************************/
