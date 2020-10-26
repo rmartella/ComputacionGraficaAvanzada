@@ -82,8 +82,10 @@ Model modelDartLegoRightLeg;
 Model mayowModelAnimate;
 // Cowboy
 Model CowboyModelAnimate;
+//Chica
+Model chicaModelAnimate;
 // Terrain model instance
-Terrain terrain(-1, -1, 200, 20, "../Textures/CustomHeightMap.png");
+Terrain terrain(-1, -1, 200, 20, "../Textures/CustomHeightMap2.png");
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
@@ -115,6 +117,7 @@ glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
 glm::mat4 modelMatrixCowboy = glm::mat4(1.0f);
+glm::mat4 modelMatrixchica = glm::mat4(1.0f);
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 0;
@@ -277,8 +280,13 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
 
+	//Cowboy
 	CowboyModelAnimate.loadModel("../models/cowboy/Character Running.fbx");
 	CowboyModelAnimate.setShader(&shaderMulLighting);
+
+	//chica
+	chicaModelAnimate.loadModel("../models/Chica/chica.fbx");
+	chicaModelAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -513,6 +521,7 @@ void destroy() {
 
 	// Custom objects animate
 	mayowModelAnimate.destroy();
+	chicaModelAnimate.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -590,7 +599,7 @@ bool processInput(bool continueApplication) {
 	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS){
 		enableCountSelected = false;
 		modelSelected++;
-		if(modelSelected > 3)
+		if(modelSelected > 4)
 			modelSelected = 0;
 		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
@@ -684,6 +693,25 @@ bool processInput(bool continueApplication) {
 		modelMatrixCowboy = glm::translate(modelMatrixCowboy, glm::vec3(0.0, 0.0, 0.1));
 	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixCowboy = glm::translate(modelMatrixCowboy, glm::vec3(0.0, 0.0, -0.1));
+	//Chica movements
+	if (modelSelected == 4 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		modelMatrixchica = glm::rotate(modelMatrixchica, 0.04f, glm::vec3(0, 1, 0));
+		chicaModelAnimate.setAnimationIndex(0);
+	}
+	else if (modelSelected == 4 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		modelMatrixchica = glm::rotate(modelMatrixchica, -0.04f, glm::vec3(0, 1, 0));
+		chicaModelAnimate.setAnimationIndex(0);
+	}
+	if (modelSelected == 4 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		modelMatrixchica = glm::translate(modelMatrixchica, glm::vec3(0.08, 0.0, 0.0));
+		chicaModelAnimate.setAnimationIndex(0);
+	}
+	else if (modelSelected == 4 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		modelMatrixchica = glm::translate(modelMatrixchica, glm::vec3(-0.08, 0.0, 0.0));
+		chicaModelAnimate.setAnimationIndex(0);
+	}
+	else
+		chicaModelAnimate.setAnimationIndex(1);
 
 	glfwPollEvents();
 	return continueApplication;
@@ -704,6 +732,8 @@ void applicationLoop() {
 
 	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
 	modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+	
+	modelMatrixchica = glm::translate(modelMatrixchica, glm::vec3(3, 0, 3));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -889,6 +919,11 @@ void applicationLoop() {
 		glm::mat4 modelMatrixCowboyBody = glm::mat4(modelMatrixCowboy);
 		modelMatrixCowboyBody = glm::scale(modelMatrixCowboyBody, glm::vec3(0.0025, 0.0025, 0.0025));
 		CowboyModelAnimate.render(modelMatrixCowboyBody);
+
+		modelMatrixchica[3][1] = terrain.getHeightTerrain(modelMatrixchica[3][0], modelMatrixchica[3][2]);
+		glm::mat4 modelMatrixChicaBody = glm::mat4(modelMatrixchica);
+		modelMatrixChicaBody = glm::scale(modelMatrixChicaBody, glm::vec3(0.0015, 0.0015, 0.0015));
+		chicaModelAnimate.render(modelMatrixChicaBody);
 
 		/*******************************************
 		 * Skybox
