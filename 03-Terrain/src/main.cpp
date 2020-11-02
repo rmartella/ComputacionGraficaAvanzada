@@ -80,9 +80,12 @@ Model modelDartLegoRightLeg;
 // Model animate instance
 // Mayow
 Model mayowModelAnimate;
+//Cowboyg
 Model cowboyModelAnime;
-// Terrain model instance
-Terrain terrain(-1, -1, 200, 8, "../Textures/CustomHeighMap.png");//esquina inferiror derecha,numero de regillas
+//Agregando PinkBoy
+Model PinkBoyModelAnimate;
+// Terrain model instance Agregando el nuevo mapa
+Terrain terrain(-1, -1, 200, 80, "../Textures/HeighMapDAMS.png");//esquina inferiror derecha(los dos primero),numero de rejillas, Altura máxima
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
@@ -114,6 +117,7 @@ glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
 glm::mat4 modelMatrixCowboy = glm::mat4(1.0f);
+glm::mat4 modelMatrixPinkBoy = glm::mat4(1.0f);//Agregando la matriz de PinkBoy
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 0;
@@ -275,9 +279,12 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//Mayow
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
-
+	//CowBoy
 	cowboyModelAnime.loadModel("../models/cowboy/Character Running.fbx");
 	cowboyModelAnime.setShader(&shaderMulLighting);
+	//Agregando el load de PinkBoy
+	PinkBoyModelAnimate.loadModel("../models/PinkyBoy/PinkyBoyAnimaciones.fbx");
+	PinkBoyModelAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -589,7 +596,7 @@ bool processInput(bool continueApplication) {
 	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS){
 		enableCountSelected = false;
 		modelSelected++;
-		if(modelSelected > 3)
+		if(modelSelected > 4)
 			modelSelected = 0;
 		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
@@ -674,7 +681,7 @@ bool processInput(bool continueApplication) {
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(-0.02, 0.0, 0.0));
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(0.02, 0.0, 0.0));
-
+	//Cowboy model movements
 	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
 		modelMatrixCowboy = glm::rotate(modelMatrixCowboy, 0.02f, glm::vec3(0, 1, 0));
 	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
@@ -683,7 +690,25 @@ bool processInput(bool continueApplication) {
 		modelMatrixCowboy = glm::translate(modelMatrixCowboy, glm::vec3(0.0, 0.0, 0.02));
 	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixCowboy = glm::translate(modelMatrixCowboy, glm::vec3(0.0, 0.0, -0.02));
-
+	//Agregando movimientos de PinkyBoy
+	if (modelSelected == 4 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		modelMatrixPinkBoy = glm::rotate(modelMatrixPinkBoy, 0.02f, glm::vec3(0, 1, 0));
+		PinkBoyModelAnimate.setAnimationIndex(1);
+	}
+	else if (modelSelected == 4 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		modelMatrixPinkBoy = glm::rotate(modelMatrixPinkBoy, -0.02f, glm::vec3(0, 1, 0));
+		PinkBoyModelAnimate.setAnimationIndex(1);
+	}
+	else if (modelSelected == 4 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		modelMatrixPinkBoy = glm::translate(modelMatrixPinkBoy, glm::vec3(0, 0, 0.02));
+		PinkBoyModelAnimate.setAnimationIndex(1);
+	}
+	else if (modelSelected == 4 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		modelMatrixPinkBoy = glm::translate(modelMatrixPinkBoy, glm::vec3(0, 0, -0.02));
+		PinkBoyModelAnimate.setAnimationIndex(1);
+	}
+	else
+		PinkBoyModelAnimate.setAnimationIndex(0);
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -775,8 +800,8 @@ void applicationLoop() {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textureCespedID);
 		shaderMulLighting.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(80, 80)));
-		terrain.setPosition(glm::vec3(100, 0, 100));
-		terrain.enableWireMode();
+		terrain.setPosition(glm::vec3(100, 0, 100)); // Agregando la posición
+		//terrain.enableWireMode(); //Agregamos tipo malla
 		terrain.render();
 		shaderMulLighting.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(0, 0)));
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -884,11 +909,16 @@ void applicationLoop() {
 		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
 		mayowModelAnimate.setAnimationIndex(0);
 		mayowModelAnimate.render(modelMatrixMayowBody);
-
+		//ModelCowboy
 		modelMatrixCowboy[3][1] = terrain.getHeightTerrain(modelMatrixCowboy[3][0], modelMatrixCowboy[3][2]);
 		glm::mat4 modelMatrixCowboyBody = glm::mat4(modelMatrixCowboy);
 		modelMatrixCowboyBody = glm::scale(modelMatrixCowboyBody, glm::vec3(0.0025, 0.0025, 0.0025));
-		cowboyModelAnime.render(modelMatrixCowboyBody);
+		//cowboyModelAnime.render(modelMatrixCowboyBody);
+		//Agregando el render y la normal de de PinkBoy
+		modelMatrixPinkBoy[3][1] = terrain.getHeightTerrain(modelMatrixPinkBoy[3][0], modelMatrixPinkBoy[3][2]);
+		glm::mat4 modelMatrixPinkBoyBody = glm::mat4(modelMatrixPinkBoy);
+		modelMatrixPinkBoyBody = glm::scale(modelMatrixPinkBoyBody, glm::vec3(0.010, 0.010, 0.010));
+		PinkBoyModelAnimate.render(modelMatrixPinkBoyBody);
 
 		/*******************************************
 		 * Skybox
