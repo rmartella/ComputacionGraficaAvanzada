@@ -84,6 +84,8 @@ Model modelDartLegoRightLeg;
 Model mayowModelAnimate;
 //Chica
 Model chicaModelAnimate;
+//Hada Elfo
+Model HadaElfoModelAnimate;
 
 // Terrain model instance
 Terrain terrain(-1, -1, 200, 15, "../Textures/CustomHeightMap3.png");
@@ -119,6 +121,7 @@ glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
 glm::mat4 modelMatrixchica = glm::mat4(1.0f);
+glm::mat4 modelMatrixHadaElfo = glm::mat4(1.0f);
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 0;
@@ -286,6 +289,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//Mayow
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
+
+	//HadaElfo
+	HadaElfoModelAnimate.loadModel("../models/ChicaBox/chicaBox.fbx");
+	HadaElfoModelAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -682,6 +689,7 @@ void destroy() {
 	// Custom objects animate
 	mayowModelAnimate.destroy();
 	chicaModelAnimate.destroy();
+	HadaElfoModelAnimate.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -891,6 +899,8 @@ void applicationLoop() {
 
 	modelMatrixchica = glm::translate(modelMatrixchica, glm::vec3(3, 0, 3));
 
+	modelMatrixHadaElfo = glm::translate(modelMatrixHadaElfo, glm::vec3(5, 0, 5));
+	
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
 	keyFramesDartJoints = getKeyRotFrames(fileName);
@@ -1108,6 +1118,12 @@ void applicationLoop() {
 		glm::mat4 modelMatrixChicaBody = glm::mat4(modelMatrixchica);
 		modelMatrixChicaBody = glm::scale(modelMatrixChicaBody, glm::vec3(0.0015, 0.0015, 0.0015));
 		chicaModelAnimate.render(modelMatrixChicaBody);
+
+		modelMatrixHadaElfo[3][1] = terrain.getHeightTerrain(modelMatrixHadaElfo[3][0], modelMatrixHadaElfo[3][2]);
+		glm::mat4 modelMatrixHadaElfoBody = glm::mat4(modelMatrixHadaElfo);
+		modelMatrixHadaElfoBody = glm::scale(modelMatrixHadaElfoBody, glm::vec3(0.0015, 0.0015, 0.0015));
+		HadaElfoModelAnimate.setAnimationIndex(1);
+		HadaElfoModelAnimate.render(modelMatrixHadaElfoBody);
 
 		/*******************************************
 		 * Skybox
