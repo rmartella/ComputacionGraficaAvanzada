@@ -85,7 +85,7 @@ Model mayowModelAnimate;
 //Chica
 Model chicaModelAnimate;
 //Hada Elfo
-Model HadaElfoModelAnimate;
+Model ChicaBoxModelAnimate;
 
 // Terrain model instance
 Terrain terrain(-1, -1, 200, 15, "../Textures/CustomHeightMap3.png");
@@ -121,7 +121,7 @@ glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
 glm::mat4 modelMatrixchica = glm::mat4(1.0f);
-glm::mat4 modelMatrixHadaElfo = glm::mat4(1.0f);
+glm::mat4 modelMatrixChicaBox = glm::mat4(1.0f);
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 0;
@@ -290,9 +290,9 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
 
-	//HadaElfo
-	HadaElfoModelAnimate.loadModel("../models/ChicaBox/chicaBox.fbx");
-	HadaElfoModelAnimate.setShader(&shaderMulLighting);
+	//ChicaBox
+	ChicaBoxModelAnimate.loadModel("../models/ChicaBox/chicaBox.fbx");
+	ChicaBoxModelAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -689,7 +689,7 @@ void destroy() {
 	// Custom objects animate
 	mayowModelAnimate.destroy();
 	chicaModelAnimate.destroy();
-	HadaElfoModelAnimate.destroy();
+	ChicaBoxModelAnimate.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -899,7 +899,7 @@ void applicationLoop() {
 
 	modelMatrixchica = glm::translate(modelMatrixchica, glm::vec3(3, 0, 3));
 
-	modelMatrixHadaElfo = glm::translate(modelMatrixHadaElfo, glm::vec3(5, 0, 5));
+	modelMatrixChicaBox = glm::translate(modelMatrixChicaBox, glm::vec3(5, 0, 5));
 	
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -1119,11 +1119,11 @@ void applicationLoop() {
 		modelMatrixChicaBody = glm::scale(modelMatrixChicaBody, glm::vec3(0.0015, 0.0015, 0.0015));
 		chicaModelAnimate.render(modelMatrixChicaBody);
 
-		modelMatrixHadaElfo[3][1] = terrain.getHeightTerrain(modelMatrixHadaElfo[3][0], modelMatrixHadaElfo[3][2]);
-		glm::mat4 modelMatrixHadaElfoBody = glm::mat4(modelMatrixHadaElfo);
-		modelMatrixHadaElfoBody = glm::scale(modelMatrixHadaElfoBody, glm::vec3(0.0015, 0.0015, 0.0015));
-		HadaElfoModelAnimate.setAnimationIndex(1);
-		HadaElfoModelAnimate.render(modelMatrixHadaElfoBody);
+		modelMatrixChicaBox[3][1] = terrain.getHeightTerrain(modelMatrixChicaBox[3][0], modelMatrixChicaBox[3][2]);
+		glm::mat4 modelMatrixChicaBoxBody = glm::mat4(modelMatrixChicaBox);
+		modelMatrixChicaBoxBody = glm::scale(modelMatrixChicaBoxBody, glm::vec3(0.0015, 0.0015, 0.0015));
+		ChicaBoxModelAnimate.setAnimationIndex(0);
+		ChicaBoxModelAnimate.render(modelMatrixChicaBoxBody);
 
 		/*******************************************
 		 * Skybox
