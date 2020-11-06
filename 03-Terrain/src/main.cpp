@@ -596,7 +596,7 @@ bool processInput(bool continueApplication) {
 	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS){
 		enableCountSelected = false;
 		modelSelected++;
-		if(modelSelected > 4)
+		if(modelSelected > 4) //Aregando un modelo más
 			modelSelected = 0;
 		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
@@ -699,7 +699,7 @@ bool processInput(bool continueApplication) {
 		modelMatrixPinkBoy = glm::rotate(modelMatrixPinkBoy, -0.02f, glm::vec3(0, 1, 0));
 		PinkBoyModelAnimate.setAnimationIndex(1);
 	}
-	else if (modelSelected == 4 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+	if (modelSelected == 4 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
 		modelMatrixPinkBoy = glm::translate(modelMatrixPinkBoy, glm::vec3(0, 0, 0.02));
 		PinkBoyModelAnimate.setAnimationIndex(1);
 	}
