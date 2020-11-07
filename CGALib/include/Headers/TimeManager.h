@@ -44,10 +44,11 @@ public:
 	double GetTime();
 
 	void Sleep(int milliseconds);
+	void resetStartTime();
 
 	double DeltaTime = 0;
 	double StartTime = 0;
-
+	
 	double CurrentTime = 0;
 
 private:

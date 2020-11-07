@@ -54,8 +54,8 @@ Shader shaderMulLighting;
 //Shader para el terreno
 Shader shaderTerrain;
 
-std::shared_ptr<Camera> camera(new ThirdPersonCamera());
-float distanceFromTarget = 7.0;
+std::shared_ptr<Camera>camera(new ThirdPersonCamera());
+float distanceFromTarget = 5.0;
 
 Sphere skyboxSphere(20, 20);
 
@@ -122,13 +122,13 @@ glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
 
-int animationIndex = 1;
+int indexAnimationMay = 1;
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 2;
 bool enableCountSelected = true;
 
 // Variables to animations keyframes
-bool saveFrame = false, availableSave = true;
+bool saveFrame = false, availableSave = true, modelChange = false;
 std::ofstream myfile;
 std::string fileName = "";
 bool record = false;
@@ -304,9 +304,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
 
+	//camara
 	camera->setPosition(glm::vec3(0.0, 0.0, 10.0));
 	camera->setDistanceFromTarget(distanceFromTarget);
-	camera->setSensitivity(1.0);
+	camera->setSensitivity(1.0f); // velocidad de la camara
 
 	// Definimos el tamanio de la imagen
 	int imageWidth, imageHeight;
@@ -746,7 +747,7 @@ void mouseCallback(GLFWwindow *window, double xpos, double ypos) {
 	lastMousePosY = ypos;
 }
 
-void scrollCallback(GLFWwindow* window, double xoffset, double yoffset){
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 	distanceFromTarget -= yoffset;
 	camera->setDistanceFromTarget(distanceFromTarget);
 }
@@ -773,9 +774,9 @@ bool processInput(bool continueApplication) {
 		return false;
 	}
 
-	if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 		camera->mouseMoveCamera(offsetX, 0.0, deltaTime);
-	if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
 		camera->mouseMoveCamera(0.0, offsetY, deltaTime);
 	offsetX = 0;
 	offsetY = 0;
@@ -870,19 +871,51 @@ bool processInput(bool continueApplication) {
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(0.02, 0.0, 0.0));
 
+	if (modelChange&& glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		TimeManager::Instance().resetStartTime();
+		modelChange = true;
+	}
+	else if (!modelChange && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_RELEASE) {
+		TimeManager::Instance().resetStartTime();
+		modelChange = false;
+	}
+	if (!modelChange && (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)) {
+		TimeManager::Instance().resetStartTime();
+		modelChange = true;
+	}
+	else if (modelChange && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_RELEASE) {
+		TimeManager::Instance().resetStartTime();
+		modelChange = false;
+	}
+	if (!modelChange && (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)) {
+		TimeManager::Instance().resetStartTime();
+		modelChange = true;
+	}
+	else if (modelChange && glfwGetKey(window, GLFW_KEY_UP) == GLFW_RELEASE) {
+		TimeManager::Instance().resetStartTime();
+		modelChange = false;
+	}
+	if (!modelChange && (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)) {
+		TimeManager::Instance().resetStartTime();
+		modelChange = true;
+	}
+	else if (modelChange && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_RELEASE) {
+		TimeManager::Instance().resetStartTime();
+		modelChange = false;
+	}
 	// Mayow animate model movements
 	if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
 		modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(1.0f), glm::vec3(0, 1, 0));
-		animationIndex = 0;
+		indexAnimationMay = 0;
 	}else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS){
 		modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-1.0f), glm::vec3(0, 1, 0));
-		animationIndex = 0;
+		indexAnimationMay = 0;
 	}if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
 		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, 0.02));
-		animationIndex = 0;
+		indexAnimationMay = 0;
 	}else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
 		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, -0.02));
-		animationIndex = 0;
+		indexAnimationMay = 0;
 	}
 
 	glfwPollEvents();
@@ -891,11 +924,6 @@ bool processInput(bool continueApplication) {
 
 void applicationLoop() {
 	bool psi = true;
-
-	glm::mat4 view;
-	glm::vec3 axis;
-	glm::vec3 target;
-	float angleTarget;
 
 	matrixModelRock = glm::translate(matrixModelRock, glm::vec3(-3.0, 0.0, 2.0));
 
@@ -936,27 +964,31 @@ void applicationLoop() {
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f),
 				(float) screenWidth / (float) screenHeight, 0.01f, 100.0f);
 
-		if(modelSelected == 1){
+		glm::vec3 axis;
+		glm::vec3 target;
+		float angleTarget;
+
+		if (modelSelected == 1) {
 			axis = glm::axis(glm::quat_cast(modelMatrixDart));
 			angleTarget = glm::angle(glm::quat_cast(modelMatrixDart));
 			target = modelMatrixDart[3];
 		}
-		else{
+		else if (modelSelected == 2) {
 			axis = glm::axis(glm::quat_cast(modelMatrixMayow));
 			angleTarget = glm::angle(glm::quat_cast(modelMatrixMayow));
 			target = modelMatrixMayow[3];
 		}
 
-		if(std::isnan(angleTarget))
+		if (std::isnan(angleTarget))
 			angleTarget = 0.0;
-		if(axis.y < 0)
+		if (axis.y < 0)
 			angleTarget = -angleTarget;
-		if(modelSelected == 1)
+		if (modelSelected == 1)
 			angleTarget -= glm::radians(90.0f);
 		camera->setCameraTarget(target);
 		camera->setAngleTarget(angleTarget);
 		camera->updateCamera();
-		view = camera->getViewMatrix();
+		glm::mat4 view = camera->getViewMatrix();
 
 		// Settea la matriz de vista y projection al shader con solo color
 		shader.setMatrix4("projection", 1, false, glm::value_ptr(projection));
@@ -1218,7 +1250,7 @@ void applicationLoop() {
 		modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
 		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
 		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
-		mayowModelAnimate.setAnimationIndex(animationIndex);
+		mayowModelAnimate.setAnimationIndex(indexAnimationMay);
 		mayowModelAnimate.render(modelMatrixMayowBody);
 
 		/*******************************************
@@ -1296,8 +1328,7 @@ void applicationLoop() {
 
 		// Constantes de animaciones
 		rotHelHelY += 0.5;
-		animationIndex = 1;
-
+		indexAnimationMay = 1;
 		/*******************************************
 		 * State machines
 		 *******************************************/
