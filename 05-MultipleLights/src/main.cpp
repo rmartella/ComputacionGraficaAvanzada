@@ -156,7 +156,7 @@ std::vector<glm::vec3> lamp1Position = { glm::vec3(-7.03, 0, -19.14), glm::vec3(
 		24.41, 0, -34.57), glm::vec3(-10.15, 0, -54.10) };
 std::vector<float> lamp1Orientation = { -17.0, -82.67, 23.70 };
 std::vector<glm::vec3> lamp2Position = { glm::vec3(-36.52, 0, -23.24),
-		glm::vec3(-52.73, 0, -3.90) };
+		glm::vec3(-52.73, 0, -3.90) , glm::vec3(-52.73, 0, -3.90)};
 std::vector<float> lamp2Orientation = {21.37 + 90, -65.0 + 90};
 
 double deltaTime;
