@@ -128,7 +128,7 @@ int modelSelected = 2;
 bool enableCountSelected = true;
 
 // Variables to animations keyframes
-bool saveFrame = false, availableSave = true, modelChange = false;
+bool saveFrame = false, availableSave = true, modelChange1 = false, modelChange2= false, modelChange3 = false, modelChange4 = false;
 std::ofstream myfile;
 std::string fileName = "";
 bool record = false;
@@ -786,7 +786,7 @@ bool processInput(bool continueApplication) {
 		enableCountSelected = false;
 		modelSelected++;
 		if(modelSelected > 2)
-			modelSelected = 0;
+			modelSelected = 1;
 		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
 		if (modelSelected == 2)
@@ -871,37 +871,37 @@ bool processInput(bool continueApplication) {
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(0.02, 0.0, 0.0));
 
-	if (modelChange&& glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+	if (!modelChange1 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
 		TimeManager::Instance().resetStartTime();
-		modelChange = true;
+		modelChange1 = true;
 	}
-	else if (!modelChange && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_RELEASE) {
+	else if (modelChange1 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_RELEASE) {
 		TimeManager::Instance().resetStartTime();
-		modelChange = false;
+		modelChange1 = false;
 	}
-	if (!modelChange && (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)) {
+	if (!modelChange2 && (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)) {
 		TimeManager::Instance().resetStartTime();
-		modelChange = true;
+		modelChange2 = true;
 	}
-	else if (modelChange && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_RELEASE) {
+	else if (modelChange2 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_RELEASE) {
 		TimeManager::Instance().resetStartTime();
-		modelChange = false;
+		modelChange2 = false;
 	}
-	if (!modelChange && (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)) {
+	if (!modelChange3 && (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)) {
 		TimeManager::Instance().resetStartTime();
-		modelChange = true;
+		modelChange3 = true;
 	}
-	else if (modelChange && glfwGetKey(window, GLFW_KEY_UP) == GLFW_RELEASE) {
+	else if (modelChange3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_RELEASE) {
 		TimeManager::Instance().resetStartTime();
-		modelChange = false;
+		modelChange3 = false;
 	}
-	if (!modelChange && (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)) {
+	if (!modelChange4 && (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)) {
 		TimeManager::Instance().resetStartTime();
-		modelChange = true;
+		modelChange4 = true;
 	}
-	else if (modelChange && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_RELEASE) {
+	else if (modelChange4 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_RELEASE) {
 		TimeManager::Instance().resetStartTime();
-		modelChange = false;
+		modelChange4 = false;
 	}
 	// Mayow animate model movements
 	if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){

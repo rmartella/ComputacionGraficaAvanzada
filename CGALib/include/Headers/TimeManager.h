@@ -42,9 +42,9 @@ public:
 
 	double GetRunningTime();
 	double GetTime();
-
-	void Sleep(int milliseconds);
 	void resetStartTime();
+	void Sleep(int milliseconds);
+	
 
 	double DeltaTime = 0;
 	double StartTime = 0;
@@ -55,8 +55,7 @@ private:
 
 	TimeManager() {
 		StartTime = GetTime();
-	}
-	;
+	};
 	TimeManager(TimeManager const&);
 	TimeManager& operator=(TimeManager const&);
 };

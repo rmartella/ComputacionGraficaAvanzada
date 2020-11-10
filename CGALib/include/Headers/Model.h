@@ -35,6 +35,7 @@
 
 #include "Mesh.h"
 #include "Bones.h"
+#include "TimeManager.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -55,6 +56,7 @@ public:
 	}
 	void setAnimationIndex(int animationIndex){
 		this->animationIndex = animationIndex;
+
 	}
 private:
 	void processNode(aiNode* node, const aiScene* scene);
