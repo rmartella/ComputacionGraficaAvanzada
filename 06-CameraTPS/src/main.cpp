@@ -57,6 +57,9 @@ Shader shaderTerrain;
 std::shared_ptr<Camera>camera(new ThirdPersonCamera());
 float distanceFromTarget = 5.0;
 
+/*std::shared_ptr<Camera>cameraPrimeraPersona(new ThirdPersonCamera());
+*/
+
 Sphere skyboxSphere(20, 20);
 
 // Models complex instances
@@ -89,6 +92,10 @@ Model modelLampPost2;
 // Mayow
 Model mayowModelAnimate;
 // Terrain model instance
+
+//Chica
+Model chicaModelAnimate;
+
 Terrain terrain(-1, -1, 200, 8, "../Textures/heightmap.png");
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
@@ -121,6 +128,7 @@ glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+glm::mat4 modelMatrixchica = glm::mat4(1.0f);
 
 int indexAnimationMay = 1;
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
@@ -292,6 +300,11 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	modelDartLegoRightLeg.loadModel("../models/LegoDart/LeoDart_right_leg.obj");
 	modelDartLegoRightLeg.setShader(&shaderMulLighting);
 
+	//chica
+	chicaModelAnimate.loadModel("../models/Chica/chica.fbx");
+	chicaModelAnimate.setShader(&shaderMulLighting);
+
+
 	//Lamp models
 	modelLamp1.loadModel("../models/Street-Lamp-Black/objLamp.obj");
 	modelLamp1.setShader(&shaderMulLighting);
@@ -305,7 +318,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	mayowModelAnimate.setShader(&shaderMulLighting);
 
 	//camara
-	camera->setPosition(glm::vec3(0.0, 0.0, 10.0));
+	glm::vec3 posicion_camara = glm::vec3(0.0, 0.0, 10.0);
+	camera->setPosition(posicion_camara);
 	camera->setDistanceFromTarget(distanceFromTarget);
 	camera->setSensitivity(1.0f); // velocidad de la camara
 
@@ -704,6 +718,7 @@ void destroy() {
 
 	// Custom objects animate
 	mayowModelAnimate.destroy();
+	chicaModelAnimate.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -785,7 +800,7 @@ bool processInput(bool continueApplication) {
 	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS){
 		enableCountSelected = false;
 		modelSelected++;
-		if(modelSelected > 2)
+		if(modelSelected >3)
 			modelSelected = 1;
 		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
@@ -903,6 +918,7 @@ bool processInput(bool continueApplication) {
 		TimeManager::Instance().resetStartTime();
 		modelChange4 = false;
 	}
+
 	// Mayow animate model movements
 	if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
 		modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(1.0f), glm::vec3(0, 1, 0));
@@ -918,6 +934,25 @@ bool processInput(bool continueApplication) {
 		indexAnimationMay = 0;
 	}
 
+	//Chica movements
+	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		modelMatrixchica = glm::rotate(modelMatrixchica, 0.04f, glm::vec3(0, 1, 0));
+		chicaModelAnimate.setAnimationIndex(0);
+	}
+	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		modelMatrixchica = glm::rotate(modelMatrixchica, -0.04f, glm::vec3(0, 1, 0));
+		chicaModelAnimate.setAnimationIndex(0);
+	}
+	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		modelMatrixchica = glm::translate(modelMatrixchica, glm::vec3(0.08, 0.0, 0.0));
+		chicaModelAnimate.setAnimationIndex(0);
+	}
+	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		modelMatrixchica = glm::translate(modelMatrixchica, glm::vec3(-0.08, 0.0, 0.0));
+		chicaModelAnimate.setAnimationIndex(0);
+	}
+	else
+		chicaModelAnimate.setAnimationIndex(1);
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -978,6 +1013,11 @@ void applicationLoop() {
 			angleTarget = glm::angle(glm::quat_cast(modelMatrixMayow));
 			target = modelMatrixMayow[3];
 		}
+		else if (modelSelected == 3) {
+			axis = glm::axis(glm::quat_cast(modelMatrixchica));
+			angleTarget = glm::angle(glm::quat_cast(modelMatrixchica));
+			target = modelMatrixchica[3];
+		}
 
 		if (std::isnan(angleTarget))
 			angleTarget = 0.0;
@@ -985,6 +1025,17 @@ void applicationLoop() {
 			angleTarget = -angleTarget;
 		if (modelSelected == 1)
 			angleTarget -= glm::radians(90.0f);
+		if (modelSelected == 3) {
+			angleTarget += glm::radians(90.0f);
+			
+
+			if (glfwGetKey(window, GLFW_KEY_K == GLFW_PRESS)) {
+				
+			}
+			else if (glfwGetKey(window, GLFW_KEY_K) == GLFW_RELEASE) {
+				
+			}
+		}
 		camera->setCameraTarget(target);
 		camera->setAngleTarget(angleTarget);
 		camera->updateCamera();
@@ -1253,6 +1304,10 @@ void applicationLoop() {
 		mayowModelAnimate.setAnimationIndex(indexAnimationMay);
 		mayowModelAnimate.render(modelMatrixMayowBody);
 
+		modelMatrixchica[3][1] = terrain.getHeightTerrain(modelMatrixchica[3][0], modelMatrixchica[3][2]);
+		glm::mat4 modelMatrixChicaBody = glm::mat4(modelMatrixchica);
+		modelMatrixChicaBody = glm::scale(modelMatrixChicaBody, glm::vec3(0.0015, 0.0015, 0.0015));
+		chicaModelAnimate.render(modelMatrixChicaBody);
 		/*******************************************
 		 * Skybox
 		 *******************************************/
