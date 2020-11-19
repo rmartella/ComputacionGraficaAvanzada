@@ -43,6 +43,7 @@
 
 int screenWidth;
 int screenHeight;
+bool camaraActivada= 0;
 
 GLFWwindow *window;
 
@@ -57,8 +58,8 @@ Shader shaderTerrain;
 std::shared_ptr<Camera>camera(new ThirdPersonCamera());
 float distanceFromTarget = 5.0;
 
-/*std::shared_ptr<Camera>cameraPrimeraPersona(new ThirdPersonCamera());
-*/
+std::shared_ptr<FirstPersonCamera>cameraPP(new FirstPersonCamera());
+
 
 Sphere skyboxSphere(20, 20);
 
@@ -201,15 +202,15 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	if (bFullScreen)
 		window = glfwCreateWindow(width, height, strTitle.c_str(),
-				glfwGetPrimaryMonitor(), nullptr);
+			glfwGetPrimaryMonitor(), nullptr);
 	else
 		window = glfwCreateWindow(width, height, strTitle.c_str(), nullptr,
-				nullptr);
+			nullptr);
 
 	if (window == nullptr) {
 		std::cerr
-				<< "Error to create GLFW window, you can try download the last version of your video card that support OpenGL 3.3+"
-				<< std::endl;
+			<< "Error to create GLFW window, you can try download the last version of your video card that support OpenGL 3.3+"
+			<< std::endl;
 		destroy();
 		exit(-1);
 	}
@@ -323,7 +324,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	camera->setDistanceFromTarget(distanceFromTarget);
 	camera->setSensitivity(1.0f); // velocidad de la camara
 
-	// Definimos el tamanio de la imagen
+
+								  // Definimos el tamanio de la imagen
 	int imageWidth, imageHeight;
 	FIBITMAP *bitmap;
 	unsigned char *data;
@@ -789,10 +791,26 @@ bool processInput(bool continueApplication) {
 		return false;
 	}
 
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-		camera->mouseMoveCamera(offsetX, 0.0, deltaTime);
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-		camera->mouseMoveCamera(0.0, offsetY, deltaTime);
+	if (camaraActivada == 1) {
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+			camera->mouseMoveCamera(offsetX, 0.0, deltaTime);
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+			camera->mouseMoveCamera(0.0, offsetY, deltaTime);
+	}
+	else {
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+			cameraPP->moveFrontCamera(true, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+			cameraPP->moveFrontCamera(false, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+			cameraPP->moveRightCamera(false, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+			cameraPP->moveRightCamera(true, deltaTime);
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+			cameraPP->mouseMoveCamera(offsetX, offsetY, deltaTime);
+		//if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+		//	cameraPP->mouseMoveCamera(offsetX, offsetY, deltaTime);
+	}
 	offsetX = 0;
 	offsetY = 0;
 
@@ -953,6 +971,11 @@ bool processInput(bool continueApplication) {
 	}
 	else
 		chicaModelAnimate.setAnimationIndex(1);
+
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
+		camaraActivada != camaraActivada;
+	}
+
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -982,7 +1005,7 @@ void applicationLoop() {
 
 	while (psi) {
 		currTime = TimeManager::Instance().GetTime();
-		if(currTime - lastTime < 0.016666667){
+		if (currTime - lastTime < 0.016666667) {
 			glfwPollEvents();
 			continue;
 		}
@@ -997,7 +1020,7 @@ void applicationLoop() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f),
-				(float) screenWidth / (float) screenHeight, 0.01f, 100.0f);
+			(float)screenWidth / (float)screenHeight, 0.01f, 100.0f);
 
 		glm::vec3 axis;
 		glm::vec3 target;
@@ -1025,21 +1048,13 @@ void applicationLoop() {
 			angleTarget = -angleTarget;
 		if (modelSelected == 1)
 			angleTarget -= glm::radians(90.0f);
-		if (modelSelected == 3) {
+		if (modelSelected == 3) 
 			angleTarget += glm::radians(90.0f);
-			
-
-			if (glfwGetKey(window, GLFW_KEY_K == GLFW_PRESS)) {
-				
-			}
-			else if (glfwGetKey(window, GLFW_KEY_K) == GLFW_RELEASE) {
-				
-			}
-		}
 		camera->setCameraTarget(target);
 		camera->setAngleTarget(angleTarget);
 		camera->updateCamera();
 		glm::mat4 view = camera->getViewMatrix();
+
 
 		// Settea la matriz de vista y projection al shader con solo color
 		shader.setMatrix4("projection", 1, false, glm::value_ptr(projection));
