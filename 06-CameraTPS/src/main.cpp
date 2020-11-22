@@ -993,20 +993,6 @@ bool processInput(bool continueApplication) {
 		selec_vista = true;
 	}
 
-	/*if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS) {
-		enableCountSelected = false;
-		modelSelected++;
-		if (modelSelected > 3)
-			modelSelected = 1;
-		if (modelSelected == 1)
-			fileName = "../animaciones/animation_dart_joints.txt";
-		if (modelSelected == 2)
-			fileName = "../animaciones/animation_dart.txt";
-		std::cout << "modelSelected:" << modelSelected << std::endl;
-	}
-	else if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_RELEASE)
-		enableCountSelected = true; 
-	*/
 	glfwPollEvents();
 	return continueApplication;
 }
