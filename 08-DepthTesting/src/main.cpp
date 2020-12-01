@@ -56,9 +56,8 @@ Shader shaderSkybox;
 Shader shaderMulLighting;
 //Shader para el terreno
 Shader shaderTerrain;
-//Shader depth testing	
+//Shader depth testing
 Shader shaderDepthTesting;
-
 
 std::shared_ptr<Camera> camera(new ThirdPersonCamera());
 float distanceFromTarget = 7.0;
@@ -247,7 +246,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shaderSkybox.initialize("../Shaders/skyBox.vs", "../Shaders/skyBox.fs");
 	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation.vs", "../Shaders/multipleLights.fs");
 	shaderTerrain.initialize("../Shaders/terrain.vs", "../Shaders/terrain.fs");
-	shaderDepthTesting.initialize("../Shaders/deepthTesting.vs", "..Shaders/depthTesting.fs");
+	shaderDepthTesting.initialize("../Shaders/depthTesting.vs", "../Shaders/depthTesting.fs");
 
 	// Inicializacion de los objetos.
 	skyboxSphere.init();
@@ -255,21 +254,21 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	skyboxSphere.setScale(glm::vec3(20.0f, 20.0f, 20.0f));
 
 	boxCollider.init();
-	boxCollider.setShader(&shader);
+	boxCollider.setShader(&shaderDepthTesting);
 	boxCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 
 	sphereCollider.init();
-	sphereCollider.setShader(&shader);
+	sphereCollider.setShader(&shaderDepthTesting);
 	sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 
 	modelRock.loadModel("../models/rock/rock.obj");
-	modelRock.setShader(&shaderMulLighting);
+	modelRock.setShader(&shaderDepthTesting);
 
 	modelAircraft.loadModel("../models/Aircraft_obj/E 45 Aircraft_obj.obj");
-	modelAircraft.setShader(&shaderMulLighting);
+	modelAircraft.setShader(&shaderDepthTesting);
 
 	terrain.init();
-	terrain.setShader(&shaderTerrain);
+	terrain.setShader(&shaderDepthTesting);
 	terrain.setPosition(glm::vec3(100, 0, 100));
 
 	// Helicopter
@@ -1002,9 +1001,10 @@ void applicationLoop() {
 					glm::value_ptr(projection));
 		shaderTerrain.setMatrix4("view", 1, false,
 				glm::value_ptr(view));
-		//Settea la matriz  de vista
+		// Settea la matriz de vista y projection al shader para visualizar el buffer depth
 		shaderDepthTesting.setMatrix4("projection", 1, false, glm::value_ptr(projection));
 		shaderDepthTesting.setMatrix4("view", 1, false, glm::value_ptr(view));
+
 		/*******************************************
 		 * Propiedades Luz direccional
 		 *******************************************/
