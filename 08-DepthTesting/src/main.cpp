@@ -56,8 +56,6 @@ Shader shaderSkybox;
 Shader shaderMulLighting;
 //Shader para el terreno
 Shader shaderTerrain;
-//Shader depth testing
-Shader shaderDepthTesting;
 
 std::shared_ptr<Camera> camera(new ThirdPersonCamera());
 float distanceFromTarget = 7.0;
@@ -246,7 +244,6 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shaderSkybox.initialize("../Shaders/skyBox.vs", "../Shaders/skyBox.fs");
 	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation.vs", "../Shaders/multipleLights.fs");
 	shaderTerrain.initialize("../Shaders/terrain.vs", "../Shaders/terrain.fs");
-	shaderDepthTesting.initialize("../Shaders/depthTesting.vs", "../Shaders/depthTesting.fs");
 
 	// Inicializacion de los objetos.
 	skyboxSphere.init();
@@ -254,75 +251,75 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	skyboxSphere.setScale(glm::vec3(20.0f, 20.0f, 20.0f));
 
 	boxCollider.init();
-	boxCollider.setShader(&shaderDepthTesting);
+	boxCollider.setShader(&shader);
 	boxCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 
 	sphereCollider.init();
-	sphereCollider.setShader(&shaderDepthTesting);
+	sphereCollider.setShader(&shader);
 	sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 
 	modelRock.loadModel("../models/rock/rock.obj");
-	modelRock.setShader(&shaderDepthTesting);
+	modelRock.setShader(&shaderMulLighting);
 
 	modelAircraft.loadModel("../models/Aircraft_obj/E 45 Aircraft_obj.obj");
-	modelAircraft.setShader(&shaderDepthTesting);
+	modelAircraft.setShader(&shaderMulLighting);
 
 	terrain.init();
-	terrain.setShader(&shaderDepthTesting);
+	terrain.setShader(&shaderTerrain);
 	terrain.setPosition(glm::vec3(100, 0, 100));
 
 	// Helicopter
 	modelHeliChasis.loadModel("../models/Helicopter/Mi_24_chasis.obj");
-	modelHeliChasis.setShader(&shaderDepthTesting);
+	modelHeliChasis.setShader(&shaderMulLighting);
 	modelHeliHeli.loadModel("../models/Helicopter/Mi_24_heli.obj");
-	modelHeliHeli.setShader(&shaderDepthTesting);
+	modelHeliHeli.setShader(&shaderMulLighting);
 	// Lamborginhi
 	modelLambo.loadModel("../models/Lamborginhi_Aventador_OBJ/Lamborghini_Aventador_chasis.obj");
-	modelLambo.setShader(&shaderDepthTesting);
+	modelLambo.setShader(&shaderMulLighting);
 	modelLamboLeftDor.loadModel("../models/Lamborginhi_Aventador_OBJ/Lamborghini_Aventador_left_dor.obj");
-	modelLamboLeftDor.setShader(&shaderDepthTesting);
+	modelLamboLeftDor.setShader(&shaderMulLighting);
 	modelLamboRightDor.loadModel("../models/Lamborginhi_Aventador_OBJ/Lamborghini_Aventador_right_dor.obj");
-	modelLamboRightDor.setShader(&shaderDepthTesting);
+	modelLamboRightDor.setShader(&shaderMulLighting);
 	modelLamboFrontLeftWheel.loadModel("../models/Lamborginhi_Aventador_OBJ/Lamborghini_Aventador_front_left_wheel.obj");
-	modelLamboFrontLeftWheel.setShader(&shaderDepthTesting);
+	modelLamboFrontLeftWheel.setShader(&shaderMulLighting);
 	modelLamboFrontRightWheel.loadModel("../models/Lamborginhi_Aventador_OBJ/Lamborghini_Aventador_front_right_wheel.obj");
-	modelLamboFrontRightWheel.setShader(&shaderDepthTesting);
+	modelLamboFrontRightWheel.setShader(&shaderMulLighting);
 	modelLamboRearLeftWheel.loadModel("../models/Lamborginhi_Aventador_OBJ/Lamborghini_Aventador_rear_left_wheel.obj");
-	modelLamboRearLeftWheel.setShader(&shaderDepthTesting);
+	modelLamboRearLeftWheel.setShader(&shaderMulLighting);
 	modelLamboRearRightWheel.loadModel("../models/Lamborginhi_Aventador_OBJ/Lamborghini_Aventador_rear_right_wheel.obj");
-	modelLamboRearRightWheel.setShader(&shaderDepthTesting);
+	modelLamboRearRightWheel.setShader(&shaderMulLighting);
 
 	// Dart Lego
 	modelDartLegoBody.loadModel("../models/LegoDart/LeoDart_body.obj");
-	modelDartLegoBody.setShader(&shaderDepthTesting);
+	modelDartLegoBody.setShader(&shaderMulLighting);
 	modelDartLegoMask.loadModel("../models/LegoDart/LeoDart_mask.obj");
-	modelDartLegoMask.setShader(&shaderDepthTesting);
+	modelDartLegoMask.setShader(&shaderMulLighting);
 	modelDartLegoHead.loadModel("../models/LegoDart/LeoDart_head.obj");
-	modelDartLegoHead.setShader(&shaderDepthTesting);
+	modelDartLegoHead.setShader(&shaderMulLighting);
 	modelDartLegoLeftArm.loadModel("../models/LegoDart/LeoDart_left_arm.obj");
-	modelDartLegoLeftArm.setShader(&shaderDepthTesting);
+	modelDartLegoLeftArm.setShader(&shaderMulLighting);
 	modelDartLegoRightArm.loadModel("../models/LegoDart/LeoDart_right_arm.obj");
-	modelDartLegoRightArm.setShader(&shaderDepthTesting);
+	modelDartLegoRightArm.setShader(&shaderMulLighting);
 	modelDartLegoLeftHand.loadModel("../models/LegoDart/LeoDart_left_hand.obj");
-	modelDartLegoLeftHand.setShader(&shaderDepthTesting);
+	modelDartLegoLeftHand.setShader(&shaderMulLighting);
 	modelDartLegoRightHand.loadModel("../models/LegoDart/LeoDart_right_hand.obj");
-	modelDartLegoRightHand.setShader(&shaderDepthTesting);
+	modelDartLegoRightHand.setShader(&shaderMulLighting);
 	modelDartLegoLeftLeg.loadModel("../models/LegoDart/LeoDart_left_leg.obj");
-	modelDartLegoLeftLeg.setShader(&shaderDepthTesting);
+	modelDartLegoLeftLeg.setShader(&shaderMulLighting);
 	modelDartLegoRightLeg.loadModel("../models/LegoDart/LeoDart_right_leg.obj");
-	modelDartLegoRightLeg.setShader(&shaderDepthTesting);
+	modelDartLegoRightLeg.setShader(&shaderMulLighting);
 
 	//Lamp models
 	modelLamp1.loadModel("../models/Street-Lamp-Black/objLamp.obj");
-	modelLamp1.setShader(&shaderDepthTesting);
+	modelLamp1.setShader(&shaderMulLighting);
 	modelLamp2.loadModel("../models/Street_Light/Lamp.obj");
-	modelLamp2.setShader(&shaderDepthTesting);
+	modelLamp2.setShader(&shaderMulLighting);
 	modelLampPost2.loadModel("../models/Street_Light/LampPost.obj");
-	modelLampPost2.setShader(&shaderDepthTesting);
+	modelLampPost2.setShader(&shaderMulLighting);
 
 	//Mayow
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
-	mayowModelAnimate.setShader(&shaderDepthTesting);
+	mayowModelAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 0.0, 10.0));
 	camera->setDistanceFromTarget(distanceFromTarget);
@@ -1001,9 +998,6 @@ void applicationLoop() {
 					glm::value_ptr(projection));
 		shaderTerrain.setMatrix4("view", 1, false,
 				glm::value_ptr(view));
-		// Settea la matriz de vista y projection al shader para visualizar el buffer depth
-		shaderDepthTesting.setMatrix4("projection", 1, false, glm::value_ptr(projection));
-		shaderDepthTesting.setMatrix4("view", 1, false, glm::value_ptr(view));
 
 		/*******************************************
 		 * Propiedades Luz direccional
@@ -1259,7 +1253,7 @@ void applicationLoop() {
 		/*******************************************
 		 * Skybox
 		 *******************************************/
-		/*GLint oldCullFaceMode;
+		GLint oldCullFaceMode;
 		GLint oldDepthFuncMode;
 		// deshabilita el modo del recorte de caras ocultas para ver las esfera desde adentro
 		glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFaceMode);
@@ -1270,7 +1264,7 @@ void applicationLoop() {
 		glActiveTexture(GL_TEXTURE0);
 		skyboxSphere.render();
 		glCullFace(oldCullFaceMode);
-		glDepthFunc(oldDepthFuncMode);*/
+		glDepthFunc(oldDepthFuncMode);
 
 		/*******************************************
 		 * Creacion de colliders
