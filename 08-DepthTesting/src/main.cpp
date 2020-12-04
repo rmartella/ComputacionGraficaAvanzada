@@ -56,7 +56,7 @@ Shader shaderSkybox;
 Shader shaderMulLighting;
 //Shader para el terreno
 Shader shaderTerrain;
-//Shader depth testing
+//Shader depth testing para el buffer de profundidad
 Shader shaderDepthTesting;
 
 std::shared_ptr<Camera> camera(new ThirdPersonCamera());
