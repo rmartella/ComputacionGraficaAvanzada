@@ -44,7 +44,6 @@ out vec4 color;
 in vec3 fragPos;  
 in vec3 our_normal;
 in vec2 our_uv;
-in float visibility;
 
 uniform int pointLightCount;
 uniform int spotLightCount;
@@ -55,8 +54,6 @@ uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 
 uniform vec3 viewPos;  
 uniform sampler2D texture1;
-
-uniform vec3 fogColor;
 
 vec3 calculateDirectionalLight(Light light, vec3 direction){
 	// Ambient
@@ -109,5 +106,4 @@ void main()
 	if(colorText.a < 0.1)
 		discard;
     color = vec4(calculateDirectionalLight(directionalLight.light, directionalLight.direction) + calculatePointLights() + calculateSpotLights(), colorText.a);
-    color = mix(vec4(fogColor, 1.0), color, visibility);
 }

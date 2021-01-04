@@ -44,7 +44,6 @@ out vec4 color;
 in vec3 fragPos;  
 in vec3 our_normal;
 in vec2 our_uv;
-in float visibility;
 
 uniform int pointLightCount;
 uniform int spotLightCount;
@@ -62,8 +61,6 @@ uniform sampler2D rTexture;
 uniform sampler2D gTexture;
 uniform sampler2D bTexture;
 uniform sampler2D blendMapTexture;
-
-uniform vec3 fogColor;
 
 vec3 calculateDirectionalLight(Light light, vec3 direction){
 	vec2 tiledCoords = our_uv;
@@ -125,5 +122,4 @@ vec3 calculateSpotLights(){
 void main()
 {
     color = vec4(calculateDirectionalLight(directionalLight.light, directionalLight.direction) + calculatePointLights() + calculateSpotLights(), 1.0);
-	color = mix(vec4(fogColor, 1.0), color, visibility);
 }
