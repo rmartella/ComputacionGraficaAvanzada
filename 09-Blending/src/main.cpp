@@ -92,6 +92,10 @@ Model modelLamp2;
 Model modelLampPost2;
 // modelo de hierba transparente
 Model modeloHierba;
+
+// modelo de Globo transparente
+Model modelGlobo;
+
 // Model animate instance
 // Mayow
 Model mayowModelAnimate;
@@ -125,6 +129,7 @@ int lastMousePosY, offsetY = 0;
 glm::mat4 matrixModelRock = glm::mat4(1.0);
 glm::mat4 modelMatrixHeli = glm::mat4(1.0f);
 glm::mat4 modelMatrixLambo = glm::mat4(1.0);
+glm::mat4 modelMatrixGlobo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
@@ -173,7 +178,8 @@ std::vector<float> lamp2Orientation = {21.37 + 90, -65.0 + 90};
 std::map<std::string, glm::vec3> blendingSinOrden = {
 	{"aircraft",glm::vec3(0,0,0)},
 	{"heli",glm::vec3(0,0,0)},
-	{"lambo",glm::vec3(0,0,0)}
+	{"lambo",glm::vec3(0,0,0)},
+	{"globo",glm::vec3(0,0,0)}
 };
 
 double deltaTime;
@@ -329,6 +335,9 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//Hieba model
 	modeloHierba.loadModel("../models/grass/grassModel.obj");
 	modeloHierba.setShader(&shaderMulLighting);
+	//Globo model
+	modelGlobo.loadModel("../models/Globo/Globo.obj");
+	modelGlobo.setShader(&shaderMulLighting);
 	//Mayow
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
@@ -732,6 +741,7 @@ void destroy() {
 	modelLamp2.destroy();
 	modelLampPost2.destroy();
 	modeloHierba.destroy();
+	modelGlobo.destroy();
 	// Custom objects animate
 	mayowModelAnimate.destroy();
 
@@ -932,6 +942,8 @@ void applicationLoop() {
 	modelMatrixHeli = glm::translate(modelMatrixHeli, glm::vec3(5.0, 10.0, -5.0));
 
 	modelMatrixAircraft = glm::translate(modelMatrixAircraft, glm::vec3(10.0, 2.0, -17.5));
+
+	modelMatrixGlobo = glm::translate(modelMatrixGlobo, glm::vec3(21.0, 0.0, 0.0));
 
 	modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(23.0, 0.0, 0.0));
 
@@ -1259,7 +1271,7 @@ void applicationLoop() {
 		blendingSinOrden.find("aircraft")->second = glm::vec3(modelMatrixAircraft[3]);
 		blendingSinOrden.find("heli")->second = glm::vec3(modelMatrixHeli[3]);
 		blendingSinOrden.find("lambo")->second = glm::vec3(modelMatrixLambo[3]);
-
+		blendingSinOrden.find("globo")->second = glm::vec3(modelMatrixGlobo[3]);
 		/**************
 		*Se ordena los objetos con el canal alfa
 		*/
@@ -1310,6 +1322,10 @@ void applicationLoop() {
 				modelMatrixHeliHeli = glm::rotate(modelMatrixHeliHeli, rotHelHelY, glm::vec3(0, 1, 0));
 				modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, 0.249548));
 				modelHeliHeli.render(modelMatrixHeliHeli);
+			}
+			else if (it->second.first.compare("globo") == 0) {
+				modelMatrixGlobo[3][1] = terrain.getHeightTerrain(modelMatrixGlobo[3][0], modelMatrixGlobo[3][2]) + 2.0;
+				modelGlobo.render(modelMatrixGlobo);
 			}
 		}
 		glEnable(GL_CULL_FACE);
