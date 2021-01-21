@@ -46,9 +46,6 @@
 // Include Colision headers functions
 #include "Headers/Colisiones.h"
 
-// ShadowBox include
-#include "Headers/ShadowBox.h"
-
 // OpenAL include
 #include <AL/alut.h>
 
