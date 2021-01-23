@@ -90,6 +90,10 @@ Model modelDartLegoRightLeg;
 Model modelLamp1;
 Model modelLamp2;
 Model modelLampPost2;
+//Agregar: Modelo de hierba transparente
+Model modeloHierba;
+//Agregando: Model ClownCar
+Model modelClownCar;
 // Model animate instance
 // Mayow
 Model mayowModelAnimate;
@@ -126,6 +130,7 @@ glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+glm::mat4 modelMatrixClownCar = glm::mat4(1.0f); //Agregando Model matrix del ClownCar
 
 int animationIndex = 1;
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
@@ -166,6 +171,14 @@ std::vector<float> lamp1Orientation = { -17.0, -82.67, 23.70 };
 std::vector<glm::vec3> lamp2Position = { glm::vec3(-36.52, 0, -23.24),
 		glm::vec3(-52.73, 0, -3.90) };
 std::vector<float> lamp2Orientation = {21.37 + 90, -65.0 + 90};
+
+//Agregar: Modelos blending sin orden
+std::map<std::string, glm::vec3> blendingSinOrden = {
+	{"aircraft",glm::vec3(0,0,0)},
+	{"heli",glm::vec3(0,0,0)},
+	{"lambo",glm::vec3(0,0,0)},
+	{"clownCar",glm::vec3(0,0,0)}
+};
 
 double deltaTime;
 double currTime, lastTime;
@@ -316,6 +329,14 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	modelLamp2.setShader(&shaderMulLighting);
 	modelLampPost2.loadModel("../models/Street_Light/LampPost.obj");
 	modelLampPost2.setShader(&shaderMulLighting);
+
+	//Agregar: Grass model
+	modeloHierba.loadModel("../models/grass/grassModel.obj");
+	modeloHierba.setShader(&shaderMulLighting);
+
+	//Agregando: ClownCar
+	modelClownCar.loadModel("../models/ClownCar/ClownCar.obj");
+	modelClownCar.setShader(&shaderMulLighting);
 
 	//Mayow
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
@@ -719,6 +740,8 @@ void destroy() {
 	modelLamp1.destroy();
 	modelLamp2.destroy();
 	modelLampPost2.destroy();
+	modeloHierba.destroy(); //Agregar destroy del modelo
+	modelClownCar.destroy();//Agregando destroy del modelo
 
 	// Custom objects animate
 	mayowModelAnimate.destroy();
@@ -917,7 +940,7 @@ void applicationLoop() {
 
 	matrixModelRock = glm::translate(matrixModelRock, glm::vec3(-3.0, 0.0, 2.0));
 
-	modelMatrixHeli = glm::translate(modelMatrixHeli, glm::vec3(5.0, 10.0, -5.0));
+	modelMatrixHeli = glm::translate(modelMatrixHeli, glm::vec3(5.0, 1.0, -5.0));
 
 	modelMatrixAircraft = glm::translate(modelMatrixAircraft, glm::vec3(10.0, 2.0, -17.5));
 
@@ -927,6 +950,8 @@ void applicationLoop() {
 
 	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
 	modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+
+	modelMatrixClownCar= glm::translate(modelMatrixClownCar, glm::vec3(23.0, 0.0, 10.0));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -1134,40 +1159,6 @@ void applicationLoop() {
 		// Forze to enable the unit texture to 0 always ----------------- IMPORTANT
 		glActiveTexture(GL_TEXTURE0);
 
-		// Render for the aircraft model
-		modelMatrixAircraft[3][1] = terrain.getHeightTerrain(modelMatrixAircraft[3][0], modelMatrixAircraft[3][2]) + 2.0;
-		modelAircraft.render(modelMatrixAircraft);
-
-		// Lambo car
-		glDisable(GL_CULL_FACE);
-		glm::mat4 modelMatrixLamboChasis = glm::mat4(modelMatrixLambo);
-		modelMatrixLamboChasis[3][1] = terrain.getHeightTerrain(modelMatrixLamboChasis[3][0], modelMatrixLamboChasis[3][2]);
-		modelMatrixLamboChasis = glm::scale(modelMatrixLamboChasis, glm::vec3(1.3, 1.3, 1.3));
-		modelLambo.render(modelMatrixLamboChasis);
-		glActiveTexture(GL_TEXTURE0);
-		glm::mat4 modelMatrixLamboLeftDor = glm::mat4(modelMatrixLamboChasis);
-		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(1.08676, 0.707316, 0.982601));
-		modelMatrixLamboLeftDor = glm::rotate(modelMatrixLamboLeftDor, glm::radians(dorRotCount), glm::vec3(1.0, 0, 0));
-		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(-1.08676, -0.707316, -0.982601));
-		modelLamboLeftDor.render(modelMatrixLamboLeftDor);
-		modelLamboRightDor.render(modelMatrixLamboChasis);
-		modelLamboFrontLeftWheel.render(modelMatrixLamboChasis);
-		modelLamboFrontRightWheel.render(modelMatrixLamboChasis);
-		modelLamboRearLeftWheel.render(modelMatrixLamboChasis);
-		modelLamboRearRightWheel.render(modelMatrixLamboChasis);
-		// Se regresa el cull faces IMPORTANTE para las puertas
-		glEnable(GL_CULL_FACE);
-
-		// Helicopter
-		glm::mat4 modelMatrixHeliChasis = glm::mat4(modelMatrixHeli);
-		modelHeliChasis.render(modelMatrixHeliChasis);
-
-		glm::mat4 modelMatrixHeliHeli = glm::mat4(modelMatrixHeliChasis);
-		modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, -0.249548));
-		modelMatrixHeliHeli = glm::rotate(modelMatrixHeliHeli, rotHelHelY, glm::vec3(0, 1, 0));
-		modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, 0.249548));
-		modelHeliHeli.render(modelMatrixHeliHeli);
-
 		// Render the lamps
 		for (int i = 0; i < lamp1Position.size(); i++){
 			lamp1Position[i].y = terrain.getHeightTerrain(lamp1Position[i].x, lamp1Position[i].z);
@@ -1188,6 +1179,14 @@ void applicationLoop() {
 			modelLampPost2.setOrientation(glm::vec3(0, lamp2Orientation[i], 0));
 			modelLampPost2.render();
 		}
+
+		//Agregar Modelo de hierba
+		glDisable(GL_CULL_FACE); //Agregar: desactivar el recorte de caras ocultas 
+		glm::vec3 posicionHierba = glm::vec3(0.0, 0.0, 0.0);
+		posicionHierba.y = terrain.getHeightTerrain(posicionHierba.x, posicionHierba.z);
+		modeloHierba.setPosition(posicionHierba);
+		modeloHierba.render();
+		glEnable(GL_CULL_FACE);//Agregar: Reactivamos el recorte de caras ocultas
 
 		// Dart lego
 		// Se deshabilita el cull faces IMPORTANTE para la capa
@@ -1265,8 +1264,79 @@ void applicationLoop() {
 		skyboxSphere.render();
 		glCullFace(oldCullFaceMode);
 		glDepthFunc(oldDepthFuncMode);
+		
+		/****************
+		 * Agregar: Importante se actualiza la posición de los objetos con transparencia
+		 */
+		 /** AGREGAR Modelos con transparencia **///Se actualiza el aircraft
+		blendingSinOrden.find("aircraft")->second = glm::vec3(modelMatrixAircraft[3]);
+		blendingSinOrden.find("heli")->second = glm::vec3(modelMatrixHeli[3]);
+		blendingSinOrden.find("lambo")->second = glm::vec3(modelMatrixLambo[3]);
+		blendingSinOrden.find("clownCar")->second = glm::vec3(modelMatrixClownCar[3]); //Agregando Actualización
 
+		/****************
+		*Agregar: Se ordena los objetos con el canal alfa
+		*/
+		std::map<float, std::pair<std::string, glm::vec3>>blendingOrdenado;
+		std::map<std::string, glm::vec3>::iterator itBlend;
+		for (itBlend = blendingSinOrden.begin(); itBlend != blendingSinOrden.end(); itBlend++) {
+			float distanceFromView = glm::length(camera->getPosition() - itBlend->second);
+			blendingOrdenado[distanceFromView] = std::make_pair(itBlend->first, itBlend->second);
+		}
 
+		/****************
+		*Agregar: Render de las transparencias
+		*/
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDisable(GL_CULL_FACE);
+		for (std::map<float, std::pair<std::string, glm::vec3>>::reverse_iterator it = blendingOrdenado.rbegin(); it != blendingOrdenado.rend();it++) {
+			if (it->second.first.compare("aircraft") == 0) {
+				// Render for the aircraft model
+				modelMatrixAircraft[3][1] = terrain.getHeightTerrain(modelMatrixAircraft[3][0], modelMatrixAircraft[3][2]) + 2.0;
+				modelAircraft.render(modelMatrixAircraft);
+
+			}
+			else if(it->second.first.compare("lambo") == 0){
+				// Lambo car
+				glm::mat4 modelMatrixLamboChasis = glm::mat4(modelMatrixLambo);
+				modelMatrixLamboChasis[3][1] = terrain.getHeightTerrain(modelMatrixLamboChasis[3][0], modelMatrixLamboChasis[3][2]);
+				modelMatrixLamboChasis = glm::scale(modelMatrixLamboChasis, glm::vec3(1.3, 1.3, 1.3));
+				modelLambo.render(modelMatrixLamboChasis);
+				glActiveTexture(GL_TEXTURE0);
+				glm::mat4 modelMatrixLamboLeftDor = glm::mat4(modelMatrixLamboChasis);
+				modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(1.08676, 0.707316, 0.982601));
+				modelMatrixLamboLeftDor = glm::rotate(modelMatrixLamboLeftDor, glm::radians(dorRotCount), glm::vec3(1.0, 0, 0));
+				modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(-1.08676, -0.707316, -0.982601));
+				modelLamboLeftDor.render(modelMatrixLamboLeftDor);
+				modelLamboRightDor.render(modelMatrixLamboChasis);
+				modelLamboFrontLeftWheel.render(modelMatrixLamboChasis);
+				modelLamboFrontRightWheel.render(modelMatrixLamboChasis);
+				modelLamboRearLeftWheel.render(modelMatrixLamboChasis);
+				modelLamboRearRightWheel.render(modelMatrixLamboChasis);
+			}
+			else if (it->second.first.compare("heli") == 0) {
+				// Helicopter
+				glm::mat4 modelMatrixHeliChasis = glm::mat4(modelMatrixHeli);
+				modelHeliChasis.render(modelMatrixHeliChasis);
+
+				glm::mat4 modelMatrixHeliHeli = glm::mat4(modelMatrixHeliChasis);
+				modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, -0.249548));
+				modelMatrixHeliHeli = glm::rotate(modelMatrixHeliHeli, rotHelHelY, glm::vec3(0, 1, 0));
+				modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, 0.249548));
+				modelHeliHeli.render(modelMatrixHeliHeli);
+			}
+			else if (it->second.first.compare("clownCar") == 0) {//Agregando Render ClownCar
+				// Render ClownCar
+				glm::mat4 modelMatrixClownCarBody = glm::mat4(modelMatrixClownCar);
+				modelMatrixClownCarBody[3][1] = terrain.getHeightTerrain(modelMatrixClownCarBody[3][0], modelMatrixClownCarBody[3][2]);
+				modelMatrixClownCarBody = glm::scale(modelMatrixClownCarBody, glm::vec3(1.3, 1.3, 1.3));
+				modelClownCar.render(modelMatrixClownCarBody);
+			}
+		}
+		glEnable(GL_CULL_FACE);
+		glDisable(GL_BLEND);
+		
 		/*******************************************
 		 * Creacion de colliders
 		 * IMPORTANT do this before interpolations
