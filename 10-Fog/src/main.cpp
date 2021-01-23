@@ -250,9 +250,9 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	// Inicialización de los shaders
 	shader.initialize("../Shaders/colorShader.vs", "../Shaders/colorShader.fs");
-	shaderSkybox.initialize("../Shaders/skyBox.vs", "../Shaders/skyBox.fs");
-	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation.vs", "../Shaders/multipleLights.fs");
-	shaderTerrain.initialize("../Shaders/terrain.vs", "../Shaders/terrain.fs");
+	shaderSkybox.initialize("../Shaders/skyBox.vs", "../Shaders/skyBox_fog.fs");
+	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation_fog.vs", "../Shaders/multipleLights_fog.fs");
+	shaderTerrain.initialize("../Shaders/terrain_fog.vs", "../Shaders/terrain_fog.fs");
 
 	// Inicializacion de los objetos.
 	skyboxSphere.init();
@@ -924,6 +924,12 @@ bool processInput(bool continueApplication) {
 void applicationLoop() {
 	bool psi = true;
 
+	//Agregamos variables para poder modificar el gradiente y densidad
+	float conta = 0;
+	float cambioMas = true;
+	float gradCambio = 3.0;
+	float densiCambio = 0.008;
+
 	glm::mat4 view;
 	glm::vec3 axis;
 	glm::vec3 target;
@@ -1012,6 +1018,41 @@ void applicationLoop() {
 					glm::value_ptr(projection));
 		shaderTerrain.setMatrix4("view", 1, false,
 				glm::value_ptr(view));
+
+		/*******************************************
+		 * Agregar: Propiedades de la neblina
+		 *******************************************/
+
+		shaderMulLighting.setVectorFloat3("fogColor", glm::value_ptr(glm::vec3(1.0, 0.69412, 0.73334)));
+		shaderMulLighting.setFloat("density", densiCambio);
+		shaderMulLighting.setFloat("gradient", gradCambio);
+		shaderTerrain.setVectorFloat3("fogColor", glm::value_ptr(glm::vec3(1.0, 0.69412, 0.73334)));
+		shaderTerrain.setFloat("density", densiCambio);
+		shaderTerrain.setFloat("gradient", gradCambio);
+		shaderSkybox.setVectorFloat3("fogColor", glm::value_ptr(glm::vec3(1.0, 0.69412, 0.73334)));
+
+		//Creamos un if para contar hasta los treintasegundos
+		if (conta<= 1500) {
+			conta++;
+		}
+		else {
+			if (cambioMas == true) {
+				gradCambio += 0.25;
+				densiCambio += 0.05;
+				if (gradCambio == 4.0) {
+					cambioMas = false;
+				}
+				conta = 0;
+			}
+			if (cambioMas == false) {
+				gradCambio -= 0.25;
+				densiCambio -= 0.05;
+				if (gradCambio == 3.0) {
+					cambioMas = true;
+				}
+				conta = 0;
+			}
+		}
 
 		/*******************************************
 		 * Propiedades Luz direccional
