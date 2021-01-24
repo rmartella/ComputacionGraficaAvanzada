@@ -66,9 +66,15 @@ Shader shaderTerrain;
 Shader shaderParticlesFountain;
 //Shader para las particulas de fuego
 Shader shaderParticlesFire;
+<<<<<<< Updated upstream
 //Shader para visualizar el buffer de profundidad
 Shader shaderViewDepth;
 //Shader para dibujar el buffer de profunidad
+=======
+//Agregar: Shader para visualizar el buffer de profundidad
+Shader shaderViewDepth;
+//Agregar: Shader para dibujar la escena su buffer de profundidad
+>>>>>>> Stashed changes
 Shader shaderDepth;
 
 std::shared_ptr<Camera> camera(new ThirdPersonCamera());
@@ -452,8 +458,13 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shaderTerrain.initialize("../Shaders/terrain_shadow.vs", "../Shaders/terrain_shadow.fs");
 	shaderParticlesFountain.initialize("../Shaders/particlesFountain.vs", "../Shaders/particlesFountain.fs");
 	shaderParticlesFire.initialize("../Shaders/particlesFire.vs", "../Shaders/particlesFire.fs", {"Position", "Velocity", "Age"});
+<<<<<<< Updated upstream
 	shaderViewDepth.initialize("../Shaders/texturizado.vs", "../Shaders/texturizado_depth_view.fs");
 	shaderDepth.initialize("../Shaders/shadow_mapping_depth.vs", "../Shaders/shadow_mapping_depth.fs");
+=======
+	shaderViewDepth.initialize(".../Shaders/texturizado.vs", ".../Shaders/texturizado_depth_view.fs");//Agregando Shader shadow
+	shaderViewDepth.initialize(".../Shaders/shadow_mapping_depth.vs", ".../Shaders/shadow_mapping_depth.fs");//Agregando Shader shadow
+>>>>>>> Stashed changes
 
 	// Inicializacion de los objetos.
 	skyboxSphere.init();
@@ -1025,7 +1036,11 @@ void destroy() {
 	skyboxSphere.destroy();
 	boxCollider.destroy();
 	sphereCollider.destroy();
+<<<<<<< Updated upstream
 	boxViewDepth.destroy();
+=======
+	boxViewDepth.destroy();//Agregar destruir caja
+>>>>>>> Stashed changes
 
 	// Terrains objects Delete
 	terrain.destroy();
@@ -1346,6 +1361,7 @@ void applicationLoop() {
 		camera->updateCamera();
 		view = camera->getViewMatrix();
 
+<<<<<<< Updated upstream
 		// Projection light shadow mapping
 		glm::mat4 lightProjection, lightView;
 		glm::mat4 lightSpaceMatrix;
@@ -1353,6 +1369,14 @@ void applicationLoop() {
 		//lightProjection = glm::perspective(glm::radians(45.0f), (GLfloat)SHADOW_WIDTH / (GLfloat)SHADOW_HEIGHT, near_plane, far_plane); // note that if you use a perspective projection matrix you'll have to change the light position as the current light position isn't enough to reflect the whole scene
 		lightProjection = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, near_plane, far_plane);
 		lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+=======
+		//Agregar: Matriz de proyección de Shadow mapping
+		glm::mat4 lightProjection, lightView;
+		glm::mat4 lightSpaceMatrix;
+		float near_plane = 0.1f, far_plane= 20.0f;
+		lightProjection = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, near_plane, far_plane);
+		lightView = glm::lookAt(lightPos, glm::vec3(0.0), glm::vec3(0.0, 1.0, 0.0));
+>>>>>>> Stashed changes
 		lightSpaceMatrix = lightProjection * lightView;
 		shaderDepth.setMatrix4("lightSpaceMatrix", 1, false, glm::value_ptr(lightSpaceMatrix));
 
@@ -1371,14 +1395,22 @@ void applicationLoop() {
 		shaderMulLighting.setMatrix4("view", 1, false,
 				glm::value_ptr(view));
 		shaderMulLighting.setMatrix4("lightSpaceMatrix", 1, false,
+<<<<<<< Updated upstream
 				glm::value_ptr(lightSpaceMatrix));
+=======
+			glm::value_ptr(lightSpaceMatrix));
+>>>>>>> Stashed changes
 		// Settea la matriz de vista y projection al shader con multiples luces
 		shaderTerrain.setMatrix4("projection", 1, false,
 					glm::value_ptr(projection));
 		shaderTerrain.setMatrix4("view", 1, false,
 				glm::value_ptr(view));
 		shaderTerrain.setMatrix4("lightSpaceMatrix", 1, false,
+<<<<<<< Updated upstream
 				glm::value_ptr(lightSpaceMatrix));
+=======
+			glm::value_ptr(lightSpaceMatrix));
+>>>>>>> Stashed changes
 		// Settea la matriz de vista y projection al shader para el fountain
 		shaderParticlesFountain.setMatrix4("projection", 1, false,
 					glm::value_ptr(projection));
@@ -1492,11 +1524,19 @@ void applicationLoop() {
 		}
 
 		/*******************************************
+<<<<<<< Updated upstream
 		 * 1.- We render the depth buffer
 		 *******************************************/
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// render scene from light's point of view
+=======
+		 * Paso1: Se dibuja la escena desde la luz Agregar
+		 *******************************************/
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//Render de la escena desde la luz
+>>>>>>> Stashed changes
 		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -1507,12 +1547,21 @@ void applicationLoop() {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		/*******************************************
+<<<<<<< Updated upstream
 		 * Debug to view the texture view map
 		 *******************************************/
 		// reset viewport
 		/*glViewport(0, 0, screenWidth, screenHeight);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// render Depth map to quad for visual debugging
+=======
+		 * Debug: Visualizar el mapa de sombras Agregar
+		 *******************************************/
+		/*//reset Viewport
+		glViewport(0, 0, screenWidth, screenHeight);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//Render el buffer de profundidad densde la luz en una primitiva cuadrada
+>>>>>>> Stashed changes
 		shaderViewDepth.setMatrix4("projection", 1, false, glm::value_ptr(glm::mat4(1.0)));
 		shaderViewDepth.setMatrix4("view", 1, false, glm::value_ptr(glm::mat4(1.0)));
 		shaderViewDepth.setFloat("near_plane", near_plane);
@@ -1520,10 +1569,17 @@ void applicationLoop() {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
 		boxViewDepth.setScale(glm::vec3(2.0, 2.0, 1.0));
+<<<<<<< Updated upstream
 		boxViewDepth.render();*/
 
 		/*******************************************
 		 * 2.- We render the normal objects
+=======
+		boxViewDepth.render();
+		*/
+		/*******************************************
+		 * Pas2: Render objeto Agregar
+>>>>>>> Stashed changes
 		 *******************************************/
 		glViewport(0, 0, screenWidth, screenHeight);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1531,7 +1587,13 @@ void applicationLoop() {
 		glActiveTexture(GL_TEXTURE10);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
 		shaderMulLighting.setInt("shadowMap", 10);
+<<<<<<< Updated upstream
 		shaderTerrain.setInt("shadowMap", 10);
+=======
+		shaderTerrain.setInt("shapowMap", 10);
+		renderScene();
+
+>>>>>>> Stashed changes
 		/*******************************************
 		 * Skybox
 		 *******************************************/
@@ -1854,7 +1916,11 @@ void applicationLoop() {
 	}
 }
 
+<<<<<<< Updated upstream
 void prepareScene(){
+=======
+void prepareScene(){ //Agrgar IMPORTANTE, se debe colocar sus objetos nuevos
+>>>>>>> Stashed changes
 
 	skyboxSphere.setShader(&shaderSkybox);
 
@@ -1899,7 +1965,11 @@ void prepareScene(){
 	mayowModelAnimate.setShader(&shaderMulLighting);
 }
 
+<<<<<<< Updated upstream
 void prepareDepthScene(){
+=======
+void prepareDepthScene(){//Agrgar IMPORTANTE, se debe colocar sus objetos nuevos
+>>>>>>> Stashed changes
 
 	skyboxSphere.setShader(&shaderDepth);
 
@@ -1943,6 +2013,7 @@ void prepareDepthScene(){
 	//Mayow
 	mayowModelAnimate.setShader(&shaderDepth);
 }
+<<<<<<< Updated upstream
 
 void renderScene(bool renderParticles){
 	/*******************************************
@@ -2100,20 +2171,188 @@ void renderScene(bool renderParticles){
 		blendingSorted[distanceFromView] = std::make_pair(itblend->first, itblend->second);
 	}
 
+=======
+
+void renderScene(bool renderParticles){//Agregar: Para el renderizado la escena
+	/*******************************************
+	* Terrain Cesped
+	*******************************************/
+	glm::mat4 modelCesped = glm::mat4(1.0);
+	modelCesped = glm::translate(modelCesped, glm::vec3(0.0, 0.0, 0.0));
+	modelCesped = glm::scale(modelCesped, glm::vec3(200.0, 0.001, 200.0));
+	// Se activa la textura del background
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureTerrainBackgroundID);
+	shaderTerrain.setInt("backgroundTexture", 0);
+	// Se activa la textura de tierra
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, textureTerrainRID);
+	shaderTerrain.setInt("rTexture", 1);
+	// Se activa la textura de hierba
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, textureTerrainGID);
+	shaderTerrain.setInt("gTexture", 2);
+	// Se activa la textura del camino
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, textureTerrainBID);
+	shaderTerrain.setInt("bTexture", 3);
+	// Se activa la textura del blend map
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, textureTerrainBlendMapID);
+	shaderTerrain.setInt("blendMapTexture", 4);
+	shaderTerrain.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(40, 40)));
+	terrain.render();
+	shaderTerrain.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(0, 0)));
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	/*******************************************
+	 * Custom objects obj
+	 *******************************************/
+	 //Rock render
+	matrixModelRock[3][1] = terrain.getHeightTerrain(matrixModelRock[3][0], matrixModelRock[3][2]);
+	modelRock.render(matrixModelRock);
+	// Forze to enable the unit texture to 0 always ----------------- IMPORTANT
+	glActiveTexture(GL_TEXTURE0);
+
+	// Render the lamps
+	for (int i = 0; i < lamp1Position.size(); i++) {
+		lamp1Position[i].y = terrain.getHeightTerrain(lamp1Position[i].x, lamp1Position[i].z);
+		modelLamp1.setPosition(lamp1Position[i]);
+		modelLamp1.setScale(glm::vec3(0.5, 0.5, 0.5));
+		modelLamp1.setOrientation(glm::vec3(0, lamp1Orientation[i], 0));
+		modelLamp1.render();
+	}
+
+	for (int i = 0; i < lamp2Position.size(); i++) {
+		lamp2Position[i].y = terrain.getHeightTerrain(lamp2Position[i].x, lamp2Position[i].z);
+		modelLamp2.setPosition(lamp2Position[i]);
+		modelLamp2.setScale(glm::vec3(1.0, 1.0, 1.0));
+		modelLamp2.setOrientation(glm::vec3(0, lamp2Orientation[i], 0));
+		modelLamp2.render();
+		modelLampPost2.setPosition(lamp2Position[i]);
+		modelLampPost2.setScale(glm::vec3(1.0, 1.0, 1.0));
+		modelLampPost2.setOrientation(glm::vec3(0, lamp2Orientation[i], 0));
+		modelLampPost2.render();
+	}
+
+	// Grass
+	glDisable(GL_CULL_FACE);
+	glm::vec3 grassPosition = glm::vec3(0.0, 0.0, 0.0);
+	grassPosition.y = terrain.getHeightTerrain(grassPosition.x, grassPosition.z);
+	modelGrass.setPosition(grassPosition);
+	modelGrass.render();
+	glEnable(GL_CULL_FACE);
+
+	// Fountain
+	glDisable(GL_CULL_FACE);
+	modelFountain.render(modelMatrixFountain);
+	glEnable(GL_CULL_FACE);
+
+	// Dart lego
+	// Se deshabilita el cull faces IMPORTANTE para la capa
+	glDisable(GL_CULL_FACE);
+	modelMatrixDart[3][1] = terrain.getHeightTerrain(modelMatrixDart[3][0], modelMatrixDart[3][2]);
+	glm::mat4 modelMatrixDartBody = glm::mat4(modelMatrixDart);
+	modelMatrixDartBody = glm::scale(modelMatrixDartBody, glm::vec3(0.5, 0.5, 0.5));
+	modelDartLegoBody.render(modelMatrixDartBody);
+	glm::mat4 modelMatrixDartHead = glm::mat4(modelMatrixDartBody);
+	modelMatrixDartHead = glm::rotate(modelMatrixDartHead, rotDartHead, glm::vec3(0, 1, 0));
+	modelDartLegoHead.render(modelMatrixDartHead);
+	modelDartLegoMask.render(modelMatrixDartHead);
+	glm::mat4 modelMatrixDartLeftArm = glm::mat4(modelMatrixDartBody);
+	modelMatrixDartLeftArm = glm::translate(modelMatrixDartLeftArm, glm::vec3(-0.023515, 2.43607, 0.446066));
+	modelMatrixDartLeftArm = glm::rotate(modelMatrixDartLeftArm, glm::radians(-5.0f), glm::vec3(1, 0, 0));
+	modelMatrixDartLeftArm = glm::rotate(modelMatrixDartLeftArm, rotDartLeftArm, glm::vec3(0, 0, 1));
+	modelMatrixDartLeftArm = glm::rotate(modelMatrixDartLeftArm, glm::radians(5.0f), glm::vec3(1, 0, 0));
+	modelMatrixDartLeftArm = glm::translate(modelMatrixDartLeftArm, glm::vec3(0.023515, -2.43607, -0.446066));
+	modelDartLegoLeftArm.render(modelMatrixDartLeftArm);
+	glm::mat4 modelMatrixDartLeftHand = glm::mat4(modelMatrixDartLeftArm);
+	modelMatrixDartLeftHand = glm::translate(modelMatrixDartLeftHand, glm::vec3(0.201343, 1.68317, 0.99774));
+	modelMatrixDartLeftHand = glm::rotate(modelMatrixDartLeftHand, glm::radians(-5.0f), glm::vec3(1, 0, 0));
+	modelMatrixDartLeftHand = glm::rotate(modelMatrixDartLeftHand, rotDartLeftHand, glm::vec3(0, 1, 0));
+	modelMatrixDartLeftHand = glm::rotate(modelMatrixDartLeftHand, glm::radians(5.0f), glm::vec3(1, 0, 0));
+	modelMatrixDartLeftHand = glm::translate(modelMatrixDartLeftHand, glm::vec3(-0.201343, -1.68317, -0.99774));
+	modelDartLegoLeftHand.render(modelMatrixDartLeftHand);
+	glm::mat4 modelMatrixDartRightArm = glm::mat4(modelMatrixDartBody);
+	modelMatrixDartRightArm = glm::translate(modelMatrixDartRightArm, glm::vec3(-0.023515, 2.43607, -0.446066));
+	modelMatrixDartRightArm = glm::rotate(modelMatrixDartRightArm, glm::radians(5.0f), glm::vec3(1, 0, 0));
+	modelMatrixDartRightArm = glm::rotate(modelMatrixDartRightArm, rotDartRightArm, glm::vec3(0, 0, 1));
+	modelMatrixDartRightArm = glm::rotate(modelMatrixDartRightArm, glm::radians(-5.0f), glm::vec3(1, 0, 0));
+	modelMatrixDartRightArm = glm::translate(modelMatrixDartRightArm, glm::vec3(0.023515, -2.43607, 0.446066));
+	modelDartLegoRightArm.render(modelMatrixDartRightArm);
+	glm::mat4 modelMatrixDartRightHand = glm::mat4(modelMatrixDartRightArm);
+	modelMatrixDartRightHand = glm::translate(modelMatrixDartRightHand, glm::vec3(0.201343, 1.68317, -0.99774));
+	modelMatrixDartRightHand = glm::rotate(modelMatrixDartRightHand, glm::radians(5.0f), glm::vec3(1, 0, 0));
+	modelMatrixDartRightHand = glm::rotate(modelMatrixDartRightHand, rotDartRightHand, glm::vec3(0, 1, 0));
+	modelMatrixDartRightHand = glm::rotate(modelMatrixDartRightHand, glm::radians(-5.0f), glm::vec3(1, 0, 0));
+	modelMatrixDartRightHand = glm::translate(modelMatrixDartRightHand, glm::vec3(-0.201343, -1.68317, 0.99774));
+	modelDartLegoRightHand.render(modelMatrixDartRightHand);
+	glm::mat4 modelMatrixDartLeftLeg = glm::mat4(modelMatrixDartBody);
+	modelMatrixDartLeftLeg = glm::translate(modelMatrixDartLeftLeg, glm::vec3(0, 1.12632, 0.423349));
+	modelMatrixDartLeftLeg = glm::rotate(modelMatrixDartLeftLeg, rotDartLeftLeg, glm::vec3(0, 0, 1));
+	modelMatrixDartLeftLeg = glm::translate(modelMatrixDartLeftLeg, glm::vec3(0, -1.12632, -0.423349));
+	modelDartLegoLeftLeg.render(modelMatrixDartLeftLeg);
+	glm::mat4 modelMatrixDartRightLeg = glm::mat4(modelMatrixDartBody);
+	modelMatrixDartRightLeg = glm::translate(modelMatrixDartRightLeg, glm::vec3(0, 1.12632, -0.423349));
+	modelMatrixDartRightLeg = glm::rotate(modelMatrixDartRightLeg, rotDartRightLeg, glm::vec3(0, 0, 1));
+	modelMatrixDartRightLeg = glm::translate(modelMatrixDartRightLeg, glm::vec3(0, -1.12632, 0.423349));
+	modelDartLegoRightLeg.render(modelMatrixDartRightLeg);
+	// Se regresa el cull faces IMPORTANTE para la capa
+	glEnable(GL_CULL_FACE);
+
+	/*******************************************
+	 * Custom Anim objects obj
+	 *******************************************/
+	modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
+	glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
+	modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
+	mayowModelAnimate.setAnimationIndex(animationIndex);
+	mayowModelAnimate.render(modelMatrixMayowBody);
+
+	/**********
+	 * Update the position with alpha objects
+	 */
+	 // Update the aircraft
+	blendingUnsorted.find("aircraft")->second = glm::vec3(modelMatrixAircraft[3]);
+	// Update the lambo
+	blendingUnsorted.find("lambo")->second = glm::vec3(modelMatrixLambo[3]);
+	// Update the helicopter
+	blendingUnsorted.find("heli")->second = glm::vec3(modelMatrixHeli[3]);
+
+	/**********
+	 * Sorter with alpha objects
+	 */
+	std::map<float, std::pair<std::string, glm::vec3>> blendingSorted;
+	std::map<std::string, glm::vec3>::iterator itblend;
+	for (itblend = blendingUnsorted.begin(); itblend != blendingUnsorted.end(); itblend++) {
+		float distanceFromView = glm::length(camera->getPosition() - itblend->second);
+		blendingSorted[distanceFromView] = std::make_pair(itblend->first, itblend->second);
+	}
+
+>>>>>>> Stashed changes
 	/**********
 	 * Render de las transparencias
 	 */
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_CULL_FACE);
+<<<<<<< Updated upstream
 	for(std::map<float, std::pair<std::string, glm::vec3> >::reverse_iterator it = blendingSorted.rbegin(); it != blendingSorted.rend(); it++){
 		if(it->second.first.compare("aircraft") == 0){
+=======
+	for (std::map<float, std::pair<std::string, glm::vec3> >::reverse_iterator it = blendingSorted.rbegin(); it != blendingSorted.rend(); it++) {
+		if (it->second.first.compare("aircraft") == 0) {
+>>>>>>> Stashed changes
 			// Render for the aircraft model
 			glm::mat4 modelMatrixAircraftBlend = glm::mat4(modelMatrixAircraft);
 			modelMatrixAircraftBlend[3][1] = terrain.getHeightTerrain(modelMatrixAircraftBlend[3][0], modelMatrixAircraftBlend[3][2]) + 2.0;
 			modelAircraft.render(modelMatrixAircraftBlend);
 		}
+<<<<<<< Updated upstream
 		else if(it->second.first.compare("lambo") == 0){
+=======
+		else if (it->second.first.compare("lambo") == 0) {
+>>>>>>> Stashed changes
 			// Lambo car
 			glm::mat4 modelMatrixLamboBlend = glm::mat4(modelMatrixLambo);
 			modelMatrixLamboBlend[3][1] = terrain.getHeightTerrain(modelMatrixLamboBlend[3][0], modelMatrixLamboBlend[3][2]);
@@ -2132,7 +2371,11 @@ void renderScene(bool renderParticles){
 			modelLamboRearRightWheel.render(modelMatrixLamboBlend);
 			// Se regresa el cull faces IMPORTANTE para las puertas
 		}
+<<<<<<< Updated upstream
 		else if(it->second.first.compare("heli") == 0){
+=======
+		else if (it->second.first.compare("heli") == 0) {
+>>>>>>> Stashed changes
 			// Helicopter
 			glm::mat4 modelMatrixHeliChasis = glm::mat4(modelMatrixHeli);
 			modelHeliChasis.render(modelMatrixHeliChasis);
@@ -2143,7 +2386,11 @@ void renderScene(bool renderParticles){
 			modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, 0.249548));
 			modelHeliHeli.render(modelMatrixHeliHeli);
 		}
+<<<<<<< Updated upstream
 		else if(renderParticles && it->second.first.compare("fountain") == 0){
+=======
+		else if (renderParticles && it->second.first.compare("fountain") == 0) {
+>>>>>>> Stashed changes
 			/**********
 			 * Init Render particles systems
 			 */
@@ -2152,7 +2399,11 @@ void renderScene(bool renderParticles){
 			modelMatrixParticlesFountain[3][1] = terrain.getHeightTerrain(modelMatrixParticlesFountain[3][0], modelMatrixParticlesFountain[3][2]) + 0.36 * 10.0;
 			modelMatrixParticlesFountain = glm::scale(modelMatrixParticlesFountain, glm::vec3(3.0, 3.0, 3.0));
 			currTimeParticlesAnimation = TimeManager::Instance().GetTime();
+<<<<<<< Updated upstream
 			if(currTimeParticlesAnimation - lastTimeParticlesAnimation > 10.0)
+=======
+			if (currTimeParticlesAnimation - lastTimeParticlesAnimation > 10.0)
+>>>>>>> Stashed changes
 				lastTimeParticlesAnimation = currTimeParticlesAnimation;
 			//glDisable(GL_DEPTH_TEST);
 			glDepthMask(GL_FALSE);
@@ -2175,7 +2426,11 @@ void renderScene(bool renderParticles){
 			 * End Render particles systems
 			 */
 		}
+<<<<<<< Updated upstream
 		else if(renderParticles && it->second.first.compare("fire") == 0){
+=======
+		else if (renderParticles && it->second.first.compare("fire") == 0) {
+>>>>>>> Stashed changes
 			/**********
 			 * Init Render particles systems
 			 */
@@ -2191,10 +2446,17 @@ void renderScene(bool renderParticles){
 			glEnable(GL_RASTERIZER_DISCARD);
 			glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, feedback[drawBuf]);
 			glBeginTransformFeedback(GL_POINTS);
+<<<<<<< Updated upstream
 			glBindVertexArray(particleArray[1-drawBuf]);
 			glVertexAttribDivisor(0,0);
 			glVertexAttribDivisor(1,0);
 			glVertexAttribDivisor(2,0);
+=======
+			glBindVertexArray(particleArray[1 - drawBuf]);
+			glVertexAttribDivisor(0, 0);
+			glVertexAttribDivisor(1, 0);
+			glVertexAttribDivisor(2, 0);
+>>>>>>> Stashed changes
 			glDrawArrays(GL_POINTS, 0, nParticlesFire);
 			glEndTransformFeedback();
 			glDisable(GL_RASTERIZER_DISCARD);
@@ -2210,9 +2472,15 @@ void renderScene(bool renderParticles){
 			glBindTexture(GL_TEXTURE_2D, textureParticleFireID);
 			glDepthMask(GL_FALSE);
 			glBindVertexArray(particleArray[drawBuf]);
+<<<<<<< Updated upstream
 			glVertexAttribDivisor(0,1);
 			glVertexAttribDivisor(1,1);
 			glVertexAttribDivisor(2,1);
+=======
+			glVertexAttribDivisor(0, 1);
+			glVertexAttribDivisor(1, 1);
+			glVertexAttribDivisor(2, 1);
+>>>>>>> Stashed changes
 			glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticlesFire);
 			glBindVertexArray(0);
 			glDepthMask(GL_TRUE);
