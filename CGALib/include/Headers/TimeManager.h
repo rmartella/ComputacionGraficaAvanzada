@@ -42,6 +42,7 @@ public:
 
 	double GetRunningTime();
 	double GetTime();
+	void resetStartTime();
 
 	void Sleep(int milliseconds);
 

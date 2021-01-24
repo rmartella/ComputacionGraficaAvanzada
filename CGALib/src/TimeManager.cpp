@@ -80,3 +80,7 @@ void TimeManager::Sleep(int ms) {
 	// Se pausa el hilo que se esta ejecutando actualmente.
 	this_thread::sleep_for(milliseconds(ms));
 }
+
+void TimeManager::resetStartTime(){
+	StartTime=GetTime();
+}

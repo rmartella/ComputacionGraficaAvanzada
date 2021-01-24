@@ -40,9 +40,12 @@
 #include "Headers/AnimationUtils.h"
 
 #define ARRAY_SIZE_IN_ELEMENTS(a) (sizeof(a)/sizeof(a[0]))
-
 int screenWidth;
 int screenHeight;
+
+//Agregando vista de cámara(Para seleccionar entre vista en primera y tercera persona)
+bool tipo_vista = true;
+bool camaraTerPrim = false;
 
 GLFWwindow *window;
 
@@ -53,8 +56,9 @@ Shader shaderSkybox;
 Shader shaderMulLighting;
 //Shader para el terreno
 Shader shaderTerrain;
-
-std::shared_ptr<FirstPersonCamera> camera(new FirstPersonCamera());
+std::shared_ptr<FirstPersonCamera> camera1P(new FirstPersonCamera());//Agregando: Se crea un apuntador a la cámara EN PRIMERA PERSONA
+std::shared_ptr<Camera> camera(new ThirdPersonCamera()); //Agregar: Se crea un apuntador a la cámara EN TERCERA PERSONA
+float distanceFromTarget = 5.0; //Agregar: Se refiere a la distancia de la cámara desde el objeto donde se obvserva es para la tercera persona
 
 Sphere skyboxSphere(20, 20);
 
@@ -87,6 +91,8 @@ Model modelLampPost2;
 // Model animate instance
 // Mayow
 Model mayowModelAnimate;
+//Agregando PinkBoy
+Model PinkBoyModelAnimate;
 // Terrain model instance
 Terrain terrain(-1, -1, 200, 8, "../Textures/heightmap.png");
 
@@ -120,13 +126,15 @@ glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+glm::mat4 modelMatrixPinkBoy = glm::mat4(1.0f);//Agregando la matriz de PinkBoy
 
+int indexAnimationMay = 1; //Agregar: Variable para animación
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 2;
 bool enableCountSelected = true;
 
 // Variables to animations keyframes
-bool saveFrame = false, availableSave = true;
+bool saveFrame = false, availableSave = true, modelChange1 = false, modelChange2 = false, modelChange3 = false, modelChange4 = false; //Agregar Variable para cambio de animaciones
 std::ofstream myfile;
 std::string fileName = "";
 bool record = false;
@@ -210,7 +218,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glfwSetWindowSizeCallback(window, reshapeCallback);
 	glfwSetKeyCallback(window, keyCallback);
 	glfwSetCursorPosCallback(window, mouseCallback);
-	glfwSetMouseButtonCallback(window, mouseButtonCallback);
+	glfwSetMouseButtonCallback(window, mouseButtonCallback); 
+	glfwSetScrollCallback(window, scrollCallback); //Agregar: Pusimos la función de callback
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
 	// Init glew
@@ -301,7 +310,17 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
 
-	camera->setPosition(glm::vec3(0.0, 0.0, 10.0));
+	//Agregando el load de PinkBoy
+	PinkBoyModelAnimate.loadModel("../models/PinkyBoy/PinkyBoyAnimaciones.fbx");
+	PinkBoyModelAnimate.setShader(&shaderMulLighting);
+
+	//Camara
+	glm::vec3 cam_pos= glm::vec3(0.0, 0.0, 10.0); //Agregando una pisición de la cámara
+	camera->setPosition(glm::vec3(cam_pos)); //Agregar: Se usa en cámara de primera persona / Ya no es necesario por que la cámara en tercera persona ya la calcula
+	camera->setDistanceFromTarget(distanceFromTarget); //Agregar: Distancia en tercera persona
+	camera->setSensitivity(1.0f);//Agregar: Velocidad de la cámara Disminuye->Más lento Aumenta->Más rapido
+	cam_pos = glm::vec3(5.0, 2.0, 5.0);//Agregando posición de la camara en primera persona
+	camera1P->setPosition(glm::vec3(cam_pos)); //Agregando la pisición de la cámara en primera persona
 
 	// Definimos el tamanio de la imagen
 	int imageWidth, imageHeight;
@@ -698,7 +717,7 @@ void destroy() {
 
 	// Custom objects animate
 	mayowModelAnimate.destroy();
-
+	PinkBoyModelAnimate.destroy();
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glDeleteTextures(1, &textureCespedID);
@@ -741,6 +760,11 @@ void mouseCallback(GLFWwindow *window, double xpos, double ypos) {
 	lastMousePosY = ypos;
 }
 
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) { //Agregar: recibe la ventana y el desplazamiento del scroll de X y Y
+	distanceFromTarget -= yoffset; //Desplazamiento con signo negativo, si no lo hace inverso
+	camera->setDistanceFromTarget(distanceFromTarget);
+}
+
 void mouseButtonCallback(GLFWwindow *window, int button, int state, int mod) {
 	if (state == GLFW_PRESS) {
 		switch (button) {
@@ -762,17 +786,26 @@ bool processInput(bool continueApplication) {
 	if (exitApp || glfwWindowShouldClose(window) != 0) {
 		return false;
 	}
-
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera->moveFrontCamera(true, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera->moveFrontCamera(false, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera->moveRightCamera(false, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera->moveRightCamera(true, deltaTime);
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-		camera->mouseMoveCamera(offsetX, offsetY, deltaTime);
+	//Agregando movimientos a camara primera persona
+	if (camaraTerPrim == 1) {
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+			camera1P->moveFrontCamera(true, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+			camera1P->moveFrontCamera(false, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+			camera1P->moveRightCamera(false, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+			camera1P->moveRightCamera(true, deltaTime);
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+			camera->mouseMoveCamera(offsetX, offsetY, deltaTime);
+	}
+	//Agregar movimientos a camara tercera persona
+	else {
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+			camera->mouseMoveCamera(offsetX, 0.0, deltaTime); //Girar Horizontal al  rededor del personaje
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+			camera->mouseMoveCamera(0.0, offsetY, deltaTime);//Girar vertical al  rededor del personaje
+	}
 	offsetX = 0;
 	offsetY = 0;
 
@@ -780,7 +813,7 @@ bool processInput(bool continueApplication) {
 	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS){
 		enableCountSelected = false;
 		modelSelected++;
-		if(modelSelected > 2)
+		if(modelSelected > 3)
 			modelSelected = 0;
 		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
@@ -857,7 +890,7 @@ bool processInput(bool continueApplication) {
 	else if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS &&
 			glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
 		rotDartRightLeg -= 0.02;
-	if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+	 if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
 		modelMatrixDart = glm::rotate(modelMatrixDart, 0.02f, glm::vec3(0, 1, 0));
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
 		modelMatrixDart = glm::rotate(modelMatrixDart, -0.02f, glm::vec3(0, 1, 0));
@@ -865,16 +898,85 @@ bool processInput(bool continueApplication) {
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(-0.02, 0.0, 0.0));
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(0.02, 0.0, 0.0));
+	//Agregando movimientos de PinkyBoy
+	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		modelMatrixPinkBoy = glm::rotate(modelMatrixPinkBoy, 0.02f, glm::vec3(0, 1, 0));
+		PinkBoyModelAnimate.setAnimationIndex(1);
+	}
+	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		modelMatrixPinkBoy = glm::rotate(modelMatrixPinkBoy, -0.02f, glm::vec3(0, 1, 0));
+		PinkBoyModelAnimate.setAnimationIndex(1);
+	}
+	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		modelMatrixPinkBoy = glm::translate(modelMatrixPinkBoy, glm::vec3(0, 0, 0.02));
+		PinkBoyModelAnimate.setAnimationIndex(1);
+	}
+	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		modelMatrixPinkBoy = glm::translate(modelMatrixPinkBoy, glm::vec3(0, 0, -0.02));
+		PinkBoyModelAnimate.setAnimationIndex(1);
+	}
+	else
+		PinkBoyModelAnimate.setAnimationIndex(0);
 
+	if (!modelChange1 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {//Agregar para reinicio de animación May
+		TimeManager::Instance().resetStartTime();
+		modelChange1 = true;
+	}
+	else if (modelChange1 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_RELEASE) {
+		TimeManager::Instance().resetStartTime();
+		modelChange1 = false;
+	}
+	if (!modelChange2 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {//Agregar para reinicio de animación May
+		TimeManager::Instance().resetStartTime();
+		modelChange2 = true;
+	}
+	else if (modelChange2 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_RELEASE) {
+		TimeManager::Instance().resetStartTime();
+		modelChange2 = false;
+	}
+	if (!modelChange3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {//Agregar para reinicio de animación May
+		TimeManager::Instance().resetStartTime();
+		modelChange3 = true;
+	}
+	else if (modelChange3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_RELEASE) {
+		TimeManager::Instance().resetStartTime();
+		modelChange3 = false;
+	}
+	if (!modelChange4 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {//Agregar para reinicio de animación May
+		TimeManager::Instance().resetStartTime();
+		modelChange4 = true;
+	}
+	else if (modelChange4 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_RELEASE) {
+		TimeManager::Instance().resetStartTime();
+		modelChange4 = false;
+	}
 	// Mayow animate model movements
 	if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
 		modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(1.0f), glm::vec3(0, 1, 0));
+		indexAnimationMay = 0; //Agregar: Animación de correr
 	}else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS){
 		modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-1.0f), glm::vec3(0, 1, 0));
+		indexAnimationMay = 0;//Agregar: Animación de correr
 	}if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
 		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, 0.02));
+		indexAnimationMay = 0;//Agregar: Animación de correr
 	}else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
 		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, -0.02));
+		indexAnimationMay = 0;//Agregar: Animación de correr
+	}
+
+	//Agregando el cambio de cámaras de primera a tercera y visiversa 
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS && tipo_vista) {
+		tipo_vista = false;
+		if (camaraTerPrim == 1) {
+			camaraTerPrim = 0;
+		}
+		else if (camaraTerPrim == 0) {
+			camaraTerPrim = 1;
+		}
+	}
+	else if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_K) == GLFW_RELEASE) {
+		tipo_vista = true;
 	}
 
 	glfwPollEvents();
@@ -896,6 +998,8 @@ void applicationLoop() {
 
 	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
 	modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+	//Agregando la ubicación de Pinkboy
+	modelMatrixPinkBoy = glm::translate(modelMatrixPinkBoy, glm::vec3(13.0f, 0.0f, 0.0f));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -922,7 +1026,42 @@ void applicationLoop() {
 
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f),
 				(float) screenWidth / (float) screenHeight, 0.01f, 100.0f);
-		glm::mat4 view = camera->getViewMatrix();
+
+		glm::vec3 axis;//Agregar: Es el eje del modelo
+		glm::vec3 target;//Agregar: Es el punto al que vamos a observar
+		float angleTarget; //Agregar: El angulo del modelo
+
+		if (modelSelected == 1) { //Agregar la selección de modelos de cámara 1 DartLego
+			axis = glm::axis(glm::quat_cast(modelMatrixDart));
+			angleTarget = glm::angle(glm::quat_cast(modelMatrixDart));
+			target = modelMatrixDart[3];
+		}
+		else if (modelSelected == 2) { //Agregar la selección de modelos de cámara 2 mayow
+			axis = glm::axis(glm::quat_cast(modelMatrixMayow));
+			angleTarget = glm::angle(glm::quat_cast(modelMatrixMayow));
+			target = modelMatrixMayow[3];
+		}
+		else if (modelSelected == 3) {//Agregando la selección de modelos de cámara 3 para PinkBoy 
+			axis = glm::axis(glm::quat_cast(modelMatrixPinkBoy));
+			angleTarget = glm::angle(glm::quat_cast(modelMatrixPinkBoy));
+			target = modelMatrixPinkBoy[3];
+		}
+		//glm::mat4 view = camera->getViewMatrix();
+		glm::mat4 view;
+
+		if (std::isnan(angleTarget))//Agregar: Cuando no puede determinar el ángulo (Es cuando es cero)
+			angleTarget = 0.0;
+		if (axis.y < 0) //Agregar: Estamos del otro lado del cuadrante de los ángulos 
+			angleTarget = -angleTarget; 
+		if (modelSelected == 1)
+			angleTarget -= glm::radians(90.0f); //Agregar: Para que la cámara esté detrás del modelo
+		camera->setCameraTarget(target);
+		camera->setAngleTarget(angleTarget);
+		camera->updateCamera();
+		if (camaraTerPrim == true) //Agregando vista desde camara en primera persona
+			view = camera1P->getViewMatrix();
+		else
+			view = camera->getViewMatrix();
 
 		// Settea la matriz de vista y projection al shader con solo color
 		shader.setMatrix4("projection", 1, false, glm::value_ptr(projection));
@@ -1184,8 +1323,13 @@ void applicationLoop() {
 		modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
 		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
 		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
+		mayowModelAnimate.setAnimationIndex(indexAnimationMay);// Agregar: Cambios de animación
 		mayowModelAnimate.render(modelMatrixMayowBody);
-
+		//Agregando el render y la normal de de PinkBoy
+		modelMatrixPinkBoy[3][1] = terrain.getHeightTerrain(modelMatrixPinkBoy[3][0], modelMatrixPinkBoy[3][2]);
+		glm::mat4 modelMatrixPinkBoyBody = glm::mat4(modelMatrixPinkBoy);
+		modelMatrixPinkBoyBody = glm::scale(modelMatrixPinkBoyBody, glm::vec3(0.010, 0.010, 0.010));
+		PinkBoyModelAnimate.render(modelMatrixPinkBoyBody);
 		/*******************************************
 		 * Skybox
 		 *******************************************/
@@ -1261,6 +1405,7 @@ void applicationLoop() {
 
 		// Constantes de animaciones
 		rotHelHelY += 0.5;
+		indexAnimationMay = 1;//Agregar: receteamos la animación
 
 		/*******************************************
 		 * State machines
