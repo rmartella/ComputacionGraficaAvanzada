@@ -3,6 +3,8 @@ layout (location = 0) in vec3 VertexPosition;
 layout (location = 1) in vec3 VertexVelocity;
 layout (location = 2) in float VertexAge;
 
+const float PI = 3.14159;
+
 // Output to fragment shader
 out float Transp;
 out vec2 TexCoord;
@@ -39,6 +41,14 @@ vec3 randomInitialPosition() {
     return Emitter + vec3(offset, 0, 0);
 }
 
+vec3 randomInitialVelocity2() {
+	float theta = mix(0.0, PI / 1.5, texelFetch(RandomTex, 3 * gl_VertexID, 0).r);
+	float phi = mix(0.0, 2 * PI, texelFetch(RandomTex, 3 * gl_VertexID + 1, 0).r);
+	float velocity = mix(0.1, 0.2, texelFetch(RandomTex, 3 * gl_VertexID + 2, 0).r);
+	vec3 v = vec3(sin(theta) * cos(phi), cos(theta), sin(theta) * sin(phi));
+	return normalize(EmitterBasis * v) * velocity;
+}
+
 // Offsets to the position in camera coordinates for each vertex of the particle's quad
 const vec3 offsets[] = vec3[](vec3(-0.5,-0.5,0), vec3(0.5,-0.5,0), vec3(0.5,0.5,0),
                               vec3(-0.5,-0.5,0), vec3(0.5,0.5,0), vec3(-0.5,0.5,0) );
@@ -53,8 +63,9 @@ void main()
 
 	    if( VertexAge < 0 || VertexAge > ParticleLifetime ) {
 	        // The particle is past it's lifetime (or not born yet)
-	        Position = randomInitialPosition();
-	        Velocity = randomInitialVelocity();
+	        // Position = randomInitialPosition(); // Para el FUEGO
+	        Position = Emitter; // PARA EL HUMO
+	        Velocity = randomInitialVelocity2(); // EL 2 es para HUMO
 	        if(VertexAge > ParticleLifetime)
 	        	Age = (VertexAge - ParticleLifetime) + DeltaT;
 	    } else {
