@@ -63,7 +63,7 @@ Shader shaderTerrain;
 //Shader para las particulas de fountain
 Shader shaderParticlesFountain;
 //Shader para las particulas de fuego
-Shader shaderParticlesFire;
+//Shader shaderParticlesFire;
 
 std::shared_ptr<Camera> camera(new ThirdPersonCamera());
 float distanceFromTarget = 7.0;
@@ -187,7 +187,7 @@ std::map<std::string, glm::vec3> blendingUnsorted = {
 		{"lambo", glm::vec3(23.0, 0.0, 0.0)},
 		{"heli", glm::vec3(5.0, 10.0, -5.0)},
 		{"fountain", glm::vec3(5.0, 0.0, -40.0)},
-		{"fire", glm::vec3(0.0, 0.0, 7.0)}
+		//{"fire", glm::vec3(0.0, 0.0, 7.0)}
 };
 
 double deltaTime;
@@ -200,7 +200,7 @@ GLuint nParticles = 8000;
 double currTimeParticlesAnimation, lastTimeParticlesAnimation;
 
 // Definition for the particle system fire
-GLuint initVelFire, startTimeFire;
+/*GLuint initVelFire, startTimeFire;
 GLuint VAOParticlesFire;
 GLuint nParticlesFire = 2000;
 GLuint posBuf[2], velBuf[2], age[2];
@@ -208,7 +208,7 @@ GLuint particleArray[2];
 GLuint feedback[2];
 GLuint drawBuf = 1;
 float particleSize = 0.5, particleLifetime = 3.0;
-double currTimeParticlesAnimationFire, lastTimeParticlesAnimationFire;
+double currTimeParticlesAnimationFire, lastTimeParticlesAnimationFire;*/
 
 // Colliders
 std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> > collidersOBB;
@@ -289,7 +289,7 @@ void initParticleBuffers() {
 	glBindVertexArray(0);
 }
 
-void initParticleBuffersFire() {
+/*void initParticleBuffersFire() {
 	// Generate the buffers
 	glGenBuffers(2, posBuf);    // position buffers
 	glGenBuffers(2, velBuf);    // velocity buffers
@@ -376,7 +376,7 @@ void initParticleBuffersFire() {
 	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 2, age[1]);
 
 	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
-}
+}*/
 
 // Implementacion de todas las funciones.
 void init(int width, int height, std::string strTitle, bool bFullScreen) {
@@ -438,7 +438,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation_fog.vs", "../Shaders/multipleLights_fog.fs");
 	shaderTerrain.initialize("../Shaders/terrain_fog.vs", "../Shaders/terrain_fog.fs");
 	shaderParticlesFountain.initialize("../Shaders/particlesFountain.vs", "../Shaders/particlesFountain.fs");
-	shaderParticlesFire.initialize("../Shaders/particlesFire.vs", "../Shaders/particlesFire.fs", {"Position", "Velocity", "Age"});
+	//shaderParticlesFire.initialize("../Shaders/particlesFire.vs", "../Shaders/particlesFire.fs", {"Position", "Velocity", "Age"});
 
 	// Inicializacion de los objetos.
 	skyboxSphere.init();
@@ -897,7 +897,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 		std::cout << "Failed to load texture" << std::endl;
 	textureParticlesFountain.freeImage(bitmap);
 
-	Texture textureParticleFire("../Textures/fire.png");
+	/*Texture textureParticleFire("../Textures/fire.png");
 	bitmap = textureParticleFire.loadImage();
 	data = textureParticleFire.convertToData(bitmap, imageWidth, imageHeight);
 	glGenTextures(1, &textureParticleFireID);
@@ -915,9 +915,9 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	}
 	else
 		std::cout << "Failed to load texture" << std::endl;
-	textureParticleFire.freeImage(bitmap);
+	textureParticleFire.freeImage(bitmap);*/
 
-	std::uniform_real_distribution<float> distr01 = std::uniform_real_distribution<float>(0.0f, 1.0f);
+	/*std::uniform_real_distribution<float> distr01 = std::uniform_real_distribution<float>(0.0f, 1.0f);
 	std::mt19937 generator;
 	std::random_device rd;
 	generator.seed(rd());
@@ -953,7 +953,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	basis[0] = glm::normalize(u);
 	basis[1] = glm::normalize(v);
 	basis[2] = glm::normalize(n);
-	shaderParticlesFire.setMatrix3("EmitterBasis", 1, false, glm::value_ptr(basis));
+	shaderParticlesFire.setMatrix3("EmitterBasis", 1, false, glm::value_ptr(basis));*/
 
 	/*******************************************
 	 * Inicializacion de los buffers de la fuente
@@ -963,7 +963,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	/*******************************************
 	 * Inicializacion de los buffers del fuego
 	 *******************************************/
-	initParticleBuffersFire();
+	//initParticleBuffersFire();
 }
 
 void destroy() {
@@ -978,7 +978,7 @@ void destroy() {
 	shaderSkybox.destroy();
 	shaderTerrain.destroy();
 	shaderParticlesFountain.destroy();
-	shaderParticlesFire.destroy();
+	//shaderParticlesFire.destroy();
 
 	// Basic objects Delete
 	skyboxSphere.destroy();
@@ -1045,14 +1045,14 @@ void destroy() {
 	glDeleteVertexArrays(1, &VAOParticles);
 
 	// Remove the buffer of the fire particles
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	/*glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glDeleteBuffers(2, posBuf);
 	glDeleteBuffers(2, velBuf);
 	glDeleteBuffers(2, age);
 	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
 	glDeleteTransformFeedbacks(2, feedback);
 	glBindVertexArray(0);
-	glDeleteVertexArrays(1, &VAOParticlesFire);
+	glDeleteVertexArrays(1, &VAOParticlesFire);*/
 }
 
 void reshapeCallback(GLFWwindow *Window, int widthRes, int heightRes) {
@@ -1257,8 +1257,8 @@ void applicationLoop() {
 	currTimeParticlesAnimation = lastTime;
 	lastTimeParticlesAnimation = lastTime;
 
-	currTimeParticlesAnimationFire = lastTime;
-	lastTimeParticlesAnimationFire = lastTime;
+	/*currTimeParticlesAnimationFire = lastTime;
+	lastTimeParticlesAnimationFire = lastTime;*/
 
 	while (psi) {
 		currTime = TimeManager::Instance().GetTime();
@@ -1329,8 +1329,8 @@ void applicationLoop() {
 		shaderParticlesFountain.setMatrix4("view", 1, false,
 				glm::value_ptr(view));
 		// Settea la matriz de vista y projection al shader para el fuego
-		shaderParticlesFire.setMatrix4("projection", 1, false, glm::value_ptr(projection));
-		shaderParticlesFire.setMatrix4("view", 1, false, glm::value_ptr(view));
+		/*shaderParticlesFire.setMatrix4("projection", 1, false, glm::value_ptr(projection));
+		shaderParticlesFire.setMatrix4("view", 1, false, glm::value_ptr(view));*/
 
 		/*******************************************
 		 * Propiedades de neblina
@@ -1684,7 +1684,7 @@ void applicationLoop() {
 				/**********
 				 * Init Render particles systems
 				 */
-				lastTimeParticlesAnimationFire = currTimeParticlesAnimationFire;
+				/*lastTimeParticlesAnimationFire = currTimeParticlesAnimationFire;
 				currTimeParticlesAnimationFire = TimeManager::Instance().GetTime();
 
 				shaderParticlesFire.setInt("Pass", 1);
@@ -1702,9 +1702,9 @@ void applicationLoop() {
 				glVertexAttribDivisor(2,0);
 				glDrawArrays(GL_POINTS, 0, nParticlesFire);
 				glEndTransformFeedback();
-				glDisable(GL_RASTERIZER_DISCARD);
+				glDisable(GL_RASTERIZER_DISCARD);*/
 
-				shaderParticlesFire.setInt("Pass", 2);
+				/*shaderParticlesFire.setInt("Pass", 2);
 				glm::mat4 modelFireParticles = glm::mat4(1.0);
 				modelFireParticles = glm::translate(modelFireParticles, it->second.second);
 				modelFireParticles[3][1] = terrain.getHeightTerrain(modelFireParticles[3][0], modelFireParticles[3][2]);
@@ -1722,7 +1722,7 @@ void applicationLoop() {
 				glBindVertexArray(0);
 				glDepthMask(GL_TRUE);
 				drawBuf = 1 - drawBuf;
-				shaderParticlesFire.turnOff();
+				shaderParticlesFire.turnOff();*/
 
 				/**********
 				 * End Render particles systems

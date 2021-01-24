@@ -56,8 +56,6 @@ Shader shaderSkybox;
 Shader shaderMulLighting;
 //Shader para el terreno
 Shader shaderTerrain;
-//Shader para las particulas de fountain
-Shader shaderParticlesFountain;
 
 std::shared_ptr<Camera> camera(new ThirdPersonCamera());
 float distanceFromTarget = 7.0;
@@ -179,18 +177,11 @@ std::vector<float> lamp2Orientation = {21.37 + 90, -65.0 + 90};
 std::map<std::string, glm::vec3> blendingUnsorted = {
 		{"aircraft", glm::vec3(10.0, 0.0, -17.5)},
 		{"lambo", glm::vec3(23.0, 0.0, 0.0)},
-		{"heli", glm::vec3(5.0, 10.0, -5.0)},
-		{"fountain", glm::vec3(5.0, 0.0, -40.0)}
+		{"heli", glm::vec3(5.0, 10.0, -5.0)}
 };
 
 double deltaTime;
 double currTime, lastTime;
-
-// Definition for the particle system
-GLuint initVel, startTime;
-GLuint VAOParticles;
-GLuint nParticles = 8000;
-double currTimeParticlesAnimation, lastTimeParticlesAnimation;
 
 // Colliders
 std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> > collidersOBB;
@@ -203,73 +194,9 @@ void keyCallback(GLFWwindow *window, int key, int scancode, int action,
 void mouseCallback(GLFWwindow *window, double xpos, double ypos);
 void mouseButtonCallback(GLFWwindow *window, int button, int state, int mod);
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
-void initParticleBuffers();
 void init(int width, int height, std::string strTitle, bool bFullScreen);
 void destroy();
 bool processInput(bool continueApplication = true);
-
-void initParticleBuffers() {
-	// Generate the buffers
-	glGenBuffers(1, &initVel);   // Initial velocity buffer
-	glGenBuffers(1, &startTime); // Start time buffer
-
-	// Allocate space for all buffers
-	int size = nParticles * 3 * sizeof(float);
-	glBindBuffer(GL_ARRAY_BUFFER, initVel);
-	glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, startTime);
-	glBufferData(GL_ARRAY_BUFFER, nParticles * sizeof(float), NULL, GL_STATIC_DRAW);
-
-	// Fill the first velocity buffer with random velocities
-	glm::vec3 v(0.0f);
-	float velocity, theta, phi;
-	GLfloat *data = new GLfloat[nParticles * 3];
-	for (unsigned int i = 0; i < nParticles; i++) {
-
-		theta = glm::mix(0.0f, glm::pi<float>() / 6.0f, ((float)rand() / RAND_MAX));
-		phi = glm::mix(0.0f, glm::two_pi<float>(), ((float)rand() / RAND_MAX));
-
-		v.x = sinf(theta) * cosf(phi);
-		v.y = cosf(theta);
-		v.z = sinf(theta) * sinf(phi);
-
-		velocity = glm::mix(0.6f, 0.8f, ((float)rand() / RAND_MAX));
-		v = glm::normalize(v) * velocity;
-
-		data[3 * i] = v.x;
-		data[3 * i + 1] = v.y;
-		data[3 * i + 2] = v.z;
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, initVel);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
-
-	// Fill the start time buffer
-	delete[] data;
-	data = new GLfloat[nParticles];
-	float time = 0.0f;
-	float rate = 0.00075f;
-	for (unsigned int i = 0; i < nParticles; i++) {
-		data[i] = time;
-		time += rate;
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, startTime);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, nParticles * sizeof(float), data);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	delete[] data;
-
-	glGenVertexArrays(1, &VAOParticles);
-	glBindVertexArray(VAOParticles);
-	glBindBuffer(GL_ARRAY_BUFFER, initVel);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, startTime);
-	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 0, NULL);
-	glEnableVertexAttribArray(1);
-
-	glBindVertexArray(0);
-}
 
 // Implementacion de todas las funciones.
 void init(int width, int height, std::string strTitle, bool bFullScreen) {
@@ -330,7 +257,6 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shaderSkybox.initialize("../Shaders/skyBox.vs", "../Shaders/skyBox_fog.fs");
 	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation_fog.vs", "../Shaders/multipleLights_fog.fs");
 	shaderTerrain.initialize("../Shaders/terrain_fog.vs", "../Shaders/terrain_fog.fs");
-	shaderParticlesFountain.initialize("../Shaders/particlesFountain.vs", "../Shaders/particlesFountain.fs");
 
 	// Inicializacion de los objetos.
 	skyboxSphere.init();
@@ -768,31 +694,6 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 		std::cout << "Failed to load texture" << std::endl;
 	// Libera la memoria de la textura
 	textureTerrainBlendMap.freeImage(bitmap);
-
-	Texture textureParticlesFountain("../Textures/bluewater.png");
-	bitmap = textureParticlesFountain.loadImage();
-	data = textureParticlesFountain.convertToData(bitmap, imageWidth, imageHeight);
-	glGenTextures(1, &textureParticleFountainID);
-	glBindTexture(GL_TEXTURE_2D, textureParticleFountainID);
-	// set the texture wrapping parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);// set texture wrapping to GL_REPEAT (default wrapping method)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	// set texture filtering parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0,
-			GL_BGRA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-		std::cout << "Failed to load texture" << std::endl;
-	textureParticlesFountain.freeImage(bitmap);
-
-	/*******************************************
-	 * Inicializacion de los buffers de la fuente
-	 *******************************************/
-	initParticleBuffers();
 }
 
 void destroy() {
@@ -806,7 +707,6 @@ void destroy() {
 	shaderMulLighting.destroy();
 	shaderSkybox.destroy();
 	shaderTerrain.destroy();
-	shaderParticlesFountain.destroy();
 
 	// Basic objects Delete
 	skyboxSphere.destroy();
@@ -863,13 +763,6 @@ void destroy() {
 	// Cube Maps Delete
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	glDeleteTextures(1, &skyboxTextureID);
-
-	// Remove the buffer of the fountain particles
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glDeleteBuffers(1, &initVel);
-	glDeleteBuffers(1, &startTime);
-	glBindVertexArray(0);
-	glDeleteVertexArrays(1, &VAOParticles);
 }
 
 void reshapeCallback(GLFWwindow *Window, int widthRes, int heightRes) {
@@ -1132,11 +1025,6 @@ void applicationLoop() {
 		shaderTerrain.setMatrix4("projection", 1, false,
 					glm::value_ptr(projection));
 		shaderTerrain.setMatrix4("view", 1, false,
-				glm::value_ptr(view));
-		// Settea la matriz de vista y projection al shader para el fountain
-		shaderParticlesFountain.setMatrix4("projection", 1, false,
-					glm::value_ptr(projection));
-		shaderParticlesFountain.setMatrix4("view", 1, false,
 				glm::value_ptr(view));
 
 		/*******************************************
@@ -1455,39 +1343,6 @@ void applicationLoop() {
 				modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, 0.249548));
 				modelHeliHeli.render(modelMatrixHeliHeli);
 			}
-			else if(it->second.first.compare("fountain") == 0){
-				/**********
-				 * Init Render particles systems
-				 */
-				glm::mat4 modelMatrixParticlesFountain = glm::mat4(1.0);
-				modelMatrixParticlesFountain = glm::translate(modelMatrixParticlesFountain, it->second.second);
-				modelMatrixParticlesFountain[3][1] = terrain.getHeightTerrain(modelMatrixParticlesFountain[3][0], modelMatrixParticlesFountain[3][2]) + 0.36 * 10.0;
-				modelMatrixParticlesFountain = glm::scale(modelMatrixParticlesFountain, glm::vec3(3.0, 3.0, 3.0));
-				currTimeParticlesAnimation = TimeManager::Instance().GetTime();
-				if(currTimeParticlesAnimation - lastTimeParticlesAnimation > 10.0)
-					lastTimeParticlesAnimation = currTimeParticlesAnimation;
-				//glDisable(GL_DEPTH_TEST);
-				glDepthMask(GL_FALSE);
-				// Set the point size
-				glPointSize(10.0f);
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, textureParticleFountainID);
-				shaderParticlesFountain.turnOn();
-				shaderParticlesFountain.setFloat("Time", float(currTimeParticlesAnimation - lastTimeParticlesAnimation));
-				shaderParticlesFountain.setFloat("ParticleLifetime", 3.5f);
-				shaderParticlesFountain.setInt("ParticleTex", 0);
-				shaderParticlesFountain.setVectorFloat3("Gravity", glm::value_ptr(glm::vec3(0.0f, -0.3f, 0.0f)));
-				shaderParticlesFountain.setMatrix4("model", 1, false, glm::value_ptr(modelMatrixParticlesFountain));
-				glBindVertexArray(VAOParticles);
-				glDrawArrays(GL_POINTS, 0, nParticles);
-				glDepthMask(GL_TRUE);
-				//glEnable(GL_DEPTH_TEST);
-				shaderParticlesFountain.turnOff();
-				/**********
-				 * End Render particles systems
-				 */
-			}
-
 		}
 		glEnable(GL_CULL_FACE);
 

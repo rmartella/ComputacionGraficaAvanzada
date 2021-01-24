@@ -46,9 +46,6 @@
 // Include Colision headers functions
 #include "Headers/Colisiones.h"
 
-// ShadowBox include
-#include "Headers/ShadowBox.h"
-
 // OpenAL include
 #include <AL/alut.h>
 
@@ -85,8 +82,6 @@ Box boxCollider;
 Sphere sphereCollider(10, 10);
 Box boxViewDepth;
 Box boxLightViewBox;
-
-ShadowBox * shadowBox;
 
 // Models complex instances
 Model modelRock;
@@ -1412,8 +1407,6 @@ void applicationLoop() {
 
 	glm::vec3 lightPos = glm::vec3(10.0, 10.0, 0.0);
 
-	shadowBox = new ShadowBox(-lightPos, camera.get(), 15.0f, 0.1f, 45.0f);
-
 	while (psi) {
 		currTime = TimeManager::Instance().GetTime();
 		if(currTime - lastTime < 0.016666667){
@@ -1456,20 +1449,12 @@ void applicationLoop() {
 		camera->updateCamera();
 		view = camera->getViewMatrix();
 
-		shadowBox->update(screenWidth, screenHeight);
-		glm::vec3 centerBox = shadowBox->getCenter();
-
-		// Projection light shadow mapping
-		glm::mat4 lightProjection = glm::mat4(1.0f), lightView = glm::mat4(1.0f);
+		// Matriz de proyección del shadow mapping
+		glm::mat4 lightProjection, lightView;
 		glm::mat4 lightSpaceMatrix;
-
-		lightProjection[0][0] = 2.0f / shadowBox->getWidth();
-		lightProjection[1][1] = 2.0f / shadowBox->getHeight();
-		lightProjection[2][2] = -2.0f / shadowBox->getLength();
-		lightProjection[3][3] = 1.0f;
-
-		lightView = glm::lookAt(centerBox, centerBox + glm::normalize(-lightPos), glm::vec3(0.0, 1.0, 0.0));
-
+		float near_plane = 0.1f, far_plane = 20.0f;
+		lightProjection = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, near_plane, far_plane);
+		lightView = glm::lookAt(lightPos, glm::vec3(0.0), glm::vec3(0.0, 1.0, 0.0));
 		lightSpaceMatrix = lightProjection * lightView;
 		shaderDepth.setMatrix4("lightSpaceMatrix", 1, false, glm::value_ptr(lightSpaceMatrix));
 
