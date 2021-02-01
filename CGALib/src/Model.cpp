@@ -82,14 +82,29 @@ void Model::loadModel(const std::string & path) {
 	// Se procesa el nodo raiz recursivamente.
 	this->processNode(scene->mRootNode, scene);
 
-	// Se crea la SBB
+	// Se crea la SBB  
+	//tomando el centro de la caja
 	this->sbb.c = glm::vec3((this->aabb.mins.x + this->aabb.maxs.x) / 2.0f,
 			(this->aabb.mins.y + this->aabb.maxs.y) / 2.0f,
 			(this->aabb.mins.z + this->aabb.maxs.z) / 2.0f);
-	this->sbb.ratio = sqrt(
-			pow(this->aabb.mins.x - this->aabb.maxs.x, 2)
-					+ pow(this->aabb.mins.y - this->aabb.maxs.y, 2)
-					+ pow(this->aabb.mins.z - this->aabb.maxs.z, 2)) / 2.0f;
+	int dif_x=(aabb.maxs.x - aabb.mins.x);
+	int dif_y=(aabb.maxs.y - aabb.mins.y);
+	int dif_z=(aabb.maxs.z - aabb.mins.z);
+	int radio;
+	if (dif_x > dif_y) {
+		radio = dif_x;
+	}
+	else{
+		radio = dif_y;
+	}
+	if (radio > dif_z) {
+		radio = radio;
+	}
+	else {
+		radio = dif_z;
+	}
+	this->sbb.ratio = radio;
+		
 
 
 	// Se crea la obb
