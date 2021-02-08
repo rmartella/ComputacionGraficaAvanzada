@@ -1,0 +1,48 @@
+# Blender MTL File: 'None'
+# Material Count: 4
+
+newmtl Black
+Ns 223.529412
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.207131 0.039412
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd Textures\Black_Base_Color.jpg
+refl Textures\\Black_Metallic.jpg
+
+newmtl FaceScreen
+Ns 505.882353
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl Orange
+Ns 223.529412
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.207131 0.039412
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd Textures\Orange_Base_Color.jpg
+refl Textures\\Orange_Metallic.jpg
+
+newmtl White.001
+Ns 223.529412
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.207131 0.039412
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd Textures\White_Base_Color.jpg
+refl Textures\\White_Metallic.jpg
