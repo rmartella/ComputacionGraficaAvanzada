@@ -170,6 +170,12 @@ std::vector<float> lamp2Orientation = {21.37 + 90, -65.0 + 90};
 double deltaTime;
 double currTime, lastTime;
 
+// Jump variables
+bool isJump = false;
+float GRAVITY = 1.81;
+double tmv = 0;
+double startTimeJump = 0;
+
 // Colliders
 std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> > collidersOBB;
 std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> > collidersSBB;
@@ -903,6 +909,13 @@ bool processInput(bool continueApplication) {
 		animationIndex = 0;
 	}
 
+	bool keySpaceStatus = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
+	if(!isJump && keySpaceStatus){
+		isJump = true;
+		startTimeJump = currTime;
+		tmv = 0;
+	}
+
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -1244,7 +1257,13 @@ void applicationLoop() {
 		/*******************************************
 		 * Custom Anim objects obj
 		 *******************************************/
-		modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
+		modelMatrixMayow[3][1] = -GRAVITY * tmv * tmv + 3.5 * tmv + terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
+		tmv = currTime - startTimeJump;
+		if(modelMatrixMayow[3][1] < terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2])){
+			isJump = false;
+			modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
+		}
+		//modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
 		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
 		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
 		mayowModelAnimate.setAnimationIndex(animationIndex);
@@ -1409,7 +1428,7 @@ void applicationLoop() {
 			bool isCollision = false;
 			for (std::map<std::string,
 					std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator jt =
-					collidersOBB.begin(); jt != collidersOBB.end(); jt++) {
+					collidersOBB.begin(); jt != collidersOBB.end() && !isCollision; jt++) {
 				if (it != jt
 						&& testOBBOBB(std::get<0>(it->second),
 								std::get<0>(jt->second))) {
@@ -1427,7 +1446,7 @@ void applicationLoop() {
 			bool isCollision = false;
 			for (std::map<std::string,
 					std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> >::iterator jt =
-					collidersSBB.begin(); jt != collidersSBB.end(); jt++) {
+					collidersSBB.begin(); jt != collidersSBB.end() && !isCollision; jt++) {
 				if (it != jt
 						&& testSphereSphereIntersection(std::get<0>(it->second),
 								std::get<0>(jt->second))) {
@@ -1446,7 +1465,7 @@ void applicationLoop() {
 			std::map<std::string,
 					std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator jt =
 					collidersOBB.begin();
-			for (; jt != collidersOBB.end(); jt++) {
+			for (; jt != collidersOBB.end() && !isCollision; jt++) {
 				if (testSphereOBox(std::get<0>(it->second),
 								std::get<0>(jt->second))) {
 					std::cout << "Colision " << it->first << " with "
