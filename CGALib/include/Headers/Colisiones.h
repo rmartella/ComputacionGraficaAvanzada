@@ -210,5 +210,58 @@ bool testOBBOBB(AbstractModel::OBB a, AbstractModel::OBB b){
 	return true;
 }
 
+bool testSLABPlane(float p, float d, float min, float max, float &tmin,
+		float &tmax) {
+	if (fabs(d) < 0.01)
+		return (p >= min && p <= max);
+
+	float ood = 1.0f / d;
+	float t1 = (min - p) * ood;
+	float t2 = (max - p) * ood;
+
+	if (t1 > t2) {
+		float aux = t1;
+		t1 = t2;
+		t2 = aux;
+	}
+
+	if (t1 > tmin)
+		tmin = t1;
+	if (t2 < tmax)
+		tmax = t2;
+
+	if (tmin > tmax)
+		return false;
+
+	return true;
+}
+
+bool intersectRayAABB(glm::vec3 p1, glm::vec3 p2, glm::vec3 d, AbstractModel::OBB obb) {
+
+	glm::quat qinv = glm::inverse(obb.u);
+	p1 = qinv * glm::vec4(p1, 1.0);
+	p2 = qinv * glm::vec4(p2, 1.0);
+	d = qinv * glm::vec4(d, 1.0);
+	obb.c = qinv * glm::vec4(obb.c, 1.0);
+	AbstractModel::AABB aabb;
+	aabb.mins = obb.c - obb.e;
+	aabb.maxs = obb.c + obb.e;
+
+	float tmin = -FLT_MAX, tmax = FLT_MAX;
+
+	if (!testSLABPlane(p1.x, d.x, aabb.mins[0], aabb.maxs[0], tmin, tmax))
+		return false;
+	if (!testSLABPlane(p1.y, d.y, aabb.mins[1], aabb.maxs[1], tmin, tmax))
+		return false;
+	if (!testSLABPlane(p1.z, d.z, aabb.mins[2], aabb.maxs[2], tmin, tmax))
+		return false;
+
+	//glm::vec3 q = p1 + d * tmin;
+
+	if(tmin >= 0 && tmin <= glm::distance(p1, p2))
+		return true;
+
+	return false;
+}
 
 #endif /* COLISIONES_H_ */

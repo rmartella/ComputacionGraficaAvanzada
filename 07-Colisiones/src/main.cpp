@@ -20,6 +20,7 @@
 #include "Headers/Sphere.h"
 #include "Headers/Cylinder.h"
 #include "Headers/Box.h"
+#include "Headers/Cylinder.h"
 #include "Headers/FirstPersonCamera.h"
 #include "Headers/ThirdPersonCamera.h"
 
@@ -63,6 +64,7 @@ float distanceFromTarget = 7.0;
 Sphere skyboxSphere(20, 20);
 Box boxCollider;
 Sphere sphereCollider(10, 10);
+Cylinder cylinderRay(10, 10, 0.05, 0.05);
 
 // Models complex instances
 Model modelRock;
@@ -263,6 +265,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	sphereCollider.init();
 	sphereCollider.setShader(&shader);
 	sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
+
+	cylinderRay.init();
+	cylinderRay.setShader(&shader);
+	cylinderRay.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 
 	modelRock.loadModel("../models/rock/rock.obj");
 	modelRock.setShader(&shaderMulLighting);
@@ -725,6 +731,7 @@ void destroy() {
 	modelLamp1.destroy();
 	modelLamp2.destroy();
 	modelLampPost2.destroy();
+	cylinderRay.destroy();
 
 	// Custom objects animate
 	mayowModelAnimate.destroy();
@@ -1269,6 +1276,20 @@ void applicationLoop() {
 		mayowModelAnimate.setAnimationIndex(animationIndex);
 		mayowModelAnimate.render(modelMatrixMayowBody);
 
+		/********************************************
+		 * Ray in mayow view direction
+		 *******************************************/
+		glm::mat4 modelMatrixRay = glm::mat4(modelMatrixMayow);
+		modelMatrixRay = glm::translate(modelMatrixRay, glm::vec3(0.0, 1.0, 0.0));
+		glm::vec3 rayDirection = glm::normalize(glm::vec3(modelMatrixRay[2]));
+		glm::vec3 ori = glm::vec3(modelMatrixRay[3]);
+		glm::vec3 tar = ori + 10.0f * rayDirection;
+		glm::vec3 dmd = ori + 5.0f * rayDirection;
+		modelMatrixRay[3] = glm::vec4(dmd, 1.0f);
+		modelMatrixRay = glm::rotate(modelMatrixRay, glm::radians(90.0f), glm::vec3(1.0, 0.0, 0.0));
+		modelMatrixRay = glm::scale(modelMatrixRay, glm::vec3(1.0, 10.0, 1.0));
+		cylinderRay.render(modelMatrixRay);
+
 		/*******************************************
 		 * Skybox
 		 *******************************************/
@@ -1500,6 +1521,23 @@ void applicationLoop() {
 						modelMatrixDart = std::get<1>(jt->second);
 				}
 			}
+		}
+
+		/*******************************************
+		 * Ray test colisions
+		 *******************************************/
+		for (std::map<std::string,
+				std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> >::iterator it =
+				collidersSBB.begin(); it != collidersSBB.end(); it++) {
+			float tray;
+			if(raySphereIntersect(ori, tar, rayDirection, std::get<0>(it->second), tray))
+				std::cout << "Colision " << it->first << " with " << "Ray" << std::endl;
+		}
+		for (std::map<std::string,
+				std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator it =
+				collidersOBB.begin(); it != collidersOBB.end(); it++) {
+			if(intersectRayAABB(ori, tar, rayDirection, std::get<0>(it->second)))
+				std::cout << "Colision " << it->first << " with " << "Ray" << std::endl;
 		}
 
 		/*******************************************
