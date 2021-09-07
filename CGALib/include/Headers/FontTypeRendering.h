@@ -40,7 +40,7 @@ namespace FontTypeRendering {
  * Clase que se encarga de renderizar los texeles, esta clase utiliza la librería
  * FreeType para cargar los TFF
  */
-class FontTypeRendering {
+class DLL_PUBLIC FontTypeRendering {
 
 	/**
 	 * Vertex Shader para el renderizado de las fuentes en openGL.
