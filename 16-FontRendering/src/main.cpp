@@ -1468,6 +1468,13 @@ bool processInput(bool continueApplication) {
 		animationIndex = 0;
 	}
 
+	bool keySpaceStatus = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
+	if(!isJump && keySpaceStatus){
+		isJump = true;
+		startTimeJump = currTime;
+		tmv = 0;
+	}
+
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -2234,7 +2241,7 @@ void applicationLoop() {
 			break;
 		}
 
-		modelText->render("Texto en openGL", 0, 0);
+		modelText->render("Texto en openGL", -1, 0);
 		glfwSwapBuffers(window);
 
 		/****************************+

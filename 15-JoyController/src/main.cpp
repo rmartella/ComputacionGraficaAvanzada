@@ -1411,6 +1411,13 @@ bool processInput(bool continueApplication) {
 		animationIndex = 0;
 	}
 
+	bool keySpaceStatus = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
+	if(!isJump && keySpaceStatus){
+		isJump = true;
+		startTimeJump = currTime;
+		tmv = 0;
+	}
+
 	glfwPollEvents();
 	return continueApplication;
 }

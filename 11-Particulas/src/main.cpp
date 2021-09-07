@@ -186,6 +186,12 @@ std::map<std::string, glm::vec3> blendingUnsorted = {
 double deltaTime;
 double currTime, lastTime;
 
+// Jump variables
+bool isJump = false;
+float GRAVITY = 1.81;
+double tmv = 0;
+double startTimeJump = 0;
+
 // Definition for the particle system
 GLuint initVel, startTime;
 GLuint VAOParticles;
@@ -1034,6 +1040,13 @@ bool processInput(bool continueApplication) {
 		animationIndex = 0;
 	}
 
+	bool keySpaceStatus = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
+	if(!isJump && keySpaceStatus){
+		isJump = true;
+		startTimeJump = currTime;
+		tmv = 0;
+	}
+
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -1370,7 +1383,13 @@ void applicationLoop() {
 		/*******************************************
 		 * Custom Anim objects obj
 		 *******************************************/
-		modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
+		modelMatrixMayow[3][1] = -GRAVITY * tmv * tmv + 3.5 * tmv + terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
+		tmv = currTime - startTimeJump;
+		if(modelMatrixMayow[3][1] < terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2])){
+			isJump = false;
+			modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
+		}
+		//modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
 		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
 		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
 		mayowModelAnimate.setAnimationIndex(animationIndex);
@@ -1461,7 +1480,7 @@ void applicationLoop() {
 				 */
 				glm::mat4 modelMatrixParticlesFountain = glm::mat4(1.0);
 				modelMatrixParticlesFountain = glm::translate(modelMatrixParticlesFountain, it->second.second);
-				modelMatrixParticlesFountain[3][1] = terrain.getHeightTerrain(modelMatrixParticlesFountain[3][0], modelMatrixParticlesFountain[3][2]) + 0.36 * 10.0;
+				modelMatrixParticlesFountain[3][1] = terrain.getHeightTerrain(modelMatrixParticlesFountain[3][0], modelMatrixParticlesFountain[3][2]) + 0.42 * 10.0;
 				modelMatrixParticlesFountain = glm::scale(modelMatrixParticlesFountain, glm::vec3(3.0, 3.0, 3.0));
 				currTimeParticlesAnimation = TimeManager::Instance().GetTime();
 				if(currTimeParticlesAnimation - lastTimeParticlesAnimation > 10.0)
@@ -1474,9 +1493,9 @@ void applicationLoop() {
 				glBindTexture(GL_TEXTURE_2D, textureParticleFountainID);
 				shaderParticlesFountain.turnOn();
 				shaderParticlesFountain.setFloat("Time", float(currTimeParticlesAnimation - lastTimeParticlesAnimation));
-				shaderParticlesFountain.setFloat("ParticleLifetime", 3.5f);
+				shaderParticlesFountain.setFloat("ParticleLifetime", 10.5f);
 				shaderParticlesFountain.setInt("ParticleTex", 0);
-				shaderParticlesFountain.setVectorFloat3("Gravity", glm::value_ptr(glm::vec3(0.0f, -0.3f, 0.0f)));
+				shaderParticlesFountain.setVectorFloat3("Gravity", glm::value_ptr(glm::vec3(0.0f, -0.1f, 0.0f)));
 				shaderParticlesFountain.setMatrix4("model", 1, false, glm::value_ptr(modelMatrixParticlesFountain));
 				glBindVertexArray(VAOParticles);
 				glDrawArrays(GL_POINTS, 0, nParticles);
