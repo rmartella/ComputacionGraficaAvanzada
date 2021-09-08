@@ -1980,6 +1980,7 @@ void applicationLoop() {
 
 		glfwSwapBuffers(window);
 
+
 		/****************************+
 		 * Open AL sound data
 		 */
