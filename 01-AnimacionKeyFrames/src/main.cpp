@@ -198,7 +198,7 @@ bool descenso = true;
 
 // Var animate lambo dor
 int stateDoor = 0;
-float dorRotCount = 0.0;
+float doorRotCount = 0.0;
 bool circuito = true;
 
 double deltaTime;
@@ -957,6 +957,7 @@ void applicationLoop() {
 	modelMatrixHeli = glm::translate(modelMatrixHeli, glm::vec3(5.0, 10.0, -5.0));
 	int stateH = 0;
 	float advanceCountH = 0.0;
+	float acceleration = 0.03125;
 
 	modelMatrixAircraft = glm::translate(modelMatrixAircraft, glm::vec3(10.0, 2.0, -17.5));
 
@@ -1205,7 +1206,7 @@ void applicationLoop() {
 		modelLamboRightDor.render(modelMatrixLamboChasis);
 
 		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(1.08676, 0.707316, 0.982601));
-		modelMatrixLamboLeftDor = glm::rotate(modelMatrixLamboLeftDor, glm::radians(dorRotCount), glm::vec3(1.0, 0, 0));
+		modelMatrixLamboLeftDor = glm::rotate(modelMatrixLamboLeftDor, glm::radians(doorRotCount), glm::vec3(1.0, 0, 0));
 		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(-1.08676, -0.707316, -0.982601));
 		modelLamboLeftDor.render(modelMatrixLamboLeftDor);
 
@@ -1636,7 +1637,7 @@ void applicationLoop() {
 			break;
 		}
 
-		//Maquina de estados lambo
+		// Máquina de estados lambo
 			if (circuito) {
 				switch (stateL) {
 				case 0:
@@ -1697,13 +1698,13 @@ void applicationLoop() {
 			}
 			else
 			{
-				dorRotCount += 0.05f;
-				if (dorRotCount > 75.0f) {
-					dorRotCount = 75;
+				doorRotCount += 0.05f;
+				if (doorRotCount > 75.0f) {
+					doorRotCount = 75;
 				}
 			}
 
-		//Maquina de estados Helicoptero
+		// Máquina de estados Helicóptero
 		if (descenso) {
 			switch (stateH) {
 			case 0:
@@ -1747,8 +1748,14 @@ void applicationLoop() {
 				}
 				break;
 			case 4:
-				rotHelHelYH += 0.03125;
-				rotHelHelXH += 0.03125;
+				rotHelHelYH += acceleration;
+				rotHelHelXH += acceleration;
+				if (rotHelHelXH > 0.0f) {
+					acceleration -= 0.0003125;
+				}
+				if (acceleration < 0.0f) {
+					descenso = false;
+				}
 				break;
 			default:
 				break;
