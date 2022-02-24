@@ -1638,71 +1638,71 @@ void applicationLoop() {
 		}
 
 		// Máquina de estados lambo
-			if (circuito) {
-				switch (stateL) {
-				case 0:
-					if (numberAdvanceL == 0) {
-						maxAdvanceL = 40.0f;
-					}
-					else if (numberAdvanceL == 1) {
-						maxAdvanceL = 39.0f;
-					}
-					else if (numberAdvanceL == 2) {
-						maxAdvanceL = 35.0f;
-					}
-					else if (numberAdvanceL == 3) {
-						maxAdvanceL = 39.0f;
-					}
-					else if (numberAdvanceL == 4) {
-						maxAdvanceL = 35.0f;
-					}
-					stateL = 1;
-					break;
-				case 1:
-					modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0f, 0.0f, 0.15f));
-					advanceCountL += 0.15f;
-					rotWheelsXL += 0.05f;
-					rotWheelsYL -= 0.02f;
-					if (rotWheelsYL < 0) {
-						rotWheelsYL = 0;
-					}
-					if (advanceCountL > maxAdvanceL) {
-						advanceCountL = 0;
-						numberAdvanceL++;
-						stateL = 2;
-					}
-					break;
-				case 2:
-					modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0f, 0.0f, 0.025f));
-					modelMatrixLambo = glm::rotate(modelMatrixLambo, glm::radians(0.5f), glm::vec3(0.0f, 1.0f, 0.0f));
-					rotCountL += 0.5f;
-					rotWheelsXL += 0.05f;
-					rotWheelsYL += 0.02f;
-					if (rotWheelsYL > 0.25f) {
-						rotWheelsYL = 0.25f;
-					}
-					if (rotCountL >= 90.f) {
-						rotCountL = 0;
-						stateL = 0;
-						printf("numberAdvanceL: %d\n", numberAdvanceL);
-						if (numberAdvanceL == 4)
-							circuito = false;
-						if (numberAdvanceL > 4) {
-							numberAdvanceL = 1;
-						}
-					}
-					break;
-				default:
-					break;
+		if (circuito) {
+			switch (stateL) {
+			case 0:
+				if (numberAdvanceL == 0) {
+					maxAdvanceL = 40.0f;
 				}
-			}
-			else
-			{
-				doorRotCount += 0.05f;
-				if (doorRotCount > 75.0f) {
-					doorRotCount = 75;
+				else if (numberAdvanceL == 1) {
+					maxAdvanceL = 39.0f;
 				}
+				else if (numberAdvanceL == 2) {
+					maxAdvanceL = 35.0f;
+				}
+				else if (numberAdvanceL == 3) {
+					maxAdvanceL = 39.0f;
+				}
+				else if (numberAdvanceL == 4) {
+					maxAdvanceL = 35.0f;
+				}
+				stateL = 1;
+				break;
+			case 1:
+				modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0f, 0.0f, 0.15f));
+				advanceCountL += 0.15f;
+				rotWheelsXL += 0.05f;
+				rotWheelsYL -= 0.02f;
+				if (rotWheelsYL < 0) {
+					rotWheelsYL = 0;
+				}
+				if (advanceCountL > maxAdvanceL) {
+					advanceCountL = 0;
+					numberAdvanceL++;
+					stateL = 2;
+				}
+				break;
+			case 2:
+				modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0f, 0.0f, 0.025f));
+				modelMatrixLambo = glm::rotate(modelMatrixLambo, glm::radians(0.5f), glm::vec3(0.0f, 1.0f, 0.0f));
+				rotCountL += 0.5f;
+				rotWheelsXL += 0.05f;
+				rotWheelsYL += 0.02f;
+				if (rotWheelsYL > 0.25f) {
+					rotWheelsYL = 0.25f;
+				}
+				if (rotCountL >= 90.f) {
+					rotCountL = 0;
+					stateL = 0;
+					printf("numberAdvanceL: %d\n", numberAdvanceL);
+					if (numberAdvanceL == 4)
+						circuito = false;
+					if (numberAdvanceL > 4) {
+						numberAdvanceL = 1;
+					}
+				}
+				break;
+			default:
+				break;
 			}
+		}
+		else
+		{
+			doorRotCount += 0.15f;
+			if (doorRotCount > 75.0f) {
+				doorRotCount = 75;
+			}
+		}
 
 		// Máquina de estados Helicóptero
 		if (descenso) {
