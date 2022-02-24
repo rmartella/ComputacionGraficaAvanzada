@@ -66,8 +66,8 @@ Model modelHeliChasis;
 Model modelHeliHeli;
 Model modelHeliMini;
 Model modelLambo;
-Model modelLamboLeftDor;
-Model modelLamboRightDor;
+Model modelLamboLeftDoor;
+Model modelLamboRightDoor;
 Model modelLamboFrontLeftWheel;
 Model modelLamboFrontRightWheel;
 Model modelLamboRearLeftWheel;
@@ -196,7 +196,7 @@ float rotHelHelYH = 0.0;
 float rotHelHelXH = 0.0;
 bool descenso = true;
 
-// Var animate lambo dor
+// Var animate lambo door
 int stateDoor = 0;
 float doorRotCount = 0.0;
 bool circuito = true;
@@ -316,10 +316,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	// Lamborginhi
 	modelLambo.loadModel("../models/Lamborginhi_Aventador_OBJ/Lamborghini_Aventador_chasis.obj");
 	modelLambo.setShader(&shaderMulLighting);
-	modelLamboLeftDor.loadModel("../models/Lamborginhi_Aventador_OBJ/Lamborghini_Aventador_left_dor.obj");
-	modelLamboLeftDor.setShader(&shaderMulLighting);
-	modelLamboRightDor.loadModel("../models/Lamborginhi_Aventador_OBJ/Lamborghini_Aventador_right_dor.obj");
-	modelLamboRightDor.setShader(&shaderMulLighting);
+	modelLamboLeftDoor.loadModel("../models/Lamborginhi_Aventador_OBJ/Lamborghini_Aventador_left_dor.obj");
+	modelLamboLeftDoor.setShader(&shaderMulLighting);
+	modelLamboRightDoor.loadModel("../models/Lamborginhi_Aventador_OBJ/Lamborghini_Aventador_right_dor.obj");
+	modelLamboRightDoor.setShader(&shaderMulLighting);
 	modelLamboFrontLeftWheel.loadModel("../models/Lamborginhi_Aventador_OBJ/Lamborghini_Aventador_front_left_wheel.obj");
 	modelLamboFrontLeftWheel.setShader(&shaderMulLighting);
 	modelLamboFrontRightWheel.loadModel("../models/Lamborginhi_Aventador_OBJ/Lamborghini_Aventador_front_right_wheel.obj");
@@ -642,10 +642,10 @@ void destroy() {
 	modelLambo.destroy();
 	modelLamboFrontLeftWheel.destroy();
 	modelLamboFrontRightWheel.destroy();
-	modelLamboLeftDor.destroy();
+	modelLamboLeftDoor.destroy();
 	modelLamboRearLeftWheel.destroy();
 	modelLamboRearRightWheel.destroy();
-	modelLamboRightDor.destroy();
+	modelLamboRightDoor.destroy();
 	modelRock.destroy();
 	modelBuzzHip.destroy();
 	modelBuzzTorso.destroy();
@@ -1202,13 +1202,13 @@ void applicationLoop() {
 		modelLambo.render(modelMatrixLamboChasis);
 
 		glActiveTexture(GL_TEXTURE0);
-		glm::mat4 modelMatrixLamboLeftDor = glm::mat4(modelMatrixLamboChasis);
-		modelLamboRightDor.render(modelMatrixLamboChasis);
+		glm::mat4 modelMatrixLamboLeftDoor = glm::mat4(modelMatrixLamboChasis);
+		modelLamboRightDoor.render(modelMatrixLamboChasis);
 
-		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(1.08676, 0.707316, 0.982601));
-		modelMatrixLamboLeftDor = glm::rotate(modelMatrixLamboLeftDor, glm::radians(doorRotCount), glm::vec3(1.0, 0, 0));
-		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(-1.08676, -0.707316, -0.982601));
-		modelLamboLeftDor.render(modelMatrixLamboLeftDor);
+		modelMatrixLamboLeftDoor = glm::translate(modelMatrixLamboLeftDoor, glm::vec3(1.08676, 0.707316, 0.982601));
+		modelMatrixLamboLeftDoor = glm::rotate(modelMatrixLamboLeftDoor, glm::radians(doorRotCount), glm::vec3(1.0, 0, 0));
+		modelMatrixLamboLeftDoor = glm::translate(modelMatrixLamboLeftDoor, glm::vec3(-1.08676, -0.707316, -0.982601));
+		modelLamboLeftDoor.render(modelMatrixLamboLeftDoor);
 
 		glm::mat4 modelMatrixFrontalLamboWheelsL = glm::mat4(modelMatrixLamboChasis);
 		modelMatrixFrontalLamboWheelsL = glm::translate(modelMatrixFrontalLamboWheelsL, glm::vec3(1, 0.4, 1.4));
