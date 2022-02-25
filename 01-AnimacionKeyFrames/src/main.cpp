@@ -195,6 +195,7 @@ int numPasosBuzz = 0;
 float rotHelHelYH = 0.0;
 float rotHelHelXH = 0.0;
 bool descenso = true;
+float acceleration = 0.03125;
 
 // Var animate lambo door
 int stateDoor = 0;
@@ -957,7 +958,6 @@ void applicationLoop() {
 	modelMatrixHeli = glm::translate(modelMatrixHeli, glm::vec3(5.0, 10.0, -5.0));
 	int stateH = 0;
 	float advanceCountH = 0.0;
-	float acceleration = 0.03125;
 
 	modelMatrixAircraft = glm::translate(modelMatrixAircraft, glm::vec3(10.0, 2.0, -17.5));
 
