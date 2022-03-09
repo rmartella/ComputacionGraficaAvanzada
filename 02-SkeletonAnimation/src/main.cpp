@@ -83,6 +83,14 @@ Model modelDartLegoRightLeg;
 // Model animate instance
 // Mayow
 Model mayowModelAnimate;
+//Cowboy
+Model cowboyModelAnimate;
+//Granjero
+Model granjeroModelAnimate;
+//Cyborg
+Model cyborgModelAnimate;
+//Girl
+Model girlModelAnimate;
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
@@ -114,6 +122,10 @@ glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+glm::mat4 modelMatrixCowboy = glm::mat4(1.0f);
+glm::mat4 modelMatrixGranjero = glm::mat4(1.0f);
+glm::mat4 modelMatrixCyborg = glm::mat4(1.0f);
+glm::mat4 modelMatrixGirl = glm::mat4(1.0f);
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 0;
@@ -291,6 +303,22 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//Mayow
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
+	
+	//Cowboy
+	cowboyModelAnimate.loadModel("../models/cowboy/Character Running.fbx");
+	cowboyModelAnimate.setShader(&shaderMulLighting);
+
+	//Granjero
+	granjeroModelAnimate.loadModel("../models/boblampclean/boblampclean.md5mesh");
+	granjeroModelAnimate.setShader(&shaderMulLighting);
+
+	//Cyborg
+	cyborgModelAnimate.loadModel("../models/cyborg/PruebaAnimacion2022-2.fbx");
+	cyborgModelAnimate.setShader(&shaderMulLighting);
+
+	//Girl
+	girlModelAnimate.loadModel("../models/Girl/Girl_rigify.fbx");
+	girlModelAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -529,6 +557,10 @@ void destroy() {
 
 	// Custom objects animate
 	mayowModelAnimate.destroy();
+	cowboyModelAnimate.destroy();
+	granjeroModelAnimate.destroy();
+	cyborgModelAnimate.destroy();
+	girlModelAnimate.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -692,6 +724,22 @@ bool processInput(bool continueApplication) {
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(0.02, 0.0, 0.0));
 
+	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0.0, 0.0, 0.03));
+		mayowModelAnimate.setAnimationIndex(0);
+	}else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0.0, 0.0, -0.03));
+		mayowModelAnimate.setAnimationIndex(0);
+	}
+	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		modelMatrixMayow = glm::rotate(modelMatrixMayow, 0.03f, glm::vec3(0, 1, 0));
+		mayowModelAnimate.setAnimationIndex(0);
+	}
+	else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		modelMatrixMayow = glm::rotate(modelMatrixMayow, -0.03f, glm::vec3(0, 1, 0));
+		mayowModelAnimate.setAnimationIndex(0);
+	}
+
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -721,6 +769,11 @@ void applicationLoop() {
 
 	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
 	modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+
+	modelMatrixCowboy = glm::translate(modelMatrixCowboy, glm::vec3(0.0, 0.05, -10.0));
+
+	modelMatrixGranjero = glm::translate(modelMatrixGranjero, glm::vec3(0.0, 0.05, 10.0));
+	modelMatrixGranjero = glm::rotate(modelMatrixGranjero, glm::radians(-90.0f), glm::vec3(1, 0, 0));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -996,8 +1049,27 @@ void applicationLoop() {
 		 *******************************************/
 		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
 		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
-		mayowModelAnimate.setAnimationIndex(0);
 		mayowModelAnimate.render(modelMatrixMayowBody);
+		mayowModelAnimate.setAnimationIndex(1);
+
+		glm::mat4 modelMatrixCyborgBody = glm::mat4(modelMatrixCyborg);
+		modelMatrixCyborgBody = glm::scale(modelMatrixCyborgBody, glm::vec3(0.01, 0.01, 0.01));
+		cyborgModelAnimate.setAnimationIndex(2);
+		cyborgModelAnimate.render(modelMatrixCyborgBody);
+
+		glm::mat4 modelMatrixCowboyBody = glm::mat4(modelMatrixCowboy);
+		modelMatrixCowboyBody = glm::scale(modelMatrixCowboyBody, glm::vec3(0.005, 0.005, 0.005));
+		cowboyModelAnimate.render(modelMatrixCowboyBody);
+
+		glm::mat4 modelMatrixGranjeroBody = glm::mat4(modelMatrixGranjero);
+		modelMatrixGranjeroBody = glm::scale(modelMatrixGranjeroBody, glm::vec3(0.08, 0.08, 0.08));
+		granjeroModelAnimate.render(modelMatrixGranjeroBody);
+
+		glm::mat4 modelMatrixGirlBody = glm::mat4(modelMatrixGirl);
+		modelMatrixGirlBody = glm::translate(modelMatrixGirlBody, glm::vec3(0.0, 0.0, 2.9));
+		modelMatrixGirlBody = glm::scale(modelMatrixGirlBody, glm::vec3(0.01, 0.01, 0.01));
+		girlModelAnimate.setAnimationIndex(1);
+		girlModelAnimate.render(modelMatrixGirlBody);
 
 		/*******************************************
 		 * Skybox
