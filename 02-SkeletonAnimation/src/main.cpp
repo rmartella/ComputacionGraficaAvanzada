@@ -1068,7 +1068,7 @@ void applicationLoop() {
 		glm::mat4 modelMatrixGirlBody = glm::mat4(modelMatrixGirl);
 		modelMatrixGirlBody = glm::translate(modelMatrixGirlBody, glm::vec3(0.0, 0.0, 2.9));
 		modelMatrixGirlBody = glm::scale(modelMatrixGirlBody, glm::vec3(0.01, 0.01, 0.01));
-		girlModelAnimate.setAnimationIndex(1);
+		girlModelAnimate.setAnimationIndex(0);
 		girlModelAnimate.render(modelMatrixGirlBody);
 
 		/*******************************************
