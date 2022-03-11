@@ -638,7 +638,7 @@ bool processInput(bool continueApplication) {
 	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS){
 		enableCountSelected = false;
 		modelSelected++;
-		if(modelSelected > 2)
+		if(modelSelected > 3)
 			modelSelected = 0;
 		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
@@ -740,6 +740,23 @@ bool processInput(bool continueApplication) {
 		mayowModelAnimate.setAnimationIndex(0);
 	}
 
+	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		modelMatrixGirl = glm::translate(modelMatrixGirl, glm::vec3(0.0, 0.0, 0.03));
+		girlModelAnimate.setAnimationIndex(1);
+	}
+	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		modelMatrixGirl = glm::translate(modelMatrixGirl, glm::vec3(0.0, 0.0, -0.03));
+		girlModelAnimate.setAnimationIndex(1);
+	}
+	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		modelMatrixGirl = glm::rotate(modelMatrixGirl, 0.03f, glm::vec3(0, 1, 0));
+		girlModelAnimate.setAnimationIndex(1);
+	}
+	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		modelMatrixGirl = glm::rotate(modelMatrixGirl, -0.03f, glm::vec3(0, 1, 0));
+		girlModelAnimate.setAnimationIndex(1);
+	}
+
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -774,6 +791,9 @@ void applicationLoop() {
 
 	modelMatrixGranjero = glm::translate(modelMatrixGranjero, glm::vec3(0.0, 0.05, 10.0));
 	modelMatrixGranjero = glm::rotate(modelMatrixGranjero, glm::radians(-90.0f), glm::vec3(1, 0, 0));
+
+	modelMatrixGirl = glm::translate(modelMatrixGirl, glm::vec3(0.0, 0.0, 2.9));
+	
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -1066,10 +1086,9 @@ void applicationLoop() {
 		granjeroModelAnimate.render(modelMatrixGranjeroBody);
 
 		glm::mat4 modelMatrixGirlBody = glm::mat4(modelMatrixGirl);
-		modelMatrixGirlBody = glm::translate(modelMatrixGirlBody, glm::vec3(0.0, 0.0, 2.9));
 		modelMatrixGirlBody = glm::scale(modelMatrixGirlBody, glm::vec3(0.01, 0.01, 0.01));
-		girlModelAnimate.setAnimationIndex(0);
 		girlModelAnimate.render(modelMatrixGirlBody);
+		girlModelAnimate.setAnimationIndex(0);
 
 		/*******************************************
 		 * Skybox
