@@ -88,9 +88,9 @@ Model cowboyModelAnimate;
 //Granjero
 Model granjeroModelAnimate;
 //Cyborg
-Model cyborgModelAnimate;
+//Model cyborgModelAnimate;
 //Girl
-Model girlModelAnimate;
+Model endermanModelAnimate;
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
@@ -125,7 +125,7 @@ glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
 glm::mat4 modelMatrixCowboy = glm::mat4(1.0f);
 glm::mat4 modelMatrixGranjero = glm::mat4(1.0f);
 glm::mat4 modelMatrixCyborg = glm::mat4(1.0f);
-glm::mat4 modelMatrixGirl = glm::mat4(1.0f);
+glm::mat4 modelMatrixEnderman = glm::mat4(1.0f);
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 0;
@@ -313,12 +313,12 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	granjeroModelAnimate.setShader(&shaderMulLighting);
 
 	//Cyborg
-	cyborgModelAnimate.loadModel("../models/cyborg/PruebaAnimacion2022-2.fbx");
-	cyborgModelAnimate.setShader(&shaderMulLighting);
+	//cyborgModelAnimate.loadModel("../models/cyborg/PruebaAnimacion2022-2.fbx");
+	//cyborgModelAnimate.setShader(&shaderMulLighting);
 
-	//Girl
-	girlModelAnimate.loadModel("../models/Girl/Girl_rigify.fbx");
-	girlModelAnimate.setShader(&shaderMulLighting);
+	//Enderman
+	endermanModelAnimate.loadModel("../models/Enderman/Enderman2.fbx");
+	endermanModelAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -559,8 +559,8 @@ void destroy() {
 	mayowModelAnimate.destroy();
 	cowboyModelAnimate.destroy();
 	granjeroModelAnimate.destroy();
-	cyborgModelAnimate.destroy();
-	girlModelAnimate.destroy();
+	//cyborgModelAnimate.destroy();
+	endermanModelAnimate.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -741,20 +741,20 @@ bool processInput(bool continueApplication) {
 	}
 
 	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-		modelMatrixGirl = glm::translate(modelMatrixGirl, glm::vec3(0.0, 0.0, 0.03));
-		girlModelAnimate.setAnimationIndex(1);
+		modelMatrixEnderman = glm::translate(modelMatrixEnderman, glm::vec3(0.0, 0.0, 0.03));
+		endermanModelAnimate.setAnimationIndex(1);
 	}
 	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-		modelMatrixGirl = glm::translate(modelMatrixGirl, glm::vec3(0.0, 0.0, -0.03));
-		girlModelAnimate.setAnimationIndex(1);
+		modelMatrixEnderman = glm::translate(modelMatrixEnderman, glm::vec3(0.0, 0.0, -0.03));
+		endermanModelAnimate.setAnimationIndex(1);
 	}
 	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-		modelMatrixGirl = glm::rotate(modelMatrixGirl, 0.03f, glm::vec3(0, 1, 0));
-		girlModelAnimate.setAnimationIndex(1);
+		modelMatrixEnderman = glm::rotate(modelMatrixEnderman, 0.03f, glm::vec3(0, 1, 0));
+		endermanModelAnimate.setAnimationIndex(1);
 	}
 	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-		modelMatrixGirl = glm::rotate(modelMatrixGirl, -0.03f, glm::vec3(0, 1, 0));
-		girlModelAnimate.setAnimationIndex(1);
+		modelMatrixEnderman = glm::rotate(modelMatrixEnderman, -0.03f, glm::vec3(0, 1, 0));
+		endermanModelAnimate.setAnimationIndex(1);
 	}
 
 	glfwPollEvents();
@@ -792,7 +792,7 @@ void applicationLoop() {
 	modelMatrixGranjero = glm::translate(modelMatrixGranjero, glm::vec3(0.0, 0.05, 10.0));
 	modelMatrixGranjero = glm::rotate(modelMatrixGranjero, glm::radians(-90.0f), glm::vec3(1, 0, 0));
 
-	modelMatrixGirl = glm::translate(modelMatrixGirl, glm::vec3(0.0, 0.0, 2.9));
+	modelMatrixEnderman = glm::translate(modelMatrixEnderman, glm::vec3(0.0, 0.0, 2.9));
 	
 
 	// Variables to interpolation key frames
@@ -1074,8 +1074,8 @@ void applicationLoop() {
 
 		glm::mat4 modelMatrixCyborgBody = glm::mat4(modelMatrixCyborg);
 		modelMatrixCyborgBody = glm::scale(modelMatrixCyborgBody, glm::vec3(0.01, 0.01, 0.01));
-		cyborgModelAnimate.setAnimationIndex(2);
-		cyborgModelAnimate.render(modelMatrixCyborgBody);
+		//cyborgModelAnimate.setAnimationIndex(2);
+		//cyborgModelAnimate.render(modelMatrixCyborgBody);
 
 		glm::mat4 modelMatrixCowboyBody = glm::mat4(modelMatrixCowboy);
 		modelMatrixCowboyBody = glm::scale(modelMatrixCowboyBody, glm::vec3(0.005, 0.005, 0.005));
@@ -1085,10 +1085,10 @@ void applicationLoop() {
 		modelMatrixGranjeroBody = glm::scale(modelMatrixGranjeroBody, glm::vec3(0.08, 0.08, 0.08));
 		granjeroModelAnimate.render(modelMatrixGranjeroBody);
 
-		glm::mat4 modelMatrixGirlBody = glm::mat4(modelMatrixGirl);
-		modelMatrixGirlBody = glm::scale(modelMatrixGirlBody, glm::vec3(0.01, 0.01, 0.01));
-		girlModelAnimate.render(modelMatrixGirlBody);
-		girlModelAnimate.setAnimationIndex(0);
+		glm::mat4 modelMatrixEndermanBody = glm::mat4(modelMatrixEnderman);
+		modelMatrixEndermanBody = glm::scale(modelMatrixEndermanBody, glm::vec3(0.01, 0.01, 0.01));
+		endermanModelAnimate.render(modelMatrixEndermanBody);
+		endermanModelAnimate.setAnimationIndex(0);
 
 		/*******************************************
 		 * Skybox
