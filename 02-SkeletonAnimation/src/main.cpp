@@ -88,8 +88,8 @@ Model cowboyModelAnimate;
 //Granjero
 Model granjeroModelAnimate;
 //Cyborg
-//Model cyborgModelAnimate;
-//Girl
+Model cyborgModelAnimate;
+//Enderman
 Model endermanModelAnimate;
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
@@ -103,12 +103,12 @@ GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
 GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
 GL_TEXTURE_CUBE_MAP_NEGATIVE_Z };
 
-std::string fileNames[6] = { "../Textures/mp_bloodvalley/blood-valley_ft.tga",
-		"../Textures/mp_bloodvalley/blood-valley_bk.tga",
-		"../Textures/mp_bloodvalley/blood-valley_up.tga",
-		"../Textures/mp_bloodvalley/blood-valley_dn.tga",
-		"../Textures/mp_bloodvalley/blood-valley_rt.tga",
-		"../Textures/mp_bloodvalley/blood-valley_lf.tga" };
+std::string fileNames[6] = { "../Textures/manana/1_ft.jpg",
+		"../Textures/manana/1_bk.jpg",
+		"../Textures/manana/1_up.jpg",
+		"../Textures/manana/1_dn.jpg",
+		"../Textures/manana/1_rt.jpg",
+		"../Textures/manana/1_lf.jpg" };
 
 bool exitApp = false;
 int lastMousePosX, offsetX = 0;
@@ -313,10 +313,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	granjeroModelAnimate.setShader(&shaderMulLighting);
 
 	//Cyborg
-	//cyborgModelAnimate.loadModel("../models/cyborg/PruebaAnimacion2022-2.fbx");
-	//cyborgModelAnimate.setShader(&shaderMulLighting);
+	cyborgModelAnimate.loadModel("../models/cyborg/PruebaAnimacion2022-2.fbx");
+	cyborgModelAnimate.setShader(&shaderMulLighting);
 
-	//Enderman
+	//enderman
 	endermanModelAnimate.loadModel("../models/Enderman/Enderman2.fbx");
 	endermanModelAnimate.setShader(&shaderMulLighting);
 
@@ -559,7 +559,7 @@ void destroy() {
 	mayowModelAnimate.destroy();
 	cowboyModelAnimate.destroy();
 	granjeroModelAnimate.destroy();
-	//cyborgModelAnimate.destroy();
+	cyborgModelAnimate.destroy();
 	endermanModelAnimate.destroy();
 
 	// Textures Delete
@@ -1074,8 +1074,8 @@ void applicationLoop() {
 
 		glm::mat4 modelMatrixCyborgBody = glm::mat4(modelMatrixCyborg);
 		modelMatrixCyborgBody = glm::scale(modelMatrixCyborgBody, glm::vec3(0.01, 0.01, 0.01));
-		//cyborgModelAnimate.setAnimationIndex(2);
-		//cyborgModelAnimate.render(modelMatrixCyborgBody);
+		cyborgModelAnimate.setAnimationIndex(2);
+		cyborgModelAnimate.render(modelMatrixCyborgBody);
 
 		glm::mat4 modelMatrixCowboyBody = glm::mat4(modelMatrixCowboy);
 		modelMatrixCowboyBody = glm::scale(modelMatrixCowboyBody, glm::vec3(0.005, 0.005, 0.005));
@@ -1086,7 +1086,7 @@ void applicationLoop() {
 		granjeroModelAnimate.render(modelMatrixGranjeroBody);
 
 		glm::mat4 modelMatrixEndermanBody = glm::mat4(modelMatrixEnderman);
-		modelMatrixEndermanBody = glm::scale(modelMatrixEndermanBody, glm::vec3(0.01, 0.01, 0.01));
+		modelMatrixEndermanBody = glm::scale(modelMatrixEndermanBody, glm::vec3(0.003, 0.003, 0.003));
 		endermanModelAnimate.render(modelMatrixEndermanBody);
 		endermanModelAnimate.setAnimationIndex(0);
 
