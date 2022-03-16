@@ -83,6 +83,14 @@ Model modelDartLegoRightLeg;
 // Model animate instance
 // Mayow
 Model mayowModelAnimate;
+//Cowboy
+Model cowboyModelAnimate;
+//Granjero
+Model granjeroModelAnimate;
+//Cyborg
+Model cyborgModelAnimate;
+//Enderman
+Model endermanModelAnimate;
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
@@ -95,12 +103,12 @@ GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
 GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
 GL_TEXTURE_CUBE_MAP_NEGATIVE_Z };
 
-std::string fileNames[6] = { "../Textures/mp_bloodvalley/blood-valley_ft.tga",
-		"../Textures/mp_bloodvalley/blood-valley_bk.tga",
-		"../Textures/mp_bloodvalley/blood-valley_up.tga",
-		"../Textures/mp_bloodvalley/blood-valley_dn.tga",
-		"../Textures/mp_bloodvalley/blood-valley_rt.tga",
-		"../Textures/mp_bloodvalley/blood-valley_lf.tga" };
+std::string fileNames[6] = { "../Textures/manana/1_ft.jpg",
+		"../Textures/manana/1_bk.jpg",
+		"../Textures/manana/1_up.jpg",
+		"../Textures/manana/1_dn.jpg",
+		"../Textures/manana/1_rt.jpg",
+		"../Textures/manana/1_lf.jpg" };
 
 bool exitApp = false;
 int lastMousePosX, offsetX = 0;
@@ -114,6 +122,10 @@ glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+glm::mat4 modelMatrixCowboy = glm::mat4(1.0f);
+glm::mat4 modelMatrixGranjero = glm::mat4(1.0f);
+glm::mat4 modelMatrixCyborg = glm::mat4(1.0f);
+glm::mat4 modelMatrixEnderman = glm::mat4(1.0f);
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 0;
@@ -291,6 +303,22 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//Mayow
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
+	
+	//Cowboy
+	cowboyModelAnimate.loadModel("../models/cowboy/Character Running.fbx");
+	cowboyModelAnimate.setShader(&shaderMulLighting);
+
+	//Granjero
+	granjeroModelAnimate.loadModel("../models/boblampclean/boblampclean.md5mesh");
+	granjeroModelAnimate.setShader(&shaderMulLighting);
+
+	//Cyborg
+	cyborgModelAnimate.loadModel("../models/cyborg/PruebaAnimacion2022-2.fbx");
+	cyborgModelAnimate.setShader(&shaderMulLighting);
+
+	//enderman
+	endermanModelAnimate.loadModel("../models/Enderman/Enderman2.fbx");
+	endermanModelAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -529,6 +557,10 @@ void destroy() {
 
 	// Custom objects animate
 	mayowModelAnimate.destroy();
+	cowboyModelAnimate.destroy();
+	granjeroModelAnimate.destroy();
+	cyborgModelAnimate.destroy();
+	endermanModelAnimate.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -606,7 +638,7 @@ bool processInput(bool continueApplication) {
 	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS){
 		enableCountSelected = false;
 		modelSelected++;
-		if(modelSelected > 2)
+		if(modelSelected > 3)
 			modelSelected = 0;
 		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
@@ -692,6 +724,39 @@ bool processInput(bool continueApplication) {
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(0.02, 0.0, 0.0));
 
+	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0.0, 0.0, 0.03));
+		mayowModelAnimate.setAnimationIndex(0);
+	}else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0.0, 0.0, -0.03));
+		mayowModelAnimate.setAnimationIndex(0);
+	}
+	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		modelMatrixMayow = glm::rotate(modelMatrixMayow, 0.03f, glm::vec3(0, 1, 0));
+		mayowModelAnimate.setAnimationIndex(0);
+	}
+	else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		modelMatrixMayow = glm::rotate(modelMatrixMayow, -0.03f, glm::vec3(0, 1, 0));
+		mayowModelAnimate.setAnimationIndex(0);
+	}
+
+	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		modelMatrixEnderman = glm::translate(modelMatrixEnderman, glm::vec3(0.0, 0.0, 0.03));
+		endermanModelAnimate.setAnimationIndex(1);
+	}
+	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		modelMatrixEnderman = glm::translate(modelMatrixEnderman, glm::vec3(0.0, 0.0, -0.03));
+		endermanModelAnimate.setAnimationIndex(1);
+	}
+	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		modelMatrixEnderman = glm::rotate(modelMatrixEnderman, 0.03f, glm::vec3(0, 1, 0));
+		endermanModelAnimate.setAnimationIndex(1);
+	}
+	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		modelMatrixEnderman = glm::rotate(modelMatrixEnderman, -0.03f, glm::vec3(0, 1, 0));
+		endermanModelAnimate.setAnimationIndex(1);
+	}
+
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -721,6 +786,14 @@ void applicationLoop() {
 
 	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
 	modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+
+	modelMatrixCowboy = glm::translate(modelMatrixCowboy, glm::vec3(0.0, 0.05, -10.0));
+
+	modelMatrixGranjero = glm::translate(modelMatrixGranjero, glm::vec3(0.0, 0.05, 10.0));
+	modelMatrixGranjero = glm::rotate(modelMatrixGranjero, glm::radians(-90.0f), glm::vec3(1, 0, 0));
+
+	modelMatrixEnderman = glm::translate(modelMatrixEnderman, glm::vec3(0.0, 0.0, 2.9));
+	
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -996,8 +1069,26 @@ void applicationLoop() {
 		 *******************************************/
 		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
 		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
-		mayowModelAnimate.setAnimationIndex(0);
 		mayowModelAnimate.render(modelMatrixMayowBody);
+		mayowModelAnimate.setAnimationIndex(1);
+
+		glm::mat4 modelMatrixCyborgBody = glm::mat4(modelMatrixCyborg);
+		modelMatrixCyborgBody = glm::scale(modelMatrixCyborgBody, glm::vec3(0.01, 0.01, 0.01));
+		cyborgModelAnimate.setAnimationIndex(2);
+		cyborgModelAnimate.render(modelMatrixCyborgBody);
+
+		glm::mat4 modelMatrixCowboyBody = glm::mat4(modelMatrixCowboy);
+		modelMatrixCowboyBody = glm::scale(modelMatrixCowboyBody, glm::vec3(0.005, 0.005, 0.005));
+		cowboyModelAnimate.render(modelMatrixCowboyBody);
+
+		glm::mat4 modelMatrixGranjeroBody = glm::mat4(modelMatrixGranjero);
+		modelMatrixGranjeroBody = glm::scale(modelMatrixGranjeroBody, glm::vec3(0.08, 0.08, 0.08));
+		granjeroModelAnimate.render(modelMatrixGranjeroBody);
+
+		glm::mat4 modelMatrixEndermanBody = glm::mat4(modelMatrixEnderman);
+		modelMatrixEndermanBody = glm::scale(modelMatrixEndermanBody, glm::vec3(0.003, 0.003, 0.003));
+		endermanModelAnimate.render(modelMatrixEndermanBody);
+		endermanModelAnimate.setAnimationIndex(0);
 
 		/*******************************************
 		 * Skybox
