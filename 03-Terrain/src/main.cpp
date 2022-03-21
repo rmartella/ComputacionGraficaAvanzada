@@ -906,7 +906,7 @@ void applicationLoop() {
 		glm::vec3 ejeyE = glm::normalize(terrain.getNormalTerrain(modelMatrixEnderman[3][0], modelMatrixEnderman[3][2]));
 		glm::vec3 ejexE = glm::normalize(modelMatrixEnderman[0]);
 		glm::vec3 ejezE = glm::normalize(glm::cross(ejexE, ejeyE));
-		ejex = glm::normalize(glm::cross(ejeyE, ejezE));
+		ejexE = glm::normalize(glm::cross(ejeyE, ejezE));
 		modelMatrixEnderman[0] = glm::vec4(ejexE, 0.0);
 		modelMatrixEnderman[1] = glm::vec4(ejeyE, 0.0);
 		modelMatrixEnderman[2] = glm::vec4(ejezE, 0.0);
