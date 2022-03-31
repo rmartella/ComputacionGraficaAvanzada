@@ -81,9 +81,7 @@ Model modelDartLegoRightLeg;
 // Mayow
 Model mayowModelAnimate;
 // Terrain model instance
-//Enderman
-Model endermanModelAnimate;
-Terrain terrain(-1, -1, 200, 20, "../Textures/terreno_personalizado.png");
+Terrain terrain(-1, -1, 200, 8, "../Textures/heightmap.png");
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
@@ -114,7 +112,6 @@ glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
-glm::mat4 modelMatrixEnderman = glm::mat4(1.0f);
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 0;
@@ -276,10 +273,6 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//Mayow
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
-
-	//Enderman
-	endermanModelAnimate.loadModel("../models/Enderman/Enderman2.fbx");
-	endermanModelAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -514,7 +507,6 @@ void destroy() {
 
 	// Custom objects animate
 	mayowModelAnimate.destroy();
-	endermanModelAnimate.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -592,7 +584,7 @@ bool processInput(bool continueApplication) {
 	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS){
 		enableCountSelected = false;
 		modelSelected++;
-		if(modelSelected > 3)
+		if(modelSelected > 2)
 			modelSelected = 0;
 		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
@@ -677,22 +669,6 @@ bool processInput(bool continueApplication) {
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(-0.02, 0.0, 0.0));
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(0.02, 0.0, 0.0));
-	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-		modelMatrixEnderman = glm::translate(modelMatrixEnderman, glm::vec3(0.0, 0.0, 0.03));
-		endermanModelAnimate.setAnimationIndex(1);
-	}
-	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-		modelMatrixEnderman = glm::translate(modelMatrixEnderman, glm::vec3(0.0, 0.0, -0.03));
-		endermanModelAnimate.setAnimationIndex(1);
-	}
-	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-		modelMatrixEnderman = glm::rotate(modelMatrixEnderman, 0.03f, glm::vec3(0, 1, 0));
-		endermanModelAnimate.setAnimationIndex(1);
-	}
-	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-		modelMatrixEnderman = glm::rotate(modelMatrixEnderman, -0.03f, glm::vec3(0, 1, 0));
-		endermanModelAnimate.setAnimationIndex(1);
-	}
 
 	glfwPollEvents();
 	return continueApplication;
@@ -714,8 +690,6 @@ void applicationLoop() {
 	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
 	modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-90.0f), glm::vec3(0, 1, 0));
 
-	modelMatrixEnderman = glm::translate(modelMatrixEnderman, glm::vec3(0.0, 0.0, 2.9));
-
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
 	keyFramesDartJoints = getKeyRotFrames(fileName);
@@ -725,7 +699,7 @@ void applicationLoop() {
 
 	while (psi) {
 		currTime = TimeManager::Instance().GetTime();
-		if (currTime - lastTime < 0.016666667) {
+		if(currTime - lastTime < 0.016666667){
 			glfwPollEvents();
 			continue;
 		}
@@ -740,7 +714,7 @@ void applicationLoop() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f),
-			(float)screenWidth / (float)screenHeight, 0.01f, 100.0f);
+				(float) screenWidth / (float) screenHeight, 0.01f, 100.0f);
 		glm::mat4 view = camera->getViewMatrix();
 
 		// Settea la matriz de vista y projection al shader con solo color
@@ -749,14 +723,14 @@ void applicationLoop() {
 
 		// Settea la matriz de vista y projection al shader con skybox
 		shaderSkybox.setMatrix4("projection", 1, false,
-			glm::value_ptr(projection));
+				glm::value_ptr(projection));
 		shaderSkybox.setMatrix4("view", 1, false,
-			glm::value_ptr(glm::mat4(glm::mat3(view))));
+				glm::value_ptr(glm::mat4(glm::mat3(view))));
 		// Settea la matriz de vista y projection al shader con multiples luces
 		shaderMulLighting.setMatrix4("projection", 1, false,
-			glm::value_ptr(projection));
+					glm::value_ptr(projection));
 		shaderMulLighting.setMatrix4("view", 1, false,
-			glm::value_ptr(view));
+				glm::value_ptr(view));
 
 		/*******************************************
 		 * Propiedades Luz direccional
@@ -795,7 +769,7 @@ void applicationLoop() {
 		/*******************************************
 		 * Custom objects obj
 		 *******************************************/
-		 //Rock render
+		//Rock render
 		matrixModelRock[3][1] = terrain.getHeightTerrain(matrixModelRock[3][0], matrixModelRock[3][2]);
 		modelRock.render(matrixModelRock);
 		// Forze to enable the unit texture to 0 always ----------------- IMPORTANT
@@ -890,32 +864,11 @@ void applicationLoop() {
 		/*******************************************
 		 * Custom Anim objects obj
 		 *******************************************/
-		glm::vec3 ejey = glm::normalize(terrain.getNormalTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]));
-		glm::vec3 ejex = glm::normalize(modelMatrixMayow[0]);
-		glm::vec3 ejez = glm::normalize(glm::cross(ejex, ejey));
-		ejex = glm::normalize(glm::cross(ejey, ejez));
-		modelMatrixMayow[0] = glm::vec4(ejex, 0.0);
-		modelMatrixMayow[1] = glm::vec4(ejey, 0.0);
-		modelMatrixMayow[2] = glm::vec4(ejez, 0.0);
 		modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
 		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
 		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
 		mayowModelAnimate.setAnimationIndex(0);
 		mayowModelAnimate.render(modelMatrixMayowBody);
-
-		glm::vec3 ejeyE = glm::normalize(terrain.getNormalTerrain(modelMatrixEnderman[3][0], modelMatrixEnderman[3][2]));
-		glm::vec3 ejexE = glm::normalize(modelMatrixEnderman[0]);
-		glm::vec3 ejezE = glm::normalize(glm::cross(ejexE, ejeyE));
-		ejexE = glm::normalize(glm::cross(ejeyE, ejezE));
-		modelMatrixEnderman[0] = glm::vec4(ejexE, 0.0);
-		modelMatrixEnderman[1] = glm::vec4(ejeyE, 0.0);
-		modelMatrixEnderman[2] = glm::vec4(ejezE, 0.0);
-		modelMatrixEnderman[3][1] = terrain.getHeightTerrain(modelMatrixEnderman[3][0], modelMatrixEnderman[3][2]);
-		glm::mat4 modelMatrixEndermanBody = glm::mat4(modelMatrixEnderman);
-		modelMatrixEndermanBody = glm::scale(modelMatrixEndermanBody, glm::vec3(0.0021, 0.0021, 0.0021));
-		endermanModelAnimate.render(modelMatrixEndermanBody);
-		endermanModelAnimate.setAnimationIndex(0);
-		
 
 		/*******************************************
 		 * Skybox
