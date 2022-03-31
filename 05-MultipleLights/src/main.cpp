@@ -83,6 +83,7 @@ Model modelDartLegoRightLeg;
 Model modelLamp1;
 Model modelLamp2;
 Model modelLampPost2;
+Model modelLamp3;
 // Model animate instance
 // Mayow
 Model mayowModelAnimate;
@@ -156,8 +157,13 @@ std::vector<glm::vec3> lamp1Position = { glm::vec3(-7.03, 0, -19.14), glm::vec3(
 		24.41, 0, -34.57), glm::vec3(-10.15, 0, -54.10), glm::vec3(19.92, 0, -51.95) };
 std::vector<float> lamp1Orientation = { -17.0, -82.67, 23.70, -45.0 };
 std::vector<glm::vec3> lamp2Position = { glm::vec3(-36.52, 0, -23.24),
-		glm::vec3(-52.73, 0, -3.90), glm::vec3(-47.07, 0, -12.5), glm::vec3(-49.02, 0, -18.94) };
-std::vector<float> lamp2Orientation = {21.37 + 90, -65.0 + 90, 65.0 + 90, 21.37 + 90 };
+		glm::vec3(-52.73, 0, -3.90), glm::vec3(8.984, 0, -63.281), glm::vec3(27.539, 0, -79.492),
+		glm::vec3(50.391, 0, -91.992) };
+std::vector<float> lamp2Orientation = {21.37 + 90, -65.0 + 90, -23.53, 29.17 + 90, 0.0 - 90 };
+std::vector<glm::vec3> lamp3Position = { glm::vec3(9.375, 0, -8.008),
+		glm::vec3(30.664, 0, 7.031), glm::vec3(18.75, 0, 36.328), glm::vec3(5.273, 0, 56.25),
+		glm::vec3(61.133, 0, 32.422) };
+std::vector<float> lamp3Orientation = { 20.35 + 90, 32.28 - 90, -49.2 + 90, 0.0 + 180, 72.1 - 90 };
 
 double deltaTime;
 double currTime, lastTime;
@@ -294,6 +300,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	modelLamp2.setShader(&shaderMulLighting);
 	modelLampPost2.loadModel("../models/Street_Light/LampPost.obj");
 	modelLampPost2.setShader(&shaderMulLighting);
+	modelLamp3.loadModel("../models/Lampara/Lampara.obj");
+	modelLamp3.setShader(&shaderMulLighting);
 
 	//Mayow
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
@@ -693,6 +701,7 @@ void destroy() {
 	modelLamp1.destroy();
 	modelLamp2.destroy();
 	modelLampPost2.destroy();
+	modelLamp3.destroy();
 
 	// Custom objects animate
 	mayowModelAnimate.destroy();
@@ -953,84 +962,84 @@ void applicationLoop() {
 		shaderTerrain.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.4, 0.4, 0.4)));
 		shaderTerrain.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-1.0, 0.0, 0.0)));
 
-		//Propiedades de las luces Spotlight
+		/*******************************************
+		 * Propiedades SpotLights
+		 *******************************************/
+		shaderMulLighting.setInt("spotLightCount", 3); // Helicopter and 2 lambo lights
+		shaderTerrain.setInt("spotLightCount", 3);
 		glm::vec3 spotPosition = glm::vec3( modelMatrixHeli * glm::vec4(0.01, 0.259, 1.93, 1.0) );
-		shaderMulLighting.setInt("spotLightCount", 1);
 		shaderMulLighting.setVectorFloat3("spotLights[0].light.ambient", glm::value_ptr(glm::vec3(0, 0, 0)));
 		shaderMulLighting.setVectorFloat3("spotLights[0].light.diffuse", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
 		shaderMulLighting.setVectorFloat3("spotLights[0].light.specular", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
 		shaderMulLighting.setVectorFloat3("spotLights[0].position", glm::value_ptr(glm::vec3(spotPosition)));
 		shaderMulLighting.setVectorFloat3("spotLights[0].direction", glm::value_ptr(glm::vec3(0, -1, 0)));
 		shaderMulLighting.setFloat("spotLights[0].constant", 1.0);
-		shaderMulLighting.setFloat("spotLights[0].linear", 0.04);
-		shaderMulLighting.setFloat("spotLights[0].quadratic", 0.01);
+		shaderMulLighting.setFloat("spotLights[0].linear", 0.004);
+		shaderMulLighting.setFloat("spotLights[0].quadratic", 0.001);
 		shaderMulLighting.setFloat("spotLights[0].cutOff", cos(glm::radians(12.5f)));
-		shaderMulLighting.setFloat("spotLights[0].outerOff", cos(glm::radians(15.5f)));
-		shaderTerrain.setInt("spotLightCount", 1);
+		shaderMulLighting.setFloat("spotLights[0].outerCutOff", cos(glm::radians(15.5f)));
 		shaderTerrain.setVectorFloat3("spotLights[0].light.ambient", glm::value_ptr(glm::vec3(0, 0, 0)));
 		shaderTerrain.setVectorFloat3("spotLights[0].light.diffuse", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
 		shaderTerrain.setVectorFloat3("spotLights[0].light.specular", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
 		shaderTerrain.setVectorFloat3("spotLights[0].position", glm::value_ptr(glm::vec3(spotPosition)));
 		shaderTerrain.setVectorFloat3("spotLights[0].direction", glm::value_ptr(glm::vec3(0, -1, 0)));
 		shaderTerrain.setFloat("spotLights[0].constant", 1.0);
-		shaderTerrain.setFloat("spotLights[0].linear", 0.04);
-		shaderTerrain.setFloat("spotLights[0].quadratic", 0.01);
+		shaderTerrain.setFloat("spotLights[0].linear", 0.004);
+		shaderTerrain.setFloat("spotLights[0].quadratic", 0.001);
 		shaderTerrain.setFloat("spotLights[0].cutOff", cos(glm::radians(12.5f)));
-		shaderTerrain.setFloat("spotLights[0].outerOff", cos(glm::radians(15.5f)));
+		shaderTerrain.setFloat("spotLights[0].outerCutOff", cos(glm::radians(15.5f)));
 
-		glm::vec3 spotPositionFaroIzq = glm::vec3(modelMatrixLambo * glm::vec4(0.73, 0.45, 2.43, 1.0));
+		glm::vec3 spotPositionFaroIzq = glm::vec3( modelMatrixLambo * glm::vec4(0.908226, 5.14219, 4.17782, 1.0) );
 		shaderMulLighting.setInt("spotLightCount", 1);
-		shaderMulLighting.setVectorFloat3("spotLights[0].light.ambient", glm::value_ptr(glm::vec3(0, 0, 0)));
-		shaderMulLighting.setVectorFloat3("spotLights[0].light.diffuse", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
-		shaderMulLighting.setVectorFloat3("spotLights[0].light.specular", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
-		shaderMulLighting.setVectorFloat3("spotLights[0].position", glm::value_ptr(glm::vec3(spotPositionFaroIzq)));
-		shaderMulLighting.setVectorFloat3("spotLights[0].direction", glm::value_ptr(glm::vec3(0, -1, 0)));
-		shaderMulLighting.setFloat("spotLights[0].constant", 1.0);
-		shaderMulLighting.setFloat("spotLights[0].linear", 0.04);
-		shaderMulLighting.setFloat("spotLights[0].quadratic", 0.01);
-		shaderMulLighting.setFloat("spotLights[0].cutOff", cos(glm::radians(12.5f)));
-		shaderMulLighting.setFloat("spotLights[0].outerOff", cos(glm::radians(15.5f)));
-		shaderTerrain.setInt("spotLightCount", 1);
-		shaderTerrain.setVectorFloat3("spotLights[0].light.ambient", glm::value_ptr(glm::vec3(0, 0, 0)));
-		shaderTerrain.setVectorFloat3("spotLights[0].light.diffuse", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
-		shaderTerrain.setVectorFloat3("spotLights[0].light.specular", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
-		shaderTerrain.setVectorFloat3("spotLights[0].position", glm::value_ptr(glm::vec3(spotPositionFaroIzq)));
-		shaderTerrain.setVectorFloat3("spotLights[0].direction", glm::value_ptr(glm::vec3(0, -1, 0)));
-		shaderTerrain.setFloat("spotLights[0].constant", 1.0);
-		shaderTerrain.setFloat("spotLights[0].linear", 0.04);
-		shaderTerrain.setFloat("spotLights[0].quadratic", 0.01);
-		shaderTerrain.setFloat("spotLights[0].cutOff", cos(glm::radians(12.5f)));
-		shaderTerrain.setFloat("spotLights[0].outerOff", cos(glm::radians(15.5f)));
+		shaderMulLighting.setVectorFloat3("spotLights[1].light.ambient", glm::value_ptr(glm::vec3(0, 0, 0)));
+		shaderMulLighting.setVectorFloat3("spotLights[1].light.diffuse", glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
+		shaderMulLighting.setVectorFloat3("spotLights[1].light.specular", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
+		shaderMulLighting.setVectorFloat3("spotLights[1].position", glm::value_ptr(glm::vec3(spotPositionFaroIzq)));
+		shaderMulLighting.setVectorFloat3("spotLights[1].direction", glm::value_ptr(glm::vec3(0, -1, 0)));
+		shaderMulLighting.setFloat("spotLights[1].constant", 1.0);
+		shaderMulLighting.setFloat("spotLights[1].linear", 0.004);
+		shaderMulLighting.setFloat("spotLights[1].quadratic", 0.001);
+		shaderMulLighting.setFloat("spotLights[1].cutOff", cos(glm::radians(7.5f)));
+		shaderMulLighting.setFloat("spotLights[1].outerCutOff", cos(glm::radians(10.5f)));
+		shaderTerrain.setVectorFloat3("spotLights[1].light.ambient", glm::value_ptr(glm::vec3(0, 0, 0)));
+		shaderTerrain.setVectorFloat3("spotLights[1].light.diffuse", glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
+		shaderTerrain.setVectorFloat3("spotLights[1].light.specular", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
+		shaderTerrain.setVectorFloat3("spotLights[1].position", glm::value_ptr(glm::vec3(spotPositionFaroIzq)));
+		shaderTerrain.setVectorFloat3("spotLights[1].direction", glm::value_ptr(glm::vec3(0, -1, 0)));
+		shaderTerrain.setFloat("spotLights[1].constant", 1.0);
+		shaderTerrain.setFloat("spotLights[1].linear", 0.004);
+		shaderTerrain.setFloat("spotLights[1].quadratic", 0.001);
+		shaderTerrain.setFloat("spotLights[1].cutOff", cos(glm::radians(7.5f)));
+		shaderTerrain.setFloat("spotLights[1].outerCutOff", cos(glm::radians(10.5f)));
 
-		glm::vec3 spotPositionFaroDer = glm::vec3(modelMatrixLambo * glm::vec4(-0.73, 0.45, 2.43, 1.0));
+		glm::vec3 spotPositionFaroDer = glm::vec3( modelMatrixLambo * glm::vec4(-0.908226, 5.14219, 4.17782, 1.0) );
 		shaderMulLighting.setInt("spotLightCount", 1);
-		shaderMulLighting.setVectorFloat3("spotLights[0].light.ambient", glm::value_ptr(glm::vec3(0, 0, 0)));
-		shaderMulLighting.setVectorFloat3("spotLights[0].light.diffuse", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
-		shaderMulLighting.setVectorFloat3("spotLights[0].light.specular", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
-		shaderMulLighting.setVectorFloat3("spotLights[0].position", glm::value_ptr(glm::vec3(spotPositionFaroDer)));
-		shaderMulLighting.setVectorFloat3("spotLights[0].direction", glm::value_ptr(glm::vec3(0, -1, 0)));
-		shaderMulLighting.setFloat("spotLights[0].constant", 1.0);
-		shaderMulLighting.setFloat("spotLights[0].linear", 0.04);
-		shaderMulLighting.setFloat("spotLights[0].quadratic", 0.01);
-		shaderMulLighting.setFloat("spotLights[0].cutOff", cos(glm::radians(12.5f)));
-		shaderMulLighting.setFloat("spotLights[0].outerOff", cos(glm::radians(15.5f)));
-		shaderTerrain.setInt("spotLightCount", 1);
-		shaderTerrain.setVectorFloat3("spotLights[0].light.ambient", glm::value_ptr(glm::vec3(0, 0, 0)));
-		shaderTerrain.setVectorFloat3("spotLights[0].light.diffuse", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
-		shaderTerrain.setVectorFloat3("spotLights[0].light.specular", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
-		shaderTerrain.setVectorFloat3("spotLights[0].position", glm::value_ptr(glm::vec3(spotPositionFaroDer)));
-		shaderTerrain.setVectorFloat3("spotLights[0].direction", glm::value_ptr(glm::vec3(0, -1, 0)));
-		shaderTerrain.setFloat("spotLights[0].constant", 1.0);
-		shaderTerrain.setFloat("spotLights[0].linear", 0.04);
-		shaderTerrain.setFloat("spotLights[0].quadratic", 0.01);
-		shaderTerrain.setFloat("spotLights[0].cutOff", cos(glm::radians(12.5f)));
-		shaderTerrain.setFloat("spotLights[0].outerOff", cos(glm::radians(15.5f)));
+		shaderMulLighting.setVectorFloat3("spotLights[2].light.ambient", glm::value_ptr(glm::vec3(0, 0, 0)));
+		shaderMulLighting.setVectorFloat3("spotLights[2].light.diffuse", glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
+		shaderMulLighting.setVectorFloat3("spotLights[2].light.specular", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
+		shaderMulLighting.setVectorFloat3("spotLights[2].position", glm::value_ptr(glm::vec3(spotPositionFaroDer)));
+		shaderMulLighting.setVectorFloat3("spotLights[2].direction", glm::value_ptr(glm::vec3(0, -1, 0)));
+		shaderMulLighting.setFloat("spotLights[2].constant", 1.0);
+		shaderMulLighting.setFloat("spotLights[2].linear", 0.04);
+		shaderMulLighting.setFloat("spotLights[2].quadratic", 0.01);
+		shaderMulLighting.setFloat("spotLights[2].cutOff", cos(glm::radians(7.5f)));
+		shaderMulLighting.setFloat("spotLights[2].outerCutOff", cos(glm::radians(10.5f)));
+		shaderTerrain.setVectorFloat3("spotLights[2].light.ambient", glm::value_ptr(glm::vec3(0, 0, 0)));
+		shaderTerrain.setVectorFloat3("spotLights[2].light.diffuse", glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
+		shaderTerrain.setVectorFloat3("spotLights[2].light.specular", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
+		shaderTerrain.setVectorFloat3("spotLights[2].position", glm::value_ptr(glm::vec3(spotPositionFaroDer)));
+		shaderTerrain.setVectorFloat3("spotLights[2].direction", glm::value_ptr(glm::vec3(0, -1, 0)));
+		shaderTerrain.setFloat("spotLights[2].constant", 1.0);
+		shaderTerrain.setFloat("spotLights[2].linear", 0.04);
+		shaderTerrain.setFloat("spotLights[2].quadratic", 0.01);
+		shaderTerrain.setFloat("spotLights[2].cutOff", cos(glm::radians(7.5f)));
+		shaderTerrain.setFloat("spotLights[2].outerCutOff", cos(glm::radians(10.5f)));
 
 		/*******************************************
 		 * Propiedades PointLights
 		 *******************************************/
-		shaderMulLighting.setInt("pointLightCount", lamp1Position.size() + lamp2Position.size());
-		shaderTerrain.setInt("pointLightCount", lamp1Position.size() + lamp2Position.size());
+		shaderMulLighting.setInt("pointLightCount", lamp1Position.size() + lamp2Position.size() + lamp3Position.size());
+		shaderTerrain.setInt("pointLightCount", lamp1Position.size() + lamp2Position.size() + lamp3Position.size());
 		for (int i = 0; i < lamp1Position.size(); i++){
 			glm::mat4 matrixAdjustLamp = glm::mat4(1.0f);
 			matrixAdjustLamp = glm::translate(matrixAdjustLamp, lamp1Position[i]);
@@ -1075,6 +1084,29 @@ void applicationLoop() {
 			shaderTerrain.setFloat("pointLights[" + std::to_string(lamp1Position.size() + i) + "].constant", 1.0);
 			shaderTerrain.setFloat("pointLights[" + std::to_string(lamp1Position.size() + i) + "].linear", 0.09);
 			shaderTerrain.setFloat("pointLights[" + std::to_string(lamp1Position.size() + i) + "].quadratic", 0.01);
+		}
+
+		for (int i = 0; i < lamp3Position.size(); i++) {
+			glm::mat4 matrixAdjustLamp = glm::mat4(1.0f);
+			matrixAdjustLamp = glm::translate(matrixAdjustLamp, lamp3Position[i]);
+			matrixAdjustLamp = glm::rotate(matrixAdjustLamp, glm::radians(lamp3Orientation[i]), glm::vec3(0, 1, 0));
+			matrixAdjustLamp = glm::scale(matrixAdjustLamp, glm::vec3(4.0, 4.0, 4.0));
+			matrixAdjustLamp = glm::translate(matrixAdjustLamp, glm::vec3(0.000192f, 1.2015f, 0.269289f)); //Trasladando al pivote de lámpara
+			glm::vec3 lampPosition = glm::vec3(matrixAdjustLamp[3]);
+			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + lamp2Position.size() + i) + "].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));
+			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + lamp2Position.size() + i) + "].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));
+			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + lamp2Position.size() + i) + "].light.specular", glm::value_ptr(glm::vec3(0.6, 0.6, 0.03)));
+			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + lamp2Position.size() + i) + "].position", glm::value_ptr(lampPosition));
+			shaderMulLighting.setFloat("pointLights[" + std::to_string(lamp1Position.size() + lamp2Position.size() + i) + "].constant", 1.0);
+			shaderMulLighting.setFloat("pointLights[" + std::to_string(lamp1Position.size() + lamp2Position.size() + i) + "].linear", 0.09);
+			shaderMulLighting.setFloat("pointLights[" + std::to_string(lamp1Position.size() + lamp2Position.size() + i) + "].quadratic", 0.01);
+			shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + lamp2Position.size() + i) + "].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));
+			shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + lamp2Position.size() + i) + "].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));
+			shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + lamp2Position.size() + i) + "].light.specular", glm::value_ptr(glm::vec3(0.6, 0.6, 0.03)));
+			shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + lamp2Position.size() + i) + "].position", glm::value_ptr(lampPosition));
+			shaderTerrain.setFloat("pointLights[" + std::to_string(lamp1Position.size() + lamp2Position.size() + i) + "].constant", 1.0);
+			shaderTerrain.setFloat("pointLights[" + std::to_string(lamp1Position.size() + lamp2Position.size() + i) + "].linear", 0.09);
+			shaderTerrain.setFloat("pointLights[" + std::to_string(lamp1Position.size() + lamp2Position.size() + i) + "].quadratic", 0.01);
 		}
 
 		/*******************************************
@@ -1194,6 +1226,14 @@ void applicationLoop() {
 			modelLampPost2.setScale(glm::vec3(1.0, 1.0, 1.0));
 			modelLampPost2.setOrientation(glm::vec3(0, lamp2Orientation[i], 0));
 			modelLampPost2.render();
+		}
+
+		for (int i = 0; i < lamp3Position.size(); i++) {
+			lamp3Position[i].y = terrain.getHeightTerrain(lamp3Position[i].x, lamp3Position[i].z);
+			modelLamp3.setPosition(lamp3Position[i]);
+			modelLamp3.setScale(glm::vec3(4.0, 4.0, 4.0));
+			modelLamp3.setOrientation(glm::vec3(0, lamp3Orientation[i], 0));
+			modelLamp3.render();
 		}
 
 		// Dart lego
@@ -1354,8 +1394,6 @@ void applicationLoop() {
 		}*/
 		if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
 			modelMatrixLambo = glm::rotate(modelMatrixLambo, 0.02f, glm::vec3(0, 1, 0));
-			spotPositionFaroIzq = glm::vec3(modelMatrixLambo * glm::vec4(0.73, 0.45, 2.43, 1.0));
-			spotPositionFaroDer = glm::vec3(modelMatrixLambo * glm::vec4(-0.73, 0.45, 2.43, 1.0));
 			rotCountLambo += 0.5f; //Rotando
 			rotWheelsXLambo += 0.05f;
 			rotWheelsYLambo += 0.02f;
@@ -1368,8 +1406,6 @@ void applicationLoop() {
 		}
 		else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
 			modelMatrixLambo = glm::rotate(modelMatrixLambo, -0.02f, glm::vec3(0, 1, 0));
-			spotPositionFaroIzq = glm::vec3(modelMatrixLambo * glm::vec4(0.73, 0.45, 2.43, 1.0));
-			spotPositionFaroDer = glm::vec3(modelMatrixLambo * glm::vec4(-0.73, 0.45, 2.43, 1.0));
 			rotCountLambo -= 0.5f; //Rotando
 			rotWheelsXLambo += 0.05f;
 			rotWheelsYLambo -= 0.02f;
@@ -1382,8 +1418,6 @@ void applicationLoop() {
 		}
 		if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
 			modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0, 0.0, 0.04));
-			spotPositionFaroIzq = glm::vec3(modelMatrixLambo * glm::vec4(0.73, 0.45, 2.43, 1.0));
-			spotPositionFaroDer = glm::vec3(modelMatrixLambo * glm::vec4(-0.73, 0.45, 2.43, 1.0));
 			rotWheelsXLambo += 0.05f;
 			rotWheelsYLambo -= 0.02f;
 			if (rotWheelsYLambo < 0.0f) {
@@ -1392,8 +1426,6 @@ void applicationLoop() {
 		}
 		else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
 			modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0, 0.0, -0.04));
-			spotPositionFaroIzq = glm::vec3(modelMatrixLambo * glm::vec4(0.73, 0.45, 2.43, 1.0));
-			spotPositionFaroDer = glm::vec3(modelMatrixLambo * glm::vec4(-0.73, 0.45, 2.43, 1.0));
 			rotWheelsXLambo -= 0.05f;
 			rotWheelsYLambo -= 0.02f;
 			if (rotWheelsYLambo < 0.0f) {
