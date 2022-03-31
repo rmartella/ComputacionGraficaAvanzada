@@ -57,14 +57,26 @@ uniform vec3 viewPos;
 uniform vec2 scaleUV;  
   
 uniform sampler2D backgroundTexture;
+uniform sampler2D rTexture;
+uniform sampler2D gTexture;
+uniform sampler2D bTexture;
+uniform sampler2D blendMapTexture;
 
 vec3 calculateDirectionalLight(Light light, vec3 direction){
 	vec2 tiledCoords = our_uv;
 	if(tiledCoords.x != 0 && tiledCoords.y != 0)
 		tiledCoords = scaleUV * tiledCoords;
 	
-	vec4 backgroundTextureColor = texture(backgroundTexture, tiledCoords);
-	vec4 totalColor = backgroundTextureColor;
+	vec4 blenMapColor = texture(blendMapTexture,our_uv);
+	float backTextureAmount = 1 - (blenMapColor.r + blenMapColor.g + blenMapColor.b);
+	vec4 backgroundTexture = texture(backgroundTexture, tiledCoords) * backTextureAmount;
+	vec4 rTextureColor = texture(rTexture, tiledCoords) * blenMapColor.r;
+	vec4 gTextureColor = texture(gTexture, tiledCoords) * blenMapColor.g;
+	vec4 bTextureColor = texture(bTexture, tiledCoords) * blenMapColor.b;
+	vec4 totalColor = backgroundTexture + rTextureColor + gTextureColor + bTextureColor;
+
+	/*vec4 backgroundTextureColor = texture(backgroundTexture, tiledCoords);
+	vec4 totalColor = backgroundTextureColor;*/
 
 	// Ambient
     vec3 ambient  = light.ambient * vec3(totalColor);
