@@ -10,7 +10,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd C:\\Users\\PC\\OneDrive\\Documents\\Visual Studio 2017\\CG Avanzada\\ComputacionGraficaAvanzada\\Textures\\Lampara\\negro_mate.jpg
+map_Kd negro_mate.jpg
 
 newmtl Material.002
 Ns 225.000000
@@ -21,4 +21,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd C:\\Users\\PC\\OneDrive\\Documents\\Visual Studio 2017\\CG Avanzada\\ComputacionGraficaAvanzada\\Textures\\Lampara\\vidrio.jpg
+map_Kd vidrio.jpg
