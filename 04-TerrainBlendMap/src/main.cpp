@@ -82,11 +82,17 @@ Model modelDartLegoRightLeg;
 // Model animate instance
 // Mayow
 Model mayowModelAnimate;
+//Enderman
+Model endermanModelAnimate;
+
+//Spartan
+Model spartanModelAnimate;
+
 // Terrain model instance
-Terrain terrain(-1, -1, 200, 8, "../Textures/heightmap.png");
+Terrain terrain(-1, -1, 200, 20, "../Textures/terreno_personalizado.png");
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
-GLuint textureTerrainBackgroundID; //, textureTerrainRID, textureTerrainGID, textureTerrainBID, textureTerrainBlendMapID;
+GLuint textureTerrainBackgroundID, textureTerrainRID, textureTerrainGID, textureTerrainBID, textureTerrainBlendMapID;
 GLuint skyboxTextureID;
 
 GLenum types[6] = {
@@ -115,6 +121,8 @@ glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+glm::mat4 modelMatrixEnderman = glm::mat4(1.0f);
+glm::mat4 modelMatrixSpartan = glm::mat4(1.0f);
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 0;
@@ -278,6 +286,14 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//Mayow
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
+
+	//Enderman
+	endermanModelAnimate.loadModel("../models/Enderman/Enderman2.fbx");
+	endermanModelAnimate.setShader(&shaderMulLighting);
+
+	//Spartan
+	spartanModelAnimate.loadModel("../models/Spartan/spartan.fbx");
+	spartanModelAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -471,7 +487,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	textureLandingPad.freeImage(bitmap);
 
 	// Definiendo la textura a utilizar
-	Texture textureTerrainBackground("../Textures/grassy2.png");
+	Texture textureTerrainBackground("../Textures/nieve.jpg");
 	// Carga el mapa de bits (FIBITMAP es el tipo de dato de la libreria)
 	bitmap = textureTerrainBackground.loadImage();
 	// Convertimos el mapa de bits en un arreglo unidimensional de tipo unsigned char
@@ -502,8 +518,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	// Libera la memoria de la textura
 	textureTerrainBackground.freeImage(bitmap);
 
-	/*// Definiendo la textura a utilizar
-	Texture textureTerrainR("../Textures/mud.png");
+	// Definiendo la textura a utilizar
+	Texture textureTerrainR("../Textures/tierra_seca.jpg");
 	// Carga el mapa de bits (FIBITMAP es el tipo de dato de la libreria)
 	bitmap = textureTerrainR.loadImage();
 	// Convertimos el mapa de bits en un arreglo unidimensional de tipo unsigned char
@@ -521,21 +537,21 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// Verifica si se pudo abrir la textura
 	if (data) {
-		// Transferis los datos de la imagen a memoria
-		// Tipo de textura, Mipmaps, Formato interno de openGL, ancho, alto, Mipmaps,
-		// Formato interno de la libreria de la imagen, el tipo de dato y al apuntador
-		// a los datos
+		 /*Transferis los datos de la imagen a memoria
+		 Tipo de textura, Mipmaps, Formato interno de openGL, ancho, alto, Mipmaps,
+		 Formato interno de la libreria de la imagen, el tipo de dato y al apuntador
+		 a los datos*/
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0,
 		GL_BGRA, GL_UNSIGNED_BYTE, data);
 		// Generan los niveles del mipmap (OpenGL es el ecargado de realizarlos)
 		glGenerateMipmap(GL_TEXTURE_2D);
 	} else
 		std::cout << "Failed to load texture" << std::endl;
-	// Libera la memoria de la textura
-	textureTerrainR.freeImage(bitmap);*/
+	 //Libera la memoria de la textura
+	textureTerrainR.freeImage(bitmap);
 
-	/*// Definiendo la textura a utilizar
-	Texture textureTerrainG("../Textures/grassFlowers.png");
+	// Definiendo la textura a utilizar
+	Texture textureTerrainG("../Textures/snow_flowers.jpg");
 	// Carga el mapa de bits (FIBITMAP es el tipo de dato de la libreria)
 	bitmap = textureTerrainG.loadImage();
 	// Convertimos el mapa de bits en un arreglo unidimensional de tipo unsigned char
@@ -551,23 +567,23 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	// set texture filtering parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// Verifica si se pudo abrir la textura
+	//Verifica si se pudo abrir la textura
 	if (data) {
-		// Transferis los datos de la imagen a memoria
-		// Tipo de textura, Mipmaps, Formato interno de openGL, ancho, alto, Mipmaps,
-		// Formato interno de la libreria de la imagen, el tipo de dato y al apuntador
-		// a los datos
+		 //Transferis los datos de la imagen a memoria
+		 //Tipo de textura, Mipmaps, Formato interno de openGL, ancho, alto, Mipmaps,
+		 //Formato interno de la libreria de la imagen, el tipo de dato y al apuntador
+		 //a los datos
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0,
 		GL_BGRA, GL_UNSIGNED_BYTE, data);
-		// Generan los niveles del mipmap (OpenGL es el ecargado de realizarlos)
+		 //Generan los niveles del mipmap (OpenGL es el ecargado de realizarlos)
 		glGenerateMipmap(GL_TEXTURE_2D);
 	} else
 		std::cout << "Failed to load texture" << std::endl;
-	// Libera la memoria de la textura
-	textureTerrainG.freeImage(bitmap);*/
+	//Libera la memoria de la textura
+	textureTerrainG.freeImage(bitmap);
 
-	/*// Definiendo la textura a utilizar
-	Texture textureTerrainB("../Textures/path.png");
+	// Definiendo la textura a utilizar
+	Texture textureTerrainB("../Textures/camino.jpg");
 	// Carga el mapa de bits (FIBITMAP es el tipo de dato de la libreria)
 	bitmap = textureTerrainB.loadImage();
 	// Convertimos el mapa de bits en un arreglo unidimensional de tipo unsigned char
@@ -596,12 +612,12 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	} else
 		std::cout << "Failed to load texture" << std::endl;
 	// Libera la memoria de la textura
-	textureTerrainB.freeImage(bitmap);*/
+	textureTerrainB.freeImage(bitmap);
 
-	/*// Definiendo la textura a utilizar
-	Texture textureTerrainBlendMap("../Textures/blendMap.png");
+	// Definiendo la textura a utilizar
+	Texture textureTerrainBlendMap("../Textures/terreno_personalizado2.png");
 	// Carga el mapa de bits (FIBITMAP es el tipo de dato de la libreria)
-	bitmap = textureTerrainBlendMap.loadImage();
+	bitmap = textureTerrainBlendMap.loadImage(true);
 	// Convertimos el mapa de bits en un arreglo unidimensional de tipo unsigned char
 	data = textureTerrainBlendMap.convertToData(bitmap, imageWidth,
 			imageHeight);
@@ -628,7 +644,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	} else
 		std::cout << "Failed to load texture" << std::endl;
 	// Libera la memoria de la textura
-	textureTerrainBlendMap.freeImage(bitmap);*/
+	textureTerrainBlendMap.freeImage(bitmap);
 }
 
 void destroy() {
@@ -673,6 +689,8 @@ void destroy() {
 
 	// Custom objects animate
 	mayowModelAnimate.destroy();
+	endermanModelAnimate.destroy();
+	spartanModelAnimate.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -682,10 +700,10 @@ void destroy() {
 	glDeleteTextures(1, &textureHighwayID);
 	glDeleteTextures(1, &textureLandingPadID);
 	glDeleteTextures(1, &textureTerrainBackgroundID);
-	/*glDeleteTextures(1, &textureTerrainRID);
+	glDeleteTextures(1, &textureTerrainRID);
 	glDeleteTextures(1, &textureTerrainGID);
 	glDeleteTextures(1, &textureTerrainBID);
-	glDeleteTextures(1, &textureTerrainBlendMapID);*/
+	glDeleteTextures(1, &textureTerrainBlendMapID);
 
 	// Cube Maps Delete
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
@@ -755,7 +773,7 @@ bool processInput(bool continueApplication) {
 	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS){
 		enableCountSelected = false;
 		modelSelected++;
-		if(modelSelected > 2)
+		if(modelSelected > 3)
 			modelSelected = 0;
 		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
@@ -840,7 +858,22 @@ bool processInput(bool continueApplication) {
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(-0.02, 0.0, 0.0));
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(0.02, 0.0, 0.0));
-
+	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		modelMatrixEnderman = glm::translate(modelMatrixEnderman, glm::vec3(0.0, 0.0, 0.03));
+		endermanModelAnimate.setAnimationIndex(1);
+	}
+	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		modelMatrixEnderman = glm::translate(modelMatrixEnderman, glm::vec3(0.0, 0.0, -0.03));
+		endermanModelAnimate.setAnimationIndex(1);
+	}
+	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		modelMatrixEnderman = glm::rotate(modelMatrixEnderman, 0.03f, glm::vec3(0, 1, 0));
+		endermanModelAnimate.setAnimationIndex(1);
+	}
+	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		modelMatrixEnderman = glm::rotate(modelMatrixEnderman, -0.03f, glm::vec3(0, 1, 0));
+		endermanModelAnimate.setAnimationIndex(1);
+	}
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -860,6 +893,10 @@ void applicationLoop() {
 
 	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
 	modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+
+	modelMatrixEnderman = glm::translate(modelMatrixEnderman, glm::vec3(0.0, 0.0, 2.9));
+
+	modelMatrixSpartan = glm::translate(modelMatrixSpartan, glm::vec3(0.0, 0.0, 3.5));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -948,6 +985,19 @@ void applicationLoop() {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textureTerrainBackgroundID);
 		shaderTerrain.setInt("backgroundTexture", 0);
+		//Se activan las demas texturas
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, textureTerrainRID);
+		shaderTerrain.setInt("rTexture", 1);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, textureTerrainGID);
+		shaderTerrain.setInt("gTexture", 2);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, textureTerrainBID);
+		shaderTerrain.setInt("bTexture", 3);
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, textureTerrainBlendMapID);
+		shaderTerrain.setInt("blendMapTexture", 4);
 		shaderTerrain.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(40, 40)));
 		terrain.render();
 		shaderTerrain.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(0, 0)));
@@ -1056,6 +1106,32 @@ void applicationLoop() {
 		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
 		mayowModelAnimate.setAnimationIndex(0);
 		mayowModelAnimate.render(modelMatrixMayowBody);
+
+		glm::vec3 ejeyE = glm::normalize(terrain.getNormalTerrain(modelMatrixEnderman[3][0], modelMatrixEnderman[3][2]));
+		glm::vec3 ejexE = glm::normalize(modelMatrixEnderman[0]);
+		glm::vec3 ejezE = glm::normalize(glm::cross(ejexE, ejeyE));
+		ejexE = glm::normalize(glm::cross(ejeyE, ejezE));
+		modelMatrixEnderman[0] = glm::vec4(ejexE, 0.0);
+		modelMatrixEnderman[1] = glm::vec4(ejeyE, 0.0);
+		modelMatrixEnderman[2] = glm::vec4(ejezE, 0.0);
+		modelMatrixEnderman[3][1] = terrain.getHeightTerrain(modelMatrixEnderman[3][0], modelMatrixEnderman[3][2]);
+		glm::mat4 modelMatrixEndermanBody = glm::mat4(modelMatrixEnderman);
+		modelMatrixEndermanBody = glm::scale(modelMatrixEndermanBody, glm::vec3(0.0021, 0.0021, 0.0021));
+		endermanModelAnimate.render(modelMatrixEndermanBody);
+		endermanModelAnimate.setAnimationIndex(0);
+
+		glm::vec3 ejeyS = glm::normalize(terrain.getNormalTerrain(modelMatrixSpartan[3][0], modelMatrixSpartan[3][2]));
+		glm::vec3 ejexS = glm::normalize(modelMatrixSpartan[0]);
+		glm::vec3 ejezS = glm::normalize(glm::cross(ejexS, ejeyS));
+		ejexS = glm::normalize(glm::cross(ejeyS, ejezS));
+		modelMatrixSpartan[0] = glm::vec4(ejexS, 0.0);
+		modelMatrixSpartan[1] = glm::vec4(ejeyS, 0.0);
+		modelMatrixSpartan[2] = glm::vec4(ejezS, 0.0);
+		modelMatrixSpartan[3][1] = terrain.getHeightTerrain(modelMatrixSpartan[3][0], modelMatrixSpartan[3][2]);
+		glm::mat4 modelMatrixSpartanBody = glm::mat4(modelMatrixSpartan);
+		modelMatrixSpartanBody = glm::scale(modelMatrixSpartanBody, glm::vec3(0.021, 0.021, 0.021));
+		spartanModelAnimate.render(modelMatrixSpartanBody);
+		spartanModelAnimate.setAnimationIndex(0);
 
 		/*******************************************
 		 * Skybox
