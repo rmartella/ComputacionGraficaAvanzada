@@ -1435,10 +1435,10 @@ void applicationLoop() {
 		modelMatrixColliderEnder = glm::rotate(modelMatrixColliderEnder, glm::radians(-90.0f), glm::vec3(1.0, 0, 0));
 		//modelMatrixColliderEnder = glm::rotate(modelMatrixColliderEnder, glm::radians(-90.0f), glm::vec3(0.0, 1, 0));
 		enderCollider.u = glm::quat_cast(modelMatrixColliderEnder);
-		modelMatrixColliderEnder = glm::scale(modelMatrixColliderEnder, glm::vec3(0.0021, 0.0021, 0.0021));
+		modelMatrixColliderEnder = glm::scale(modelMatrixColliderEnder, glm::vec3(0.21, 0.21, 0.21));
 		modelMatrixColliderEnder = glm::translate(modelMatrixColliderEnder, endermanModelAnimate.getObb().c);
 		enderCollider.c = glm::vec3(modelMatrixColliderEnder[3]);
-		enderCollider.e = endermanModelAnimate.getObb().e * glm::vec3(0.0021, 0.0021, 0.0021) * glm::vec3(100.0, 100.0, 100.0);
+		enderCollider.e = endermanModelAnimate.getObb().e * glm::vec3(0.21, 0.21, 0.21) /** glm::vec3(0.08, 0.08, 0.08)*/;
 		addOrUpdateColliders(collidersOBB, "ender", enderCollider, modelMatrixEnderman);
 
 		// Collider de Tails
