@@ -51,6 +51,7 @@ Shader shaderMulLighting;
 std::shared_ptr<FirstPersonCamera> camera(new FirstPersonCamera());
 
 Sphere skyboxSphere(20, 20);
+Sphere esferaPrueba(20, 20);
 Box boxCesped;
 Box boxWalls;
 Box boxHighway;
@@ -81,7 +82,7 @@ Model modelDartLegoRightHand;
 Model modelDartLegoLeftLeg;
 Model modelDartLegoRightLeg;
 
-GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID; //, textureLandingPadID;
+GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
 
 GLenum types[6] = {
@@ -158,6 +159,7 @@ bool processInput(bool continueApplication = true);
 // Implementacion de todas las funciones.
 void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
+	// Inicialización de GLFW
 	if (!glfwInit()) {
 		std::cerr << "Failed to initialize GLFW" << std::endl;
 		exit(-1);
@@ -166,17 +168,18 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	screenWidth = width;
 	screenHeight = height;
 
+	//Especificación de modo y version de OpenGL
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+	//Especificar si se quiere en pantalla completa o ventana.
 	if (bFullScreen)
 		window = glfwCreateWindow(width, height, strTitle.c_str(),
 				glfwGetPrimaryMonitor(), nullptr);
 	else
 		window = glfwCreateWindow(width, height, strTitle.c_str(), nullptr,
 				nullptr);
-
 	if (window == nullptr) {
 		std::cerr
 				<< "Error to create GLFW window, you can try download the last version of your video card that support OpenGL 3.3+"
@@ -186,13 +189,13 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	}
 
 	glfwMakeContextCurrent(window);
-	glfwSwapInterval(0);
+	glfwSwapInterval(0);														//Permitir que se ejecute a la máxima velocidad de la pantalla
 
-	glfwSetWindowSizeCallback(window, reshapeCallback);
-	glfwSetKeyCallback(window, keyCallback);
-	glfwSetCursorPosCallback(window, mouseCallback);
-	glfwSetMouseButtonCallback(window, mouseButtonCallback);
-	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+	glfwSetWindowSizeCallback(window, reshapeCallback);							//Poder redimencionar pantalla. 
+	glfwSetKeyCallback(window, keyCallback);									// Recibir eventos de teclado
+	glfwSetCursorPosCallback(window, mouseCallback);							//Recibir eventos del mouse 
+	glfwSetMouseButtonCallback(window, mouseButtonCallback);					//Recibir eventos de botones del moouse.
+	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);						//Poder ver el cursor
 
 	// Init glew
 	glewExperimental = GL_TRUE;
@@ -202,8 +205,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 		exit(-1);
 	}
 
-	glViewport(0, 0, screenWidth, screenHeight);
-	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+	glViewport(0, 0, screenWidth, screenHeight);								//Definir el area de dibujo.
+	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);										//Limpieza del buffer de color
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -226,6 +229,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	boxHighway.init();
 	boxHighway.setShader(&shaderMulLighting);
+
+	//Objeto de prueba generaod en la practica 1
+	esferaPrueba.init();
+	esferaPrueba.setShader(&shaderMulLighting);
 
 	boxLandingPad.init();
 	boxLandingPad.setShader(&shaderMulLighting);
@@ -442,6 +449,34 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 		std::cout << "Failed to load texture" << std::endl;
 	// Libera la memoria de la textura
 	textureHighway.freeImage(bitmap);
+
+	//Cargar la textura del landing pad.
+	Texture textureLandingPad("../Textures/landingPad.jpg");
+	bitmap = textureLandingPad.loadImage();												//Carga de textura a un mapa de bits.
+	//Convertir el mapa de bits en un arreglo unidimensional.
+	data = textureLandingPad.convertToData(bitmap, imageWidth, imageHeight);							
+	//Generar la textura
+	glGenTextures(1, &textureLandingPadID);
+	glBindTexture(GL_TEXTURE_2D, textureLandingPadID);
+	//Configuración de la textura.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	//Configuración de filtering.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	if (data) {
+		//Transfiriendo datos a la gpu.
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight,
+			0, GL_BGRA, GL_UNSIGNED_BYTE, data);
+
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+
+	textureLandingPad.freeImage(bitmap);
+
+
 }
 
 void destroy() {
@@ -684,8 +719,8 @@ void applicationLoop() {
 
 	while (psi) {
 		currTime = TimeManager::Instance().GetTime();
-		if(currTime - lastTime < 0.016666667){
-			glfwPollEvents();
+		if (currTime - lastTime < 0.016666667) { //Frecuencia para los cuadros por segundo.
+			glfwPollEvents();				   //Si no se han cumplidos los 60 frames se queda aquí.
 			continue;
 		}
 		lastTime = currTime;
@@ -699,7 +734,7 @@ void applicationLoop() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f),
-				(float) screenWidth / (float) screenHeight, 0.01f, 100.0f);
+			(float)screenWidth / (float)screenHeight, 0.01f, 100.0f);
 		glm::mat4 view = camera->getViewMatrix();
 
 		// Settea la matriz de vista y projection al shader con solo color
@@ -708,14 +743,14 @@ void applicationLoop() {
 
 		// Settea la matriz de vista y projection al shader con skybox
 		shaderSkybox.setMatrix4("projection", 1, false,
-				glm::value_ptr(projection));
+			glm::value_ptr(projection));
 		shaderSkybox.setMatrix4("view", 1, false,
-				glm::value_ptr(glm::mat4(glm::mat3(view))));
+			glm::value_ptr(glm::mat4(glm::mat3(view))));
 		// Settea la matriz de vista y projection al shader con multiples luces
 		shaderMulLighting.setMatrix4("projection", 1, false,
-					glm::value_ptr(projection));
+			glm::value_ptr(projection));
 		shaderMulLighting.setMatrix4("view", 1, false,
-				glm::value_ptr(view));
+			glm::value_ptr(view));
 
 		/*******************************************
 		 * Propiedades Luz direccional
@@ -827,6 +862,34 @@ void applicationLoop() {
 		boxHighway.setPosition(glm::vec3(0.0, 0.05, -35.0));
 		boxHighway.setOrientation(glm::vec3(0.0, 0.0, 0.0));
 		boxHighway.render();
+
+		//Landingpad
+		boxLandingPad.setScale(glm::vec3(10.0, 0.05, 10.0));
+		boxLandingPad.setPosition(glm::vec3(5.0, 0.05, -5.0));
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureLandingPadID);
+		shaderMulLighting.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(2.0, 2.0)));
+		boxLandingPad.render();
+		shaderMulLighting.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(1.0, 1.0)));
+
+
+		// Esfera de Prueba.
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureWindowID);
+		esferaPrueba.setPosition(glm::vec3(5.0, 1.0, -5.0));
+		//esferaPrueba.enableWireMode();
+		esferaPrueba.setScale(glm::vec3(1.0, 1.0, 1.0));
+		esferaPrueba.render();
+
+
+		// Esfera de Prueba.
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureHighwayID);
+		esferaPrueba.setPosition(glm::vec3(15.0, 3.0, -5.0));
+		esferaPrueba.setScale(glm::vec3(2.5, 2.5, 2.5));
+		//esferaPrueba.enableWireMode();
+		esferaPrueba.render();
+
 
 		/*******************************************
 		 * Custom objects obj
@@ -954,7 +1017,83 @@ void applicationLoop() {
 		glDepthFunc(oldDepthFuncMode);
 
 		// Constantes de animaciones
-		rotHelHelY += 0.5;
+		rotHelHelY += 0.05;
+
+		/*
+			Maquinas de Estado.		
+		
+		*/
+		switch (state)
+		{
+		case 0:
+			if (numberAdvance == 0)
+				maxAdvance = 64;
+			else if (numberAdvance == 1)
+				maxAdvance = 49.0f;
+			else if (numberAdvance == 2)
+				maxAdvance = 45.0f;
+			else if (numberAdvance == 3)
+				maxAdvance = 49.0f;
+			else if (numberAdvance == 4)
+				maxAdvance = 45.0f;
+			state = 1;
+			break;
+		case 1:
+			modelMatrixEclipse = glm::translate(modelMatrixEclipse, glm::vec3(0.0, 0.0, 0.1));
+			advanceCount += 0.1; //Este valor es el mismo que el de la transformación, deberian ser variables constantes
+			rotWheelsX += 0.05f;
+			//Validamos para que la llanta no gire de más
+			rotWheelsY -= 0.02f;
+			if (rotWheelsY < 0)
+				rotWheelsY = 0;
+			
+			if (advanceCount >= maxAdvance) {
+				advanceCount = 0.0;
+				state = 2;
+			}
+			break;
+
+		case 2: 
+			modelMatrixEclipse = glm::translate(modelMatrixEclipse, glm::vec3(0.0, 0.0, 0.025));
+			modelMatrixEclipse = glm::rotate(modelMatrixEclipse, glm::radians(0.5f), glm::vec3(0, 1, 0));
+			rotCount += 0.5f;
+			rotWheelsX += 0.05f;
+			rotWheelsY += 0.02f;
+
+			if (rotWheelsY > 0.2f)
+				rotWheelsY = 0.2f;
+
+			if (rotCount >= 90.0f) {
+				rotCount = 0.0;
+				
+				numberAdvance++;
+				if (numberAdvance > 4)
+					numberAdvance = 1;
+				state = 0;
+			}
+		default:
+			break;
+		}
+
+		switch (stateDoor)
+		{
+		case 0:
+			dorRotCount += 0.2;
+			if (dorRotCount > 75.0f)
+				stateDoor = 1;
+			break;
+		case 1:
+			dorRotCount -= 0.2;
+			if (dorRotCount < 0.0f)
+				stateDoor = 0;
+
+			break;
+
+		default:
+			break;
+		}
+
+
 
 		glfwSwapBuffers(window);
 	}
