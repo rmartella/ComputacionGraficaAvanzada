@@ -1026,8 +1026,10 @@ void applicationLoop() {
 		mayowModelAnimate.setAnimationIndex(2);
 		mayowModelAnimate.render(modelMatrixMayowBody);
 
+
 		cowboyModelAnimate.render(modelMatrixCowboy);
 		guardianModelAnimate.render(modelMatrixGuardian);
+		cyborgModelAnimate.setAnimationIndex(1);
 		cyborgModelAnimate.render(modelMatrixCyborg);
 
 		/*******************************************
