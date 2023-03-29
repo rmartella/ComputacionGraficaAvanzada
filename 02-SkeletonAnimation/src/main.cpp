@@ -83,6 +83,12 @@ Model modelDartLegoRightLeg;
 // Model animate instance
 // Mayow
 Model mayowModelAnimate;
+// Cowboy
+Model cowboyModelAnimate;
+// Guardian
+Model guardianModelAnimate;
+// Cyborg
+Model cyborgModelAnimate;
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
@@ -114,6 +120,9 @@ glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+glm::mat4 modelMatrixCowboy = glm::mat4(1.0f);
+glm::mat4 modelMatrixGuardian = glm::mat4(1.0f);
+glm::mat4 modelMatrixCyborg = glm::mat4(1.0f);
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 0;
@@ -291,6 +300,18 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//Mayow
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
+
+	// Cowboy
+	cowboyModelAnimate.loadModel("../models/cowboy/Character Running.fbx");
+	cowboyModelAnimate.setShader(&shaderMulLighting);
+	// Guardian
+	guardianModelAnimate.loadModel("../models/boblampclean/boblampclean.md5mesh");
+	guardianModelAnimate.setShader(&shaderMulLighting);
+	// Cyborg
+	cyborgModelAnimate.loadModel("../models/cyborg/Cyborg-2023-2.fbx");
+	cyborgModelAnimate.setShader(&shaderMulLighting);
+
+
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -718,9 +739,15 @@ void applicationLoop() {
 	modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(23.0, 0.0, 0.0));
 
 	modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(3.0, 0.0, 20.0));
-
 	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
 	modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+	modelMatrixCowboy = glm::translate(modelMatrixCowboy, glm::vec3(5.0f, 0.05f, -10.0f));
+	modelMatrixCowboy = glm::scale(modelMatrixCowboy, glm::vec3(0.005f));
+	modelMatrixGuardian = glm::translate(modelMatrixGuardian, glm::vec3(10.0f,0.05f,-10.0f));
+	modelMatrixGuardian = glm::rotate(modelMatrixGuardian, glm::radians(-90.0f), glm::vec3(1,0,0));
+	modelMatrixGuardian = glm::scale(modelMatrixGuardian, glm::vec3(0.05f));
+	modelMatrixCyborg = glm::translate(modelMatrixCyborg, glm::vec3(15.0f, 0.05f, -10.0f));
+	modelMatrixCyborg = glm::scale(modelMatrixCyborg, glm::vec3(0.005f));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -996,8 +1023,14 @@ void applicationLoop() {
 		 *******************************************/
 		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
 		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
-		mayowModelAnimate.setAnimationIndex(0);
+		mayowModelAnimate.setAnimationIndex(2);
 		mayowModelAnimate.render(modelMatrixMayowBody);
+
+
+		cowboyModelAnimate.render(modelMatrixCowboy);
+		guardianModelAnimate.render(modelMatrixGuardian);
+		cyborgModelAnimate.setAnimationIndex(1);
+		cyborgModelAnimate.render(modelMatrixCyborg);
 
 		/*******************************************
 		 * Skybox
