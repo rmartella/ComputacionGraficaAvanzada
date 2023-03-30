@@ -89,6 +89,8 @@ Model cowboyModelAnimate;
 Model guardianModelAnimate;
 // Cyborg
 Model cyborgModelAnimate;
+//Mr krabs
+Model krabsAnimate;
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
@@ -123,6 +125,7 @@ glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
 glm::mat4 modelMatrixCowboy = glm::mat4(1.0f);
 glm::mat4 modelMatrixGuardian = glm::mat4(1.0f);
 glm::mat4 modelMatrixCyborg = glm::mat4(1.0f);
+glm::mat4 modelMatrixKrabs = glm::mat4(1.0f);
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 0;
@@ -310,8 +313,9 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	// Cyborg
 	cyborgModelAnimate.loadModel("../models/cyborg/Cyborg-2023-2.fbx");
 	cyborgModelAnimate.setShader(&shaderMulLighting);
-
-
+	//krabs
+	krabsAnimate.loadModel("../models/MrKrabs/MrKrabs_Animation.fbx");
+	krabsAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -748,6 +752,8 @@ void applicationLoop() {
 	modelMatrixGuardian = glm::scale(modelMatrixGuardian, glm::vec3(0.05f));
 	modelMatrixCyborg = glm::translate(modelMatrixCyborg, glm::vec3(15.0f, 0.05f, -10.0f));
 	modelMatrixCyborg = glm::scale(modelMatrixCyborg, glm::vec3(0.005f));
+	modelMatrixKrabs = glm::translate(modelMatrixKrabs, glm::vec3(35.0f, 0.05f, -10.0f));
+	modelMatrixKrabs = glm::scale(modelMatrixKrabs, glm::vec3(0.005f));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -1031,6 +1037,7 @@ void applicationLoop() {
 		guardianModelAnimate.render(modelMatrixGuardian);
 		cyborgModelAnimate.setAnimationIndex(1);
 		cyborgModelAnimate.render(modelMatrixCyborg);
+		krabsAnimate.render(modelMatrixKrabs);
 
 		/*******************************************
 		 * Skybox
