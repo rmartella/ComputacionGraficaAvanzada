@@ -47,6 +47,7 @@ Shader shader;
 Shader shaderSkybox;
 //Shader con multiples luces
 Shader shaderMulLighting;
+Shader shaderMulLightingVariasTexturas; //Shader para ejercicio de varias texturas.
 
 std::shared_ptr<FirstPersonCamera> camera(new FirstPersonCamera());
 
@@ -56,6 +57,8 @@ Box boxCesped;
 Box boxWalls;
 Box boxHighway;
 Box boxLandingPad;
+Box boxVariasTexturas;
+
 // Models complex instances
 Model modelRock;
 Model modelAircraft;
@@ -255,7 +258,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shader.initialize("../Shaders/colorShader.vs", "../Shaders/colorShader.fs"); //abrir el shader, creamos un objeto
 	shaderSkybox.initialize("../Shaders/skyBox.vs", "../Shaders/skyBox.fs");
 	shaderMulLighting.initialize("../Shaders/iluminacion_texture_res.vs", "../Shaders/multipleLights.fs");
-
+	//Nuevo shader, para poder utilizar varias texturas. 
+	shaderMulLightingVariasTexturas.initialize("../Shaders/iluminacion_texture_res.vs","../Shaders/multipleLightsVariasTexturas.fs");
 	// Inicializacion de los objetos.
 	skyboxSphere.init();
 	skyboxSphere.setShader(&shaderSkybox);
@@ -276,6 +280,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//Esfera Prueba1
 	esferaPrueba1.init();
 	esferaPrueba1.setShader(&shaderMulLighting);
+
+	//Multiples texturas
+	boxVariasTexturas.init();
+	boxVariasTexturas.setShader(&shaderMulLightingVariasTexturas);
 
 	modelRock.loadModel("../models/rock/rock.obj");
 	modelRock.setShader(&shaderMulLighting);
@@ -571,6 +579,8 @@ void destroy() {
 	shader.destroy();
 	shaderMulLighting.destroy();
 	shaderSkybox.destroy();
+	shaderMulLightingVariasTexturas.destroy();
+
 
 	// Basic objects Delete
 	skyboxSphere.destroy();
@@ -579,6 +589,7 @@ void destroy() {
 	boxWalls.destroy();
 	boxHighway.destroy();
 	boxLandingPad.destroy();
+	boxVariasTexturas.destroy();
 
 	// Custom objects Delete
 	modelAircraft.destroy();
@@ -949,6 +960,11 @@ void applicationLoop() {
 			glm::value_ptr(projection));
 		shaderMulLighting.setMatrix4("view", 1, false,
 			glm::value_ptr(view));
+		// Settear las matrices de vista y projecion al shader con varias texturas.
+		shaderMulLightingVariasTexturas.setMatrix4("projection", 1, false,
+			glm::value_ptr(projection));
+		shaderMulLightingVariasTexturas.setMatrix4("view", 1, false,
+			glm::value_ptr(view));
 
 		/*******************************************
 		 * Propiedades Luz direccional
@@ -959,15 +975,22 @@ void applicationLoop() {
 		shaderMulLighting.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.9, 0.9, 0.9)));
 		shaderMulLighting.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-1.0, 0.0, 0.0)));
 
+		shaderMulLightingVariasTexturas.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
+		shaderMulLightingVariasTexturas.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
+		shaderMulLightingVariasTexturas.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.7, 0.7, 0.7)));
+		shaderMulLightingVariasTexturas.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.9, 0.9, 0.9)));
+		shaderMulLightingVariasTexturas.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-1.0, 0.0, 0.0)));
+
 		/*******************************************
 		 * Propiedades SpotLights
 		 *******************************************/
 		shaderMulLighting.setInt("spotLightCount", 0);
-
+		shaderMulLightingVariasTexturas.setInt("spotLightCount", 0);
 		/*******************************************
 		 * Propiedades PointLights
 		 *******************************************/
 		shaderMulLighting.setInt("pointLightCount", 0);
+		shaderMulLightingVariasTexturas.setInt("pointLightCount", 0);
 
 		/*******************************************
 		 * Cesped
@@ -1083,6 +1106,20 @@ void applicationLoop() {
 		esferaPrueba1.setScale(glm::vec3(2.5, 2.5, 2.5));
 		//esferaPrueba1.enableWireMode();  enmayado de la esfera
 		esferaPrueba1.render();
+
+		//Render del cubo con varias texturas.
+		boxVariasTexturas.setPosition(glm::vec3(10.0, 3.0, 10.0));
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureWallID);
+		shaderMulLightingVariasTexturas.setInt("texture2", 0);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, textureWindowID);
+		shaderMulLightingVariasTexturas.setInt("texture1", 3);
+
+
+		
+		boxVariasTexturas.render();
+
 
 		/*******************************************
 		 * Custom objects obj
