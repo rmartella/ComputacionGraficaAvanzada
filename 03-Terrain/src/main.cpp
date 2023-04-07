@@ -85,7 +85,7 @@ Model mayowModelAnimate;
 Model mrKrabsModelAnimate;
 
 // Terrain model instance
-Terrain terrain(-1, -1, 50, 10, "../Textures/heightmap3.png");
+Terrain terrain(-1, -1, 100, 30, "../Textures/heightmap3.png");
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
@@ -147,7 +147,7 @@ int numPasosDart = 0;
 float rotHelHelY = 0.0;
 
 //Variable para cambiar la animación de MrKrabs
-int cMrkrabs = 2;
+int cMrkrabs = 1;
 
 // Var animate lambo dor
 int stateDoor = 0;
@@ -284,7 +284,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	mayowModelAnimate.setShader(&shaderMulLighting);
 
 	//Mr Krabs
-	mrKrabsModelAnimate.loadModel("../models/MrKrabs/DonK-TEST.fbx");
+	mrKrabsModelAnimate.loadModel("../models/MrKrabs/DonK-FIX.fbx");
 	mrKrabsModelAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
@@ -695,21 +695,23 @@ bool processInput(bool continueApplication) {
 	//	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0.0, 0.0, -0.02));
 
 	//Reemplazamos modelo seleccionado 0 para controlar la Don Cangrejo.
+	//Control de Movimiento
 
-	cMrkrabs = 2; //Controlamos la animacion de Don Cangrejo al desplazarse
+	cMrkrabs = 1; //Controlamos la animacion de Don Cangrejo al desplazarse
 	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-		modelMatrixMrKrabs = glm::rotate(modelMatrixMrKrabs, 0.02f, glm::vec3(0, 1, 0));
+		modelMatrixMrKrabs = glm::rotate(modelMatrixMrKrabs, 0.08f, glm::vec3(0, 1, 0));
 	else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-		modelMatrixMrKrabs = glm::rotate(modelMatrixMrKrabs, -0.02f, glm::vec3(0, 1, 0));
+		modelMatrixMrKrabs = glm::rotate(modelMatrixMrKrabs, -0.08f, glm::vec3(0, 1, 0));
+
 	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
 	{
-		cMrkrabs = 1;
-		modelMatrixMrKrabs = glm::translate(modelMatrixMrKrabs, glm::vec3(0.0, 0.0, 0.02));
+		cMrkrabs = 0;
+		modelMatrixMrKrabs = glm::translate(modelMatrixMrKrabs, glm::vec3(0.0, 0.0, 0.025));
 	}
 	else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 	{
-		cMrkrabs = 1;
-		modelMatrixMrKrabs = glm::translate(modelMatrixMrKrabs, glm::vec3(0.0, 0.0, -0.02));
+		cMrkrabs = 0;
+		modelMatrixMrKrabs = glm::translate(modelMatrixMrKrabs, glm::vec3(0.0, 0.0, -0.025));
 
 	}
 		
@@ -732,6 +734,9 @@ void applicationLoop() {
 
 	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
 	modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+	
+	modelMatrixMrKrabs = glm::translate(modelMatrixMrKrabs, glm::vec3(0.0f, 0.05f, 0.0f));
+	//modelMatrixMrKrabs = glm::rotate(modelMatrixMrKrabs, glm::radians(-90.0f), glm::vec3(0, 0, 1));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -924,6 +929,7 @@ void applicationLoop() {
 		//mayowModelAnimate.render(modelMatrixMayowBody);
 
 		//Para acceder a la posicion de la matriz del modelo, selecccionamos la columna 3.
+		 
 		modelMatrixMrKrabs[3][1] = terrain.getHeightTerrain(modelMatrixMrKrabs[3][0], modelMatrixMrKrabs[3][2]);
 		glm::vec3 up = glm::normalize(terrain.getNormalTerrain(modelMatrixMrKrabs[3][0], modelMatrixMrKrabs[3][2]));
 		glm::vec3 front = glm::normalize(glm::vec3(modelMatrixMrKrabs[2]));
@@ -932,8 +938,8 @@ void applicationLoop() {
 		modelMatrixMrKrabs[0] = glm::vec4(right, 0.0);
 		modelMatrixMrKrabs[1] = glm::vec4(up, 0.0);
 		modelMatrixMrKrabs[2] = glm::vec4(front, 0.0);
-		glm::mat4 modelMatrixMrKrabsBody = glm::mat4(modelMatrixMrKrabs);
-		modelMatrixMrKrabsBody = glm::scale(modelMatrixMrKrabsBody, glm::vec3(0.0005, 0.0005, 0.0005));
+		glm::mat4 modelMatrixMrKrabsBody = modelMatrixMrKrabs;
+		modelMatrixMrKrabsBody = glm::scale(modelMatrixMrKrabsBody, glm::vec3(0.05, 0.05, 0.05));
 		mrKrabsModelAnimate.setAnimationIndex(cMrkrabs);  //Variable que determina que animacion se ejecuta de MrKrabs.
 		mrKrabsModelAnimate.render(modelMatrixMrKrabsBody);
 		
