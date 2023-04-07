@@ -80,8 +80,12 @@ Model modelDartLegoRightLeg;
 // Model animate instance
 // Mayow
 Model mayowModelAnimate;
+
+// MrKrabs model instance
+Model mrKrabsModelAnimate;
+
 // Terrain model instance
-Terrain terrain(-1, -1, 50, 28, "../Textures/heightmap3.png");
+Terrain terrain(-1, -1, 50, 10, "../Textures/heightmap3.png");
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
@@ -113,6 +117,7 @@ glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+glm::mat4 modelMatrixMrKrabs = glm::mat4(1.0f);
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 0;
@@ -140,6 +145,9 @@ int numPasosDart = 0;
 
 // Var animate helicopter
 float rotHelHelY = 0.0;
+
+//Variable para cambiar la animación de MrKrabs
+int cMrkrabs = 2;
 
 // Var animate lambo dor
 int stateDoor = 0;
@@ -274,6 +282,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//Mayow
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
+
+	//Mr Krabs
+	mrKrabsModelAnimate.loadModel("../models/MrKrabs/DonK-TEST.fbx");
+	mrKrabsModelAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -508,6 +520,7 @@ void destroy() {
 
 	// Custom objects animate
 	mayowModelAnimate.destroy();
+	mrKrabsModelAnimate.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -671,16 +684,35 @@ bool processInput(bool continueApplication) {
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(0.02, 0.0, 0.0));
 
-	// Control para el modelo de May
-	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-		modelMatrixMayow = glm::rotate(modelMatrixMayow, 0.02f, glm::vec3(0, 1, 0));
-	else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-		modelMatrixMayow = glm::rotate(modelMatrixMayow, -0.02f, glm::vec3(0, 1, 0));
-	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0.0, 0.0, 0.02));
-	else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0.0, 0.0, -0.02));
+	// Control para el modelo de May 
+	//if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+	//	modelMatrixMayow = glm::rotate(modelMatrixMayow, 0.02f, glm::vec3(0, 1, 0));
+	//else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+	//	modelMatrixMayow = glm::rotate(modelMatrixMayow, -0.02f, glm::vec3(0, 1, 0));
+	//if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+	//	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0.0, 0.0, 0.02));
+	//else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	//	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0.0, 0.0, -0.02));
 
+	//Reemplazamos modelo seleccionado 0 para controlar la Don Cangrejo.
+
+	cMrkrabs = 2; //Controlamos la animacion de Don Cangrejo al desplazarse
+	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+		modelMatrixMrKrabs = glm::rotate(modelMatrixMrKrabs, 0.02f, glm::vec3(0, 1, 0));
+	else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+		modelMatrixMrKrabs = glm::rotate(modelMatrixMrKrabs, -0.02f, glm::vec3(0, 1, 0));
+	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+	{
+		cMrkrabs = 1;
+		modelMatrixMrKrabs = glm::translate(modelMatrixMrKrabs, glm::vec3(0.0, 0.0, 0.02));
+	}
+	else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	{
+		cMrkrabs = 1;
+		modelMatrixMrKrabs = glm::translate(modelMatrixMrKrabs, glm::vec3(0.0, 0.0, -0.02));
+
+	}
+		
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -878,19 +910,33 @@ void applicationLoop() {
 		 *******************************************/
 
 		//Para acceder a la posicion de la matriz del modelo, selecccionamos la columna 3.
-		modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
-		glm::vec3 up = glm::normalize(terrain.getNormalTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]));
-		glm::vec3 front = glm::normalize(glm::vec3(modelMatrixMayow[2]));
+		//modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
+		//glm::vec3 up = glm::normalize(terrain.getNormalTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]));
+		//glm::vec3 front = glm::normalize(glm::vec3(modelMatrixMayow[2]));
+		//glm::vec3 right = glm::normalize(glm::cross(up, front));
+		//front = glm::normalize(glm::cross(right, up));
+		//modelMatrixMayow[0] = glm::vec4(right, 0.0);
+		//modelMatrixMayow[1] = glm::vec4(up, 0.0);
+		//modelMatrixMayow[2] = glm::vec4(front, 0.0);
+		//glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
+		//modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
+		//mayowModelAnimate.setAnimationIndex(0);
+		//mayowModelAnimate.render(modelMatrixMayowBody);
+
+		//Para acceder a la posicion de la matriz del modelo, selecccionamos la columna 3.
+		modelMatrixMrKrabs[3][1] = terrain.getHeightTerrain(modelMatrixMrKrabs[3][0], modelMatrixMrKrabs[3][2]);
+		glm::vec3 up = glm::normalize(terrain.getNormalTerrain(modelMatrixMrKrabs[3][0], modelMatrixMrKrabs[3][2]));
+		glm::vec3 front = glm::normalize(glm::vec3(modelMatrixMrKrabs[2]));
 		glm::vec3 right = glm::normalize(glm::cross(up, front));
 		front = glm::normalize(glm::cross(right, up));
-		modelMatrixMayow[0] = glm::vec4(right, 0.0);
-		modelMatrixMayow[1] = glm::vec4(up, 0.0);
-		modelMatrixMayow[2] = glm::vec4(front, 0.0);
-		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
-		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
-		mayowModelAnimate.setAnimationIndex(0);
-		mayowModelAnimate.render(modelMatrixMayowBody);
-
+		modelMatrixMrKrabs[0] = glm::vec4(right, 0.0);
+		modelMatrixMrKrabs[1] = glm::vec4(up, 0.0);
+		modelMatrixMrKrabs[2] = glm::vec4(front, 0.0);
+		glm::mat4 modelMatrixMrKrabsBody = glm::mat4(modelMatrixMrKrabs);
+		modelMatrixMrKrabsBody = glm::scale(modelMatrixMrKrabsBody, glm::vec3(0.0005, 0.0005, 0.0005));
+		mrKrabsModelAnimate.setAnimationIndex(cMrkrabs);  //Variable que determina que animacion se ejecuta de MrKrabs.
+		mrKrabsModelAnimate.render(modelMatrixMrKrabsBody);
+		
 		/*******************************************
 		 * Skybox
 		 *******************************************/
@@ -992,7 +1038,7 @@ void applicationLoop() {
 }
 
 int main(int argc, char **argv) {
-	init(800, 700, "Window GLFW", false);
+	init(800, 700, "Practica 3", false);
 	applicationLoop();
 	destroy();
 	return 1;
