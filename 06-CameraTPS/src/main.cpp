@@ -54,7 +54,9 @@ Shader shaderMulLighting;
 //Shader para el terreno
 Shader shaderTerrain;
 
-std::shared_ptr<FirstPersonCamera> camera(new FirstPersonCamera());
+//Objeto Cámara en primera persona
+std::shared_ptr<Camera> camera(new ThirdPersonCamera());
+
 
 Sphere skyboxSphere(20, 20);
 
@@ -152,6 +154,9 @@ float rotHelHelY = 0.0;
 int stateDoor = 0;
 float dorRotCount = 0.0;
 
+float distanceFromTarget = 3.0f;
+
+
 // Lamps positions
 std::vector<glm::vec3> lamp1Position = { glm::vec3(-7.03, 0, -19.14), glm::vec3(
 		24.41, 0, -34.57), glm::vec3(-10.15, 0, -54.10) };
@@ -211,6 +216,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glfwSetKeyCallback(window, keyCallback);
 	glfwSetCursorPosCallback(window, mouseCallback);
 	glfwSetMouseButtonCallback(window, mouseButtonCallback);
+	glfwSetScrollCallback(window, scrollCallback);
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
 	// Init glew
@@ -301,7 +307,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
 
-	camera->setPosition(glm::vec3(0.0, 0.0, 10.0));
+	//camera->setPosition(glm::vec3(0.0, 0.0, 10.0));
+	camera->setSensitivity(1.0f); // Ajustmos la sensibilidad del mouse ante la camara. 
+	camera->setDistanceFromTarget(distanceFromTarget);
+
 
 	// Definimos el tamanio de la imagen
 	int imageWidth, imageHeight;
@@ -717,6 +726,12 @@ void destroy() {
 	glDeleteTextures(1, &skyboxTextureID);
 }
 
+
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+	distanceFromTarget -= yoffset;
+	camera->setDistanceFromTarget(distanceFromTarget);
+}
+
 void reshapeCallback(GLFWwindow *Window, int widthRes, int heightRes) {
 	screenWidth = widthRes;
 	screenHeight = heightRes;
@@ -763,7 +778,7 @@ bool processInput(bool continueApplication) {
 		return false;
 	}
 
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	/*if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		camera->moveFrontCamera(true, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 		camera->moveFrontCamera(false, deltaTime);
@@ -772,7 +787,16 @@ bool processInput(bool continueApplication) {
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		camera->moveRightCamera(true, deltaTime);
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-		camera->mouseMoveCamera(offsetX, offsetY, deltaTime);
+		camera->mouseMoveCamera(offsetX, offsetY, deltaTime);*/
+
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+		camera->mouseMoveCamera(offsetX, 0, deltaTime);
+	}
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+		camera->mouseMoveCamera(0, offsetY, deltaTime);
+	}
+	
+
 	offsetX = 0;
 	offsetY = 0;
 
@@ -884,6 +908,12 @@ bool processInput(bool continueApplication) {
 void applicationLoop() {
 	bool psi = true;
 
+	glm::mat4 view;
+	glm::vec3 target;
+	glm::vec3 axisTarget;
+	float angleTarget = 0.0f;
+
+
 	matrixModelRock = glm::translate(matrixModelRock, glm::vec3(-3.0, 0.0, 2.0));
 
 	modelMatrixHeli = glm::translate(modelMatrixHeli, glm::vec3(5.0, 10.0, -5.0));
@@ -922,7 +952,33 @@ void applicationLoop() {
 
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f),
 				(float) screenWidth / (float) screenHeight, 0.01f, 100.0f);
-		glm::mat4 view = camera->getViewMatrix();
+		//glm::mat4 view = camera->getViewMatrix();
+
+		if (modelSelected == 1) {
+			axisTarget = glm::axis(glm::quat_cast(modelMatrixDart)); 
+			angleTarget = glm::angle(glm::quat_cast(modelMatrixDart));
+			target = modelMatrixDart[3]; //Obtenemos la transformación de traslacion de dicha matriz.
+			angleTarget -= glm::radians(90.0f);
+		}
+		else {
+			axisTarget = glm::axis(glm::quat_cast(modelMatrixMayow)); 
+			angleTarget = glm::angle(glm::quat_cast(modelMatrixMayow));
+			target = modelMatrixMayow[3]; //Obtenemos la transformación de traslacion de dicha matriz.
+		}
+
+		if(std::isnan(angleTarget))
+			angleTarget = 0.0f;
+		if(axisTarget.y < 0)
+			angleTarget = -angleTarget;
+
+
+
+		camera->setAngleTarget(angleTarget);
+		camera->setCameraTarget(target);
+		camera->updateCamera(); //Actualizar la posicion de la camara en base a lo que se configuro anteriormente.
+
+		view = camera->getViewMatrix();
+
 
 		// Settea la matriz de vista y projection al shader con solo color
 		shader.setMatrix4("projection", 1, false, glm::value_ptr(projection));
