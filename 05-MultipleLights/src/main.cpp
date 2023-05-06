@@ -1023,8 +1023,8 @@ void applicationLoop() {
 		shaderMulLighting.setVectorFloat3("spotLights[0].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));//Valores que se toman de la línea 975
 		shaderMulLighting.setVectorFloat3("spotLights[0].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));//Valores que se toman de la línea 976
 		shaderMulLighting.setFloat("spotLights[0].constant", 1.0);
-		shaderMulLighting.setFloat("spotLights[0].linear", 0.09);
-		shaderMulLighting.setFloat("spotLights[0].quadratic", 0.02);
+		shaderMulLighting.setFloat("spotLights[0].linear", 0.009);
+		shaderMulLighting.setFloat("spotLights[0].quadratic", 0.002);
 		shaderMulLighting.setFloat("spotLights[0].cutOff", cos(glm::radians(10.0f)));//15.0f Definición del círculo
 		shaderMulLighting.setFloat("spotLights[0].outerCutOff", cos(glm::radians(15.0f)));//15.0f Iluminación por fuera
 
@@ -1034,64 +1034,67 @@ void applicationLoop() {
 		shaderTerrain.setVectorFloat3("spotLights[0].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));//Valores que se toman de la línea 975
 		shaderTerrain.setVectorFloat3("spotLights[0].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));//Valores que se toman de la línea 976
 		shaderTerrain.setFloat("spotLights[0].constant", 1.0);
-		shaderTerrain.setFloat("spotLights[0].linear", 0.09);
-		shaderTerrain.setFloat("spotLights[0].quadratic", 0.02);
+		shaderTerrain.setFloat("spotLights[0].linear", 0.009);
+		shaderTerrain.setFloat("spotLights[0].quadratic", 0.002);
 		shaderTerrain.setFloat("spotLights[0].cutOff", cos(glm::radians(10.0f)));//15.0f Definición del círculo
 		shaderTerrain.setFloat("spotLights[0].outerCutOff", cos(glm::radians(15.0f)));//15.0f Iluminación por fuera
 
 		//SPOTLIGHT LAMBO ---- LUZ 1
 		//Se envian los spot light. Se modificaron archivos de shader para el spot light. Linea de MAX_SPOT_LIGHT
-		glm::vec3 lampSpotLambo1Position = glm::vec3(modelMatrixLambo[3]) + glm::vec3(-5.0f, 2.5f, 0.75f);//Centro del lambo(modelMatrixLambo[3]) + x(largo del coche),y(altura),z(ancho del coche)
+		glm::vec3 lampSpotLambo1Position = glm::vec3(modelMatrixLambo[3]) + glm::vec3(0.5f, 2.5f, 0.75f);//Centro del lambo(modelMatrixLambo[3]) + x(largo del coche),y(altura),z(ancho del coche)
 		/*lampSpotLambo1Position[0] = lampSpotLambo1Position[0] + modelMatrixLambo[2][0];
 		lampSpotLambo1Position[2] = lampSpotLambo1Position[2] + modelMatrixLambo[2][2];
 		lampSpotLambo1Position[0] = lampSpotLambo1Position[0] + modelMatrixLambo[0][0];
 		lampSpotLambo1Position[2] = lampSpotLambo1Position[2] + modelMatrixLambo[0][2];*/
 
+		//obtenemos el vector front para corregir la posicion de la luz
+		glm::vec3 front = glm::normalize(glm::vec3(modelMatrixLambo[2]));
+
 		shaderMulLighting.setVectorFloat3("spotLights[1].position", glm::value_ptr(lampSpotLambo1Position));
-		shaderMulLighting.setVectorFloat3("spotLights[1].direction", glm::value_ptr(glm::vec3(0, -1, 0)));
+		shaderMulLighting.setVectorFloat3("spotLights[1].direction", glm::value_ptr(front));
 		shaderMulLighting.setVectorFloat3("spotLights[1].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));//Valores que se toman de la línea 974
 		shaderMulLighting.setVectorFloat3("spotLights[1].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));//Valores que se toman de la línea 975
 		shaderMulLighting.setVectorFloat3("spotLights[1].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));//Valores que se toman de la línea 976
 		shaderMulLighting.setFloat("spotLights[1].constant", 1.0);
-		shaderMulLighting.setFloat("spotLights[1].linear", 0.09);
-		shaderMulLighting.setFloat("spotLights[1].quadratic", 0.02);
+		shaderMulLighting.setFloat("spotLights[1].linear", 0.009);
+		shaderMulLighting.setFloat("spotLights[1].quadratic", 0.002);
 		shaderMulLighting.setFloat("spotLights[1].cutOff", cos(glm::radians(5.0f)));//15.0f Definición del círculo
 		shaderMulLighting.setFloat("spotLights[1].outerCutOff", cos(glm::radians(15.0f)));//15.0f Iluminación por fuera
 
 		shaderTerrain.setVectorFloat3("spotLights[1].position", glm::value_ptr(lampSpotLambo1Position));
-		shaderTerrain.setVectorFloat3("spotLights[1].direction", glm::value_ptr(glm::vec3(0, -1, 0)));
+		shaderTerrain.setVectorFloat3("spotLights[1].direction", glm::value_ptr(front));  //Aqui se envia el vector front, para cambiar al direccion de la luz al girar
 		shaderTerrain.setVectorFloat3("spotLights[1].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));//Valores que se toman de la línea 974
 		shaderTerrain.setVectorFloat3("spotLights[1].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));//Valores que se toman de la línea 975
 		shaderTerrain.setVectorFloat3("spotLights[1].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));//Valores que se toman de la línea 976
 		shaderTerrain.setFloat("spotLights[1].constant", 1.0);
-		shaderTerrain.setFloat("spotLights[1].linear", 0.09);
-		shaderTerrain.setFloat("spotLights[1].quadratic", 0.02);
+		shaderTerrain.setFloat("spotLights[1].linear", 0.009);
+		shaderTerrain.setFloat("spotLights[1].quadratic", 0.002);
 		shaderTerrain.setFloat("spotLights[1].cutOff", cos(glm::radians(5.0f)));//15.0f Definición del círculo
 		shaderTerrain.setFloat("spotLights[1].outerCutOff", cos(glm::radians(15.0f)));//15.0f Iluminación por fuera
 
 		//SPOTLIGHT LAMBO ---- LUZ 2
 		//Se envian los spot light. Se modificaron archivos de shader para el spot light. Linea de MAX_SPOT_LIGHT
-		glm::vec3 lampSpotLambo2Position = glm::vec3(modelMatrixLambo[3]) + glm::vec3(-5.0f, 2.5f, -1.0f);//Centro del lambo + x(largo del coche),y(altura),z(ancho del coche)
+		glm::vec3 lampSpotLambo2Position = glm::vec3(modelMatrixLambo[3]) + glm::vec3(0.5f, 2.5f, -1.0f);//Centro del lambo + x(largo del coche),y(altura),z(ancho del coche)
 
 		shaderMulLighting.setVectorFloat3("spotLights[2].position", glm::value_ptr(lampSpotLambo2Position));
-		shaderMulLighting.setVectorFloat3("spotLights[2].direction", glm::value_ptr(glm::vec3(0, -1, 0)));
+		shaderMulLighting.setVectorFloat3("spotLights[2].direction", glm::value_ptr(front)); //Aqui se envia el vector front, para cambiar al direccion de la luz al girar
 		shaderMulLighting.setVectorFloat3("spotLights[2].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));//Valores que se toman de la línea 974
 		shaderMulLighting.setVectorFloat3("spotLights[2].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));//Valores que se toman de la línea 975
 		shaderMulLighting.setVectorFloat3("spotLights[2].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));//Valores que se toman de la línea 976
 		shaderMulLighting.setFloat("spotLights[2].constant", 1.0);
-		shaderMulLighting.setFloat("spotLights[2].linear", 0.09);
-		shaderMulLighting.setFloat("spotLights[2].quadratic", 0.02);
+		shaderMulLighting.setFloat("spotLights[2].linear", 0.009);
+		shaderMulLighting.setFloat("spotLights[2].quadratic", 0.002);
 		shaderMulLighting.setFloat("spotLights[2].cutOff", cos(glm::radians(5.0f)));//15.0f Definición del círculo
 		shaderMulLighting.setFloat("spotLights[2].outerCutOff", cos(glm::radians(15.0f)));//15.0f Iluminación por fuera
 
 		shaderTerrain.setVectorFloat3("spotLights[2].position", glm::value_ptr(lampSpotLambo2Position));
-		shaderTerrain.setVectorFloat3("spotLights[2].direction", glm::value_ptr(glm::vec3(0, -1, 0)));
+		shaderTerrain.setVectorFloat3("spotLights[2].direction", glm::value_ptr(front));
 		shaderTerrain.setVectorFloat3("spotLights[2].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));//Valores que se toman de la línea 974
 		shaderTerrain.setVectorFloat3("spotLights[2].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));//Valores que se toman de la línea 975
 		shaderTerrain.setVectorFloat3("spotLights[2].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));//Valores que se toman de la línea 976
 		shaderTerrain.setFloat("spotLights[2].constant", 1.0);
-		shaderTerrain.setFloat("spotLights[2].linear", 0.09);
-		shaderTerrain.setFloat("spotLights[2].quadratic", 0.02);
+		shaderTerrain.setFloat("spotLights[2].linear", 0.009);
+		shaderTerrain.setFloat("spotLights[2].quadratic", 0.002);
 		shaderTerrain.setFloat("spotLights[2].cutOff", cos(glm::radians(5.0f)));//15.0f Definición del círculo
 		shaderTerrain.setFloat("spotLights[2].outerCutOff", cos(glm::radians(15.0f)));//15.0f Iluminación por fuera
 
@@ -1173,28 +1176,28 @@ void applicationLoop() {
 		modelMatrixLamboFrontLeftWheel = glm::translate(modelMatrixLamboFrontLeftWheel, glm::vec3(1.01, 0.361, 1.387));//Colocar posicion   1.01, 0.361, -1.387
 		modelMatrixLamboFrontLeftWheel = glm::rotate(modelMatrixLamboFrontLeftWheel, -rotWheelsYLambo, glm::vec3(0, 1, 0));//Rotación de llantas cuando gira el coche
 		modelMatrixLamboFrontLeftWheel = glm::rotate(modelMatrixLamboFrontLeftWheel, rotWheelsXLambo, glm::vec3(1, 0, 0));//Rotación de llantas cuando va en línea recta
-		modelMatrixLamboFrontLeftWheel = glm::translate(modelMatrixLamboFrontLeftWheel, glm::vec3(0.0, 0.0, 0.0));//Aplicar pivote, signo contrario a la posicion   -1.01, -0.361, 1.387
+		modelMatrixLamboFrontLeftWheel = glm::translate(modelMatrixLamboFrontLeftWheel, glm::vec3(-1.01, -0.3610, -1.387));//Aplicar pivote, signo contrario a la posicion   -1.01, -0.361, 1.387
 		modelLamboFrontLeftWheel.render(modelMatrixLamboFrontLeftWheel);
 
 		glm::mat4 modelMatrixLamboFrontRightWheel = glm::mat4(modelMatrixLamboChasis);
-		modelMatrixLamboFrontRightWheel = glm::translate(modelMatrixLamboFrontRightWheel, glm::vec3(-1.01, 0.361, 1.387));//Colocar posicion
+		modelMatrixLamboFrontRightWheel = glm::translate(modelMatrixLamboFrontRightWheel, glm::vec3(0.0, 0.361, 1.387));//Colocar posicion
 		modelMatrixLamboFrontRightWheel = glm::rotate(modelMatrixLamboFrontRightWheel, -rotWheelsYLambo, glm::vec3(0, 1, 0));//Rotación de llantas cuando gira el coche
 		modelMatrixLamboFrontRightWheel = glm::rotate(modelMatrixLamboFrontRightWheel, rotWheelsXLambo, glm::vec3(1, 0, 0));//Rotación de llantas cuando va en línea recta
-		modelMatrixLamboFrontRightWheel = glm::translate(modelMatrixLamboFrontRightWheel, glm::vec3(0.0, 0.0, 0.0));//Aplicar pivote, signo contrario a la posicion
+		modelMatrixLamboFrontRightWheel = glm::translate(modelMatrixLamboFrontRightWheel, glm::vec3(0.0, -0.361, -1.387));//Aplicar pivote, signo contrario a la posicion
 		modelLamboFrontRightWheel.render(modelMatrixLamboFrontRightWheel);
 
 		glm::mat4 modelMatrixLamboRearLeftWheel = glm::mat4(modelMatrixLamboChasis);
-		modelMatrixLamboRearLeftWheel = glm::translate(modelMatrixLamboRearLeftWheel, glm::vec3(1.01, 0.424, -1.633));//Colocar posicion
+		modelMatrixLamboRearLeftWheel = glm::translate(modelMatrixLamboRearLeftWheel, glm::vec3(1.01, 0.361, -1.387));//Colocar posicion
 		modelMatrixLamboRearLeftWheel = glm::rotate(modelMatrixLamboRearLeftWheel, -rotWheelsYLambo, glm::vec3(0, 1, 0));//Rotación de llantas cuando gira el coche
 		modelMatrixLamboRearLeftWheel = glm::rotate(modelMatrixLamboRearLeftWheel, rotWheelsXLambo, glm::vec3(1, 0, 0));//Rotación de llantas cuando va en línea recta
-		modelMatrixLamboRearLeftWheel = glm::translate(modelMatrixLamboRearLeftWheel, glm::vec3(0.0, 0.0, 0.0));//Aplicar pivote, signo contrario a la posicion
+		modelMatrixLamboRearLeftWheel = glm::translate(modelMatrixLamboRearLeftWheel, glm::vec3(-1.01, -0.361, 1.387));//Aplicar pivote, signo contrario a la posicion
 		modelLamboRearLeftWheel.render(modelMatrixLamboRearLeftWheel);
 
 		glm::mat4 modelMatrixLamboRearRightWheel = glm::mat4(modelMatrixLamboChasis);
-		modelMatrixLamboRearRightWheel = glm::translate(modelMatrixLamboRearRightWheel, glm::vec3(-1.01, 0.424, -1.633));//Colocar posicion
+		modelMatrixLamboRearRightWheel = glm::translate(modelMatrixLamboRearRightWheel, glm::vec3(0.0, 0.361, -1.387));//Colocar posicion
 		modelMatrixLamboRearRightWheel = glm::rotate(modelMatrixLamboRearRightWheel, -rotWheelsYLambo, glm::vec3(0, 1, 0));//Rotación de llantas cuando gira el coche
 		modelMatrixLamboRearRightWheel = glm::rotate(modelMatrixLamboRearRightWheel, rotWheelsXLambo, glm::vec3(1, 0, 0));//Rotación de llantas cuando va en línea recta
-		modelMatrixLamboRearRightWheel = glm::translate(modelMatrixLamboRearRightWheel, glm::vec3(0.0, 0.0, 0.0));//Aplicar pivote, signo contrario a la posicion
+		modelMatrixLamboRearRightWheel = glm::translate(modelMatrixLamboRearRightWheel, glm::vec3(0.0, -0.361, 1.387));//Aplicar pivote, signo contrario a la posicion
 		modelLamboRearRightWheel.render(modelMatrixLamboRearRightWheel);
 		// Se regresa el cull faces IMPORTANTE para las puertas
 		glEnable(GL_CULL_FACE);
