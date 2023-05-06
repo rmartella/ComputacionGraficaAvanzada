@@ -1014,8 +1014,8 @@ void applicationLoop() {
 		//SPOTLIGHT HELICÓPTERO
 		//Se envian los spot light. Se modificaron archivos de shader para el spot light. Linea de MAX_SPOT_LIGHT
 		glm::vec3 lampSpotPosition = glm::vec3(modelMatrixHeli[3]);//Centro del helicóptero
-		shaderMulLighting.setInt("spotLightCount", 2);
-		shaderTerrain.setInt("spotLightCount", 2);
+		shaderMulLighting.setInt("spotLightCount", 3);
+		shaderTerrain.setInt("spotLightCount", 3);
 
 		shaderMulLighting.setVectorFloat3("spotLights[0].position", glm::value_ptr(lampSpotPosition));
 		shaderMulLighting.setVectorFloat3("spotLights[0].direction", glm::value_ptr(glm::vec3(0, -1, 0)));
