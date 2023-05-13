@@ -77,11 +77,15 @@ Model modelDartLegoLeftHand;
 Model modelDartLegoRightHand;
 Model modelDartLegoLeftLeg;
 Model modelDartLegoRightLeg;
+
 // Model animate instance
 // Mayow
 Model mayowModelAnimate;
+// MrKrabs model instance
+Model mrKrabsModelAnimate;
+
 // Terrain model instance
-Terrain terrain(-1, -1, 50, 28, "../Textures/heightmap3.png");
+Terrain terrain(-1, -1, 200, 150, "../Textures/TerrenoP3.png");//(,, tamaño total del terreno(original: 200), ponderación del terreno(original: 8), imagen que se toma de referencia(original:"../Textures/heightmap.png"))
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
@@ -94,13 +98,13 @@ GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
 GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
 GL_TEXTURE_CUBE_MAP_NEGATIVE_Z };
 
-//Texturas para la Skybox. 
-std::string fileNames[6] = { "../Textures/mp_bloodvalley/blood-valley_ft.tga",
-		"../Textures/mp_bloodvalley/blood-valley_bk.tga",
-		"../Textures/mp_bloodvalley/blood-valley_up.tga",
-		"../Textures/mp_bloodvalley/blood-valley_dn.tga",
-		"../Textures/mp_bloodvalley/blood-valley_rt.tga",
-		"../Textures/mp_bloodvalley/blood-valley_lf.tga" };
+std::string fileNames[6] = { "../Textures/mp_bloodvalley/blood-valley_ft.tga",//frontal
+		"../Textures/mp_bloodvalley/blood-valley_bk.tga",//back
+		"../Textures/mp_bloodvalley/blood-valley_up.tga",//up
+		"../Textures/mp_bloodvalley/blood-valley_dn.tga",//down
+		"../Textures/mp_bloodvalley/blood-valley_rt.tga",//right
+		"../Textures/mp_bloodvalley/blood-valley_lf.tga" };//left
+
 
 bool exitApp = false;
 int lastMousePosX, offsetX = 0;
@@ -113,6 +117,7 @@ glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+glm::mat4 modelMatrixMrKrabs = glm::mat4(1.0f);
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 0;
@@ -140,6 +145,9 @@ int numPasosDart = 0;
 
 // Var animate helicopter
 float rotHelHelY = 0.0;
+
+//Variable para cambiar la animación de MrKrabs
+int cMrkrabs = 2;
 
 // Var animate lambo dor
 int stateDoor = 0;
@@ -275,6 +283,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
 
+	//Mr Krabs
+	mrKrabsModelAnimate.loadModel("../models/MrKrabs/DonK-TEST.fbx");
+	mrKrabsModelAnimate.setShader(&shaderMulLighting);
+
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
 	// Definimos el tamanio de la imagen
@@ -307,7 +319,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	}
 
 	// Definiendo la textura a utilizar
-	Texture textureCesped("../Textures/cesped.jpg");
+	Texture textureCesped("../Textures/cesped.jpg");//cesped
 	// Carga el mapa de bits (FIBITMAP es el tipo de dato de la libreria)
 	bitmap = textureCesped.loadImage();
 	// Convertimos el mapa de bits en un arreglo unidimensional de tipo unsigned char
@@ -508,6 +520,7 @@ void destroy() {
 
 	// Custom objects animate
 	mayowModelAnimate.destroy();
+	mrKrabsModelAnimate.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -582,85 +595,85 @@ bool processInput(bool continueApplication) {
 	offsetY = 0;
 
 	// Seleccionar modelo
-	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS) {
+	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS){
 		enableCountSelected = false;
 		modelSelected++;
-		if (modelSelected > 2)
+		if(modelSelected > 2)
 			modelSelected = 0;
-		if (modelSelected == 1)
+		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
 		if (modelSelected == 2)
 			fileName = "../animaciones/animation_dart.txt";
 		std::cout << "modelSelected:" << modelSelected << std::endl;
 	}
-	else if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_RELEASE)
+	else if(glfwGetKey(window, GLFW_KEY_TAB) == GLFW_RELEASE)
 		enableCountSelected = true;
 
 	// Guardar key frames
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS
-		&& glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+	if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS
+			&& glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS){
 		record = true;
-		if (myfile.is_open())
+		if(myfile.is_open())
 			myfile.close();
 		myfile.open(fileName);
 	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE
-		&& glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+	if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE
+			&& glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS){
 		record = false;
 		myfile.close();
-		if (modelSelected == 1)
+		if(modelSelected == 1)
 			keyFramesDartJoints = getKeyRotFrames(fileName);
 		if (modelSelected == 2)
 			keyFramesDart = getKeyFrames(fileName);
 	}
-	if (availableSave && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
+	if(availableSave && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS){
 		saveFrame = true;
 		availableSave = false;
-	}if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_RELEASE)
+	}if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_RELEASE)
 		availableSave = true;
 
 	// Dart Lego model movements
 	if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE &&
-		glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+			glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
 		rotDartHead += 0.02;
 	else if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS &&
-		glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+			glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
 		rotDartHead -= 0.02;
 	if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE &&
-		glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+			glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
 		rotDartLeftArm += 0.02;
 	else if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS &&
-		glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+			glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
 		rotDartLeftArm -= 0.02;
 	if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE &&
-		glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+			glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
 		rotDartRightArm += 0.02;
 	else if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS &&
-		glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+			glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
 		rotDartRightArm -= 0.02;
 	if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE &&
-		glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
+			glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
 		rotDartLeftHand += 0.02;
 	else if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS &&
-		glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
+			glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
 		rotDartLeftHand -= 0.02;
 	if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE &&
-		glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
+			glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
 		rotDartRightHand += 0.02;
 	else if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS &&
-		glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
+			glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
 		rotDartRightHand -= 0.02;
 	if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE &&
-		glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
+			glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
 		rotDartLeftLeg += 0.02;
 	else if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS &&
-		glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
+			glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
 		rotDartLeftLeg -= 0.02;
 	if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE &&
-		glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
+			glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
 		rotDartRightLeg += 0.02;
 	else if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS &&
-		glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
+			glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
 		rotDartRightLeg -= 0.02;
 	if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
 		modelMatrixDart = glm::rotate(modelMatrixDart, 0.02f, glm::vec3(0, 1, 0));
@@ -671,15 +684,35 @@ bool processInput(bool continueApplication) {
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(0.02, 0.0, 0.0));
 
-	// Control para el modelo de May
-	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+	/*if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
 		modelMatrixMayow = glm::rotate(modelMatrixMayow, 0.02f, glm::vec3(0, 1, 0));
 	else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
 		modelMatrixMayow = glm::rotate(modelMatrixMayow, -0.02f, glm::vec3(0, 1, 0));
 	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
 		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0.0, 0.0, 0.02));
 	else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0.0, 0.0, -0.02));
+		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0.0, 0.0, -0.02));*/
+
+
+	//Reemplazamos modelo seleccionado 0 para controlar a Don Cangrejo.
+
+	cMrkrabs = 2; //Controlamos la animacion de Don Cangrejo al desplazarse
+	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+		modelMatrixMrKrabs = glm::rotate(modelMatrixMrKrabs, -0.02f, glm::vec3(0, 1, 0));
+	else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+		modelMatrixMrKrabs = glm::rotate(modelMatrixMrKrabs, 0.02f, glm::vec3(0, 1, 0));
+	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+	{
+		cMrkrabs = 1;
+		modelMatrixMrKrabs = glm::translate(modelMatrixMrKrabs, glm::vec3(0.0, 0.0, 0.02));
+	}
+	else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	{
+		cMrkrabs = 1;
+		modelMatrixMrKrabs = glm::translate(modelMatrixMrKrabs, glm::vec3(0.0, 0.0, -0.02));
+
+	}
+
 
 	glfwPollEvents();
 	return continueApplication;
@@ -767,13 +800,13 @@ void applicationLoop() {
 		 *******************************************/
 		glm::mat4 modelCesped = glm::mat4(1.0);
 		modelCesped = glm::translate(modelCesped, glm::vec3(0.0, 0.0, 0.0));
-		modelCesped = glm::scale(modelCesped, glm::vec3(200.0, 0.001, 200.0));
+		modelCesped = glm::scale(modelCesped, glm::vec3(200.0, 0.001, 200.0));//200.0, 0.001, 200.0
 		// Se activa la textura del agua
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textureCespedID);
-		shaderMulLighting.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(80, 80)));
-		terrain.setPosition(glm::vec3(25, 0, 25));
-		
+		shaderMulLighting.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(80, 80)));//Aquí se modifican las repeticiones de la imagen
+		terrain.setPosition(glm::vec3(100, 0, 100));//Posición del terreno, si se modifica la línea 84 a Terrain terrain(-1, -1, 50, 8, "../Textures/heightmap.png"); aquí se modifica a 25,0,25    original: 100,0,100
+		//terrain.enableWireMode();//Malla del terreno
 		terrain.render();
 		shaderMulLighting.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(0, 0)));
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -876,20 +909,34 @@ void applicationLoop() {
 		/*******************************************
 		 * Custom Anim objects obj
 		 *******************************************/
+		//Estas líneas son para que el modelo de May se incline cuando suba las pendientes del terreno
+		//modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);//Los modelos no se ajustan al terreno si se comenta esta línea
+		//glm::vec3 up = glm::normalize(terrain.getNormalTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]));//[][] significan los ejes del modelo
+		//glm::vec3 front = glm::normalize(glm::vec3(modelMatrixMayow[2]));
+		//glm::vec3 right = glm::normalize(glm::cross(up, front));//Producto punto entre up y front, aquí son perpendiculares
+		//front = glm::normalize(glm::cross(right, up));//Se recalcula front
+		//modelMatrixMayow[0] = glm::vec4(right, 0.0);//Se establece
+		//modelMatrixMayow[1] = glm::vec4(up, 0.0);
+		//modelMatrixMayow[2] = glm::vec4(front, 0.0);
+		//glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
+		//modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
+		//mayowModelAnimate.setAnimationIndex(0);
+		//mayowModelAnimate.render(modelMatrixMayowBody);
 
+		//Estas líneas son para que el modelo de Don cangrejo se incline cuando suba las pendientes del terreno
 		//Para acceder a la posicion de la matriz del modelo, selecccionamos la columna 3.
-		modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
-		glm::vec3 up = glm::normalize(terrain.getNormalTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]));
-		glm::vec3 front = glm::normalize(glm::vec3(modelMatrixMayow[2]));
+		modelMatrixMrKrabs[3][1] = terrain.getHeightTerrain(modelMatrixMrKrabs[3][0], modelMatrixMrKrabs[3][2]);
+		glm::vec3 up = glm::normalize(terrain.getNormalTerrain(modelMatrixMrKrabs[3][0], modelMatrixMrKrabs[3][2]));
+		glm::vec3 front = glm::normalize(glm::vec3(modelMatrixMrKrabs[2]));
 		glm::vec3 right = glm::normalize(glm::cross(up, front));
 		front = glm::normalize(glm::cross(right, up));
-		modelMatrixMayow[0] = glm::vec4(right, 0.0);
-		modelMatrixMayow[1] = glm::vec4(up, 0.0);
-		modelMatrixMayow[2] = glm::vec4(front, 0.0);
-		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
-		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
-		mayowModelAnimate.setAnimationIndex(0);
-		mayowModelAnimate.render(modelMatrixMayowBody);
+		modelMatrixMrKrabs[0] = glm::vec4(right, 0.0);
+		modelMatrixMrKrabs[1] = glm::vec4(up, 0.0);
+		modelMatrixMrKrabs[2] = glm::vec4(front, 0.0);
+		glm::mat4 modelMatrixMrKrabsBody = glm::mat4(modelMatrixMrKrabs);
+		modelMatrixMrKrabsBody = glm::scale(modelMatrixMrKrabsBody, glm::vec3(0.0005, 0.0005, 0.0005));
+		mrKrabsModelAnimate.setAnimationIndex(cMrkrabs);  //Variable que determina que animacion se ejecuta de MrKrabs.
+		mrKrabsModelAnimate.render(modelMatrixMrKrabsBody);
 
 		/*******************************************
 		 * Skybox

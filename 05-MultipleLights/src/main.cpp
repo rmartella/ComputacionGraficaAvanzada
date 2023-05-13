@@ -157,7 +157,7 @@ std::vector<glm::vec3> lamp1Position = { glm::vec3(-7.03, 0, -19.14), glm::vec3(
 		24.41, 0, -34.57), glm::vec3(-10.15, 0, -54.10), glm::vec3(20.3125, 0, -50.39) };
 std::vector<float> lamp1Orientation = { -17.0, -82.67, 23.70, -43.67 };//Orientación del nuevo objeto
 std::vector<glm::vec3> lamp2Position = { glm::vec3(-36.52, 0, -23.24),
-		glm::vec3(-52.73, 0, -3.90) };
+										 glm::vec3(-52.73, 0, -3.90) };
 std::vector<float> lamp2Orientation = {21.37 + 90, -65.0 + 90};
 
 double deltaTime;
@@ -1221,6 +1221,23 @@ void applicationLoop() {
 			modelLampPost2.setScale(glm::vec3(1.0, 1.0, 1.0));
 			modelLampPost2.setOrientation(glm::vec3(0, lamp2Orientation[i], 0));
 			modelLampPost2.render();
+		}
+
+		for (int i = 0; i < lamp2Position.size(); i++)
+		{
+			lamp2Position[i].y = terrain.getHeightTerrain(lamp1Position[i].x, lamp2Position[i].z);
+			modelLamp2.setPosition(lamp2Position[i]);
+			modelLamp2.setScale(glm::vec3(1.0, 1.0, 1.0));
+			modelLamp2.setOrientation(glm::vec3(0, lamp2Orientation[i], 0));
+			modelLamp2.render();
+
+			modelLampPost2.setPosition(lamp2Position[i]);
+			modelLampPost2.setScale(glm::vec3(1.0, 1.0, 1.0));
+			modelLampPost2.setOrientation(glm::vec3(0, lamp2Orientation[i], 0));
+			modelLampPost2.render();
+
+
+
 		}
 
 		// Dart lego

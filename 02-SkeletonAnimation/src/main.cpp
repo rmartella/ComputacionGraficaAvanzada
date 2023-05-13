@@ -324,6 +324,9 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//cyborgModelAnimate.setShader(&shaderMulLighting);
 	cyborgModelAnimate.loadModel("../models/cyborg/Cyborg-jess-baile1.fbx");
 	cyborgModelAnimate.setShader(&shaderMulLighting);
+	//krabs
+	krabsAnimate.loadModel("../models/MrKrabs/MrKrabs_Animation.fbx");
+	krabsAnimate.setShader(&shaderMulLighting);
 
 	//Don cangrejo
 	mrkrabsModelAnimate.loadModel("../models/MrKrabs/DonK-TEST.fbx");//Mr_KrabsFix
@@ -804,6 +807,8 @@ void applicationLoop() {
 	modelMatrixGuardian = glm::scale(modelMatrixGuardian, glm::vec3(0.05f));
 	//modelMatrixCyborg = glm::translate(modelMatrixCyborg, glm::vec3(15.0, 0.05f, -10.0f));
 	//modelMatrixCyborg = glm::scale(modelMatrixCyborg, glm::vec3(0.05f));
+	modelMatrixKrabs = glm::translate(modelMatrixKrabs, glm::vec3(35.0f, 0.05f, -10.0f));
+	modelMatrixKrabs = glm::scale(modelMatrixKrabs, glm::vec3(0.005f));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";

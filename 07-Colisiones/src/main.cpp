@@ -119,6 +119,12 @@ bool exitApp = false;
 int lastMousePosX, offsetX = 0;
 int lastMousePosY, offsetY = 0;
 
+bool isJump = false;
+double startTimeJump = 0.0;
+double tmv = 0.0;
+float gravity = 1.3;
+
+
 // Model matrix definitions
 glm::mat4 matrixModelRock = glm::mat4(1.0);
 glm::mat4 modelMatrixHeli = glm::mat4(1.0f);
@@ -792,6 +798,52 @@ bool processInput(bool continueApplication) {
 		return false;
 	}
 
+	if (glfwJoystickPresent(GLFW_JOYSTICK_1) == GLFW_TRUE) {
+		std::cout << "Esta conectado el JoyStick!" << std::endl;
+		int axisCount = 0, buttonCount = 0;
+		const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axisCount);
+		std::cout << "Existen:  " << axisCount << " ejes detectados. " << std::endl;
+		std::cout << "Stick izquierdo horizontal " << axes[0] << std::endl;
+		std::cout << "Stick izquierdo vertical  " << axes[1] << std::endl;
+
+		std::cout << "Stick derecho horizontal " << axes[2] << std::endl;
+		std::cout << "Stick derecho vertical " << axes[3] << std::endl;
+
+		std::cout << "Trigger L " << axes[4] << std::endl;
+		std::cout << "Trigger R " << axes[5] << std::endl;
+
+
+		const unsigned char *buttons = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &buttonCount);
+		std::cout << "Existen:  " << buttonCount << " botones detectados. " << std::endl;
+		
+
+		//Rotar al personaje
+		if (abs(axes[0]) >= 0.3f) {
+				modelMatrixMayow = glm::rotate(modelMatrixMayow, axes[0] * -0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
+			
+		}
+
+		//Mover al personaje
+		if (abs(axes[1]) >= 0.3f) {
+				modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0.0f, 0.0f, axes[1] * 0.02f));
+				animationIndex = 0;
+		}
+		
+		//Mover la camara
+		if (abs(axes[2]) >= 0.3f) {
+			camera->mouseMoveCamera(axes[2] , 0.0f, deltaTime);
+		}
+
+		if (abs(axes[3]) >= 0.3f) {
+			camera->mouseMoveCamera(0.0f, axes[3] , deltaTime);
+		}
+
+
+	}
+
+	
+
+
 	if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 		camera->mouseMoveCamera(offsetX, 0.0, deltaTime);
 	if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
@@ -901,6 +953,14 @@ bool processInput(bool continueApplication) {
 	}else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
 		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, -0.02));
 		animationIndex = 0;
+	}
+
+	bool stateSpace = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
+	if (!isJump && stateSpace)
+	{
+		isJump = true;
+		startTimeJump = currTime;
+		tmv = 0;
 	}
 
 	glfwPollEvents();
@@ -1244,7 +1304,20 @@ void applicationLoop() {
 		/*******************************************
 		 * Custom Anim objects obj
 		 *******************************************/
-		modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
+		// Se modifica para tener un tiro parabolico como salto. 
+		modelMatrixMayow[3][1] = -gravity * tmv * tmv + 3.0 * tmv + terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
+		
+		tmv = currTime - startTimeJump;
+
+
+		if (modelMatrixMayow[3][1] < terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2])) {
+			isJump = false;
+			modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
+			
+		}
+
+
+
 		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
 		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
 		mayowModelAnimate.setAnimationIndex(animationIndex);
