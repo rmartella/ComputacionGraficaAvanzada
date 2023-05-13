@@ -55,8 +55,10 @@ Shader shaderMulLighting;
 Shader shaderTerrain;
 
 std::shared_ptr<Camera> camera(new ThirdPersonCamera());
-//std::shared_ptr<FirstPersonCamera> cameraF(new FirstPersonCamera());
+std::shared_ptr<FirstPersonCamera> FPCamera(new FirstPersonCamera());
+std::shared_ptr<Camera> TPCamera(new ThirdPersonCamera());
 
+bool cameraSwitch = false;
 
 Sphere skyboxSphere(20, 20);
 
@@ -317,8 +319,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	mrKrabsModelAnimate.loadModel("../models/MrKrabs/DonK-TEST.fbx");
 	mrKrabsModelAnimate.setShader(&shaderMulLighting);
 
-	/*cameraF->setPosition(glm::vec3(0.0, 0.0, 10.0));
-	cameraF->setSensitivity(1.0f);*/
+	//FPCamera->setPosition(glm::vec3(0.0, 0.0, 10.0));
+	FPCamera->setSensitivity(1.0f);
 	camera->setSensitivity(1.0f);
 	camera->setDistanceFromTarget(distanceFromTarget);
 
@@ -922,6 +924,23 @@ bool processInput(bool continueApplication) {
 		modelMatrixMrKrabs = glm::translate(modelMatrixMrKrabs, glm::vec3(0.0, 0.0, -0.02));
 	}
 
+	// Cambio de cámara utilizando el la combinacion CTRL + K
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS 
+		&&	glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS )
+	{
+		cameraSwitch = !cameraSwitch;
+	}
+
+	if (cameraSwitch) {
+		camera = FPCamera;
+	}
+	else {
+		camera = TPCamera;
+		camera->setSensitivity(1.0f);
+		camera->setDistanceFromTarget(distanceFromTarget);
+	}
+
+	
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -931,6 +950,8 @@ void applicationLoop() {
 
 	glm::mat4 view;
 	glm::vec3 target;
+	glm::vec3 targetFP;
+	glm::vec3 cameraFront;
 	glm::vec3 axisTarget;
 	float angleTarget;
 
@@ -977,16 +998,23 @@ void applicationLoop() {
 			axisTarget = glm::axis(glm::quat_cast(modelMatrixDart));
 			angleTarget = glm::angle(glm::quat_cast(modelMatrixDart));
 			target = modelMatrixDart[3];
+			//cameraFront = glm::normalize(glm::vec3(modelMatrixDart[2]));
+			targetFP = target + glm::vec3(0.0f, 1.5f, 0.0f); //Compensamos la altura de la camara por el modelo.
 		}
 		else if (modelSelected == 3) {
 			axisTarget = glm::axis(glm::quat_cast(modelMatrixMrKrabs));
 			angleTarget = glm::angle(glm::quat_cast(modelMatrixMrKrabs));
 			target = modelMatrixMrKrabs[3];
+			targetFP = target + glm::vec3(0.0f, 0.5f, 0.0f); //Compensamos la altura de la camara por el modelo.
+			//cameraFront = glm::normalize(glm::vec3(modelMatrixMrKrabs[2]));
 		}
 		else {
 			axisTarget = glm::axis(glm::quat_cast(modelMatrixMayow));
 			angleTarget = glm::angle(glm::quat_cast(modelMatrixMayow));
 			target = modelMatrixMayow[3];
+			targetFP = target + glm::vec3(0.0f, 2.5f, 0.0f); //Compensamos la altura de la camara por el modelo.
+			//cameraFront = glm::normalize(glm::vec3(modelMatrixMayow[2]));
+
 		}
 		if (std::isnan(angleTarget))
 			angleTarget = 0.0f;
@@ -994,9 +1022,23 @@ void applicationLoop() {
 			angleTarget = -angleTarget;
 		if (modelSelected == 1)
 			angleTarget -= glm::radians(90.0);
-		camera->setAngleTarget(angleTarget);
-		camera->setCameraTarget(target);
-		camera->updateCamera();
+
+
+		if (cameraSwitch) {
+			FPCamera->setCameraTarget(target);
+			FPCamera->setPosition(target + glm::vec3(0.0f, 2.5f, 0.0f));
+			FPCamera->moveFrontCamera(true, 0.5f);
+			FPCamera->updateCamera();
+		}
+		else {
+			camera->setAngleTarget(angleTarget);
+			camera->setCameraTarget(target);
+			camera->updateCamera();
+		}
+		
+
+		
+
 		view = camera->getViewMatrix();
 
 		// Settea la matriz de vista y projection al shader con solo color
