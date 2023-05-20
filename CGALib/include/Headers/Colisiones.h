@@ -9,6 +9,7 @@
 #define COLISIONES_H_
 
 #include <map>
+#include <cmath>
 #include "AbstractModel.h"
 
 void addOrUpdateColliders(
@@ -210,5 +211,59 @@ bool testOBBOBB(AbstractModel::OBB a, AbstractModel::OBB b){
 	return true;
 }
 
+bool testSLABPlane(float p, float v, float min, float max, float& tmin, float& tmax)
+{
+	if (fabs(v) <= 0.01) {
+		return p >= min && p <= max; // si es 0 o muy cercano a 0, no hay colision
+	}
+	else {
+		float ood = 1.0f / v;
+		float t1 = (min - p) * ood;
+		float t2 = (max - p) * ood;
+		if (t1 > t2) {
+			float temp = t1;
+			t1 = t2;
+			t2 = temp;
+		}
+		if (t1 > tmin) tmin = t1;
+		if (t2 < tmax) tmax = t2;
+		if (tmin > tmax) return false;
+	}
+	return true;
+}
+
+bool intersectSegmentAABB(glm::vec3 o, glm::vec3 t, AbstractModel::AABB collider)
+{
+	float tmin = -FLT_MAX;
+	float tmax = FLT_MAX;
+	glm::vec3 d = glm::normalize(t - o);
+	if (!testSLABPlane(o.x, d.x, collider.mins.x, collider.maxs.x, tmin, tmax))
+		return false;
+
+	if (!testSLABPlane(o.y, d.y, collider.mins.y, collider.maxs.y, tmin, tmax))
+		return false;
+	
+	if (!testSLABPlane(o.z, d.z, collider.mins.z, collider.maxs.z, tmin, tmax))
+		return false;
+	
+	if(tmin >= 0 && tmin <= glm::length(t-o))
+		return true;
+	return false;
+}
+
+bool testRayOBB(glm::vec3 o, glm::vec3 t, AbstractModel::OBB collider) {
+	glm::quat qInv = glm::inverse(collider.u);
+	glm::vec3 oTemp = qInv * o;
+	glm::vec3 tTemp = qInv * t;
+	glm::vec3 cOBBTemp = qInv * collider.c;
+
+
+	AbstractModel::AABB aabb;
+	aabb.mins = cOBBTemp - collider.e;
+	aabb.maxs = cOBBTemp + collider.e;
+
+	return intersectSegmentAABB(oTemp, tTemp, aabb);
+
+}
 
 #endif /* COLISIONES_H_ */
