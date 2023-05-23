@@ -45,7 +45,7 @@
 #define ARRAY_SIZE_IN_ELEMENTS(a) (sizeof(a)/sizeof(a[0]))
 
 // Constantes para los personajes
-#define VELOCIDAD_MOVIMIENTO_PERSONAJE 0.5f
+#define VELOCIDAD_MOVIMIENTO_PERSONAJE 0.1f
 #define VELOCIDAD_ROTACION_PERSONAJE 0.5f
 #define GRAVEDAD_SALTO_PERSONAJE 0.5f
 
@@ -211,6 +211,8 @@ void checkCollisions();
 void checkCollisionsZombie();
 void checkCollisionsDisparo();
 
+void drawGUI();
+void startScene(std::string sceneName);
 
 // Implementacion de todas las funciones.
 void init(int width, int height, std::string strTitle, bool bFullScreen) {
@@ -906,11 +908,11 @@ bool processInput(bool continueApplication) {
 	
 
 	if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-		modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(1.0f), glm::vec3(0, 1, 0));
+		modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
 		animationIndex = 0;
 	}
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-		modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-1.0f), glm::vec3(0, 1, 0));
+		modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
 		animationIndex = 0;
 	}if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
 		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, VELOCIDAD_MOVIMIENTO_PERSONAJE));
@@ -1535,8 +1537,32 @@ void applicationLoop() {
 	}
 }
 
+void startScene(std::string sceneName) {
+
+	if (sceneName == "MainGame") {
+		//Pseudocode: 
+		//  destroyAllOtherScenes();
+		//	applicationLoop();
+		//	
+	}
+
+	if (sceneName == "Menu") {
+
+		//Pseudocode: 
+		//	saveApplicationLoopState();
+		//	DrawGUI();
+		//  CheckForInput();
+		//	DoSomething();
+		//  UponExistDestroy();
+		//	
+	}
+}
+
 int main(int argc, char** argv) {
 	init(800, 700, "Proyecto Final", false);
+
+	
+	//startScene(menu);
 	applicationLoop();
 	destroy();
 	return 1;
