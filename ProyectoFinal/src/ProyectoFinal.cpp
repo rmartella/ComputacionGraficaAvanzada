@@ -44,8 +44,14 @@
 
 #define ARRAY_SIZE_IN_ELEMENTS(a) (sizeof(a)/sizeof(a[0]))
 
-// Constants 
+// Constantes para los personajes
 #define VELOCIDAD_MOVIMIENTO_PERSONAJE 0.5f
+#define VELOCIDAD_ROTACION_PERSONAJE 0.5f
+#define GRAVEDAD_SALTO_PERSONAJE 0.5f
+
+// Constantes para la camara
+#define SCREEN_WIDTH 1024
+#define SCREEN_HEIGHT 768
 
 int screenWidth;
 int screenHeight;
@@ -60,9 +66,10 @@ Shader shaderMulLighting;
 //Shader para el terreno
 Shader shaderTerrain;
 
+
+// CAMARA:
 std::shared_ptr<Camera> camera(new ThirdPersonCamera());
 float distanceFromTarget = 7.0;
-
 Sphere skyboxSphere(20, 20);
 Box boxCollider;
 Sphere sphereCollider(10, 10);
@@ -74,18 +81,28 @@ Model modelRock;
 Model modelHeliChasis;
 Model modelHeliHeli;
 
-// Lamps
+// Lamparas - iluminación.
 Model modelLamp1;
 Model modelLamp2;
 Model modelLampPost2;
 
-// Model animate instance
+// Modelos animados: 
+// Pruebas:
 // Mayow
 Model mayowModelAnimate;
 
+// Finales:
+// Personaje:
+Model playerModelAnimated;
+// Zombie: 
+Model zombieModel;
+// Modelos de efectos:
+Model modelDisparo;
+
+
+// Relevantes al terreno: 
 // Terrain model instance
 Terrain terrain(-1, -1, 200, 8, "../Textures/heightmap3.png");
-
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint textureTerrainBackgroundID, textureTerrainRID, textureTerrainGID, textureTerrainBID, textureTerrainBlendMapID;
 GLuint skyboxTextureID;
@@ -98,21 +115,27 @@ GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
 GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
 GL_TEXTURE_CUBE_MAP_NEGATIVE_Z };
 
-std::string fileNames[6] = { "../Textures/mp_bloodvalley/blood-valley_ft.tga",
-		"../Textures/mp_bloodvalley/blood-valley_bk.tga",
-		"../Textures/mp_bloodvalley/blood-valley_up.tga",
-		"../Textures/mp_bloodvalley/blood-valley_dn.tga",
-		"../Textures/mp_bloodvalley/blood-valley_rt.tga",
-		"../Textures/mp_bloodvalley/blood-valley_lf.tga" };
 
+// SKYBOX
+std::string fileNames[6] = { 
+		"../Textures/mp_bloodvalley/blood-valley_ft.tga",	//FRONT
+		"../Textures/mp_bloodvalley/blood-valley_bk.tga",	//BACK
+		"../Textures/mp_bloodvalley/blood-valley_up.tga",	//UP
+		"../Textures/mp_bloodvalley/blood-valley_dn.tga",	//DOWN
+		"../Textures/mp_bloodvalley/blood-valley_rt.tga",	//RIGHT	
+		"../Textures/mp_bloodvalley/blood-valley_lf.tga" };	//LEFT
+
+
+// CONTROL DEL JUEGO:
 bool exitApp = false;
 int lastMousePosX, offsetX = 0;
 int lastMousePosY, offsetY = 0;
-
 bool isJump = false;
 double startTimeJump = 0.0;
 double tmv = 0.0;
 float gravity = 1.3;
+
+//FIN DE CONTROLES DE JUEGO.
 
 
 // Model matrix definitions
@@ -167,6 +190,10 @@ double currTime, lastTime;
 std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> > collidersOBB;
 std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> > collidersSBB;
 
+// *-------------------------------------------------*
+// *--------   PROTOTIPOS DE FUNCIONES        -------*
+// *-------------------------------------------------*
+
 // Se definen todos las funciones.
 void reshapeCallback(GLFWwindow* Window, int widthRes, int heightRes);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action,
@@ -177,6 +204,13 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 void init(int width, int height, std::string strTitle, bool bFullScreen);
 void destroy();
 bool processInput(bool continueApplication = true);
+// funciones para el comportamiento del juego
+void spawnZombie(glm::vec3 spawnPositions);
+void followPlayer();
+void checkCollisions();
+void checkCollisionsZombie();
+void checkCollisionsDisparo();
+
 
 // Implementacion de todas las funciones.
 void init(int width, int height, std::string strTitle, bool bFullScreen) {
@@ -186,8 +220,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 		exit(-1);
 	}
 
-	screenWidth = width;
-	screenHeight = height;
+	screenWidth = SCREEN_WIDTH;
+	screenHeight =SCREEN_HEIGHT;
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
