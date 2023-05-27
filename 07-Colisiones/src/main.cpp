@@ -125,6 +125,12 @@ double startTimeJump = 0.0;
 double tmv = 0.0;
 float gravity = 1.3;
 
+bool generarRayo = false;
+glm::vec3 origenRayoPicking;
+glm::vec3 destinoRayoPicking;
+glm::vec3 direccionRayoPicking;
+
+
 
 // Model matrix definitions
 glm::mat4 matrixModelRock = glm::mat4(1.0);
@@ -969,6 +975,29 @@ bool processInput(bool continueApplication) {
 		tmv = 0;
 	}
 
+	if (!generarRayo && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS
+					 && glfwGetKey(window,GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+
+		generarRayo = true;
+		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) screenWidth / (float)screenHeight, 0.1f, 100.0f);
+		glm::vec4 viewport = glm::vec4(0.0, 0.0, screenWidth, screenHeight);
+		origenRayoPicking = glm::unProject(glm::vec3(lastMousePosX, screenHeight - lastMousePosY, 0.0f), 
+									 camera->getViewMatrix(), projection, viewport); // Transforma a coordenadas de pantalla.
+		destinoRayoPicking = glm::unProject(glm::vec3(lastMousePosX, screenHeight - lastMousePosY, 1.0f),
+			camera->getViewMatrix(), projection, viewport); // Transforma a coordenadas de pantalla.
+
+		direccionRayoPicking = glm::normalize(destinoRayoPicking - origenRayoPicking);
+
+	}
+	else if (generarRayo && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
+		
+		generarRayo = false;
+
+
+	}
+
+
+	
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -1577,6 +1606,12 @@ void applicationLoop() {
 			if (raySphereIntersect(origen, targetRay, rayDirection, std::get<0>(itSBB->second), tRint)) {
 				std::cout << "Colision del rayo con el modelo" << itSBB->first << std::endl;
 			}
+
+			if (generarRayo && raySphereIntersect(origenRayoPicking, destinoRayoPicking, direccionRayoPicking, std::get<0>(itSBB->second), tRint)) {
+				std::cout << "Seleccionado el modelo: " << itSBB->first << std::endl;
+			}
+
+
 		}
 
 		//Realizar la colision rayo contra caja
@@ -1585,6 +1620,10 @@ void applicationLoop() {
 		{
 			if (testRayOBB(origen, targetRay, std::get<0>(itOBB->second))) {
 				std::cout << "Colision del rayo con el modelo" << itOBB->first << std::endl;
+			}
+
+			if (generarRayo && testRayOBB(origenRayoPicking, destinoRayoPicking, std::get<0>(itOBB->second))) {
+				std::cout << "Seleccionado el modelo: " << itOBB->first << std::endl;
 			}
 		}
 
