@@ -42,6 +42,9 @@
 // Include Colision headers functions
 #include "Headers/Colisiones.h"
 
+// Libreria de Texto
+#include "Headers/FontTypeRendering.h"
+
 #define ARRAY_SIZE_IN_ELEMENTS(a) (sizeof(a)/sizeof(a[0]))
 
 int screenWidth;
@@ -99,6 +102,11 @@ Terrain terrain(-1, -1, 200, 8, "../Textures/heightmap.png");
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint textureTerrainBackgroundID, textureTerrainRID, textureTerrainGID, textureTerrainBID, textureTerrainBlendMapID;
 GLuint skyboxTextureID;
+
+FontTypeRendering::FontTypeRendering* modelText;
+
+
+
 
 GLenum types[6] = {
 GL_TEXTURE_CUBE_MAP_POSITIVE_X,
@@ -169,6 +177,12 @@ std::vector<float> lamp2Orientation = {21.37 + 90, -65.0 + 90};
 
 double deltaTime;
 double currTime, lastTime;
+
+// Modelos con transparencia desordenados
+std::map< std::string, glm::vec3> blendingDesordenado = {
+		{ "aircraft", glm::vec3()},
+		{ "lambo", glm::vec3()},
+		{ "heli", glm::vec3()} };
 
 // Jump variables
 bool isJump = false;
@@ -679,6 +693,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 		std::cout << "Failed to load texture" << std::endl;
 	// Libera la memoria de la textura
 	textureTerrainBlendMap.freeImage(bitmap);
+
+	modelText = new FontTypeRendering::FontTypeRendering(screenWidth, screenHeight);
+	modelText->Initialize();
+
 }
 
 void destroy() {
@@ -745,6 +763,9 @@ void destroy() {
 	// Cube Maps Delete
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	glDeleteTextures(1, &skyboxTextureID);
+
+	//Destruir objeto texto
+	modelText->~FontTypeRendering();
 }
 
 void reshapeCallback(GLFWwindow *Window, int widthRes, int heightRes) {
@@ -1147,39 +1168,8 @@ void applicationLoop() {
 		// Forze to enable the unit texture to 0 always ----------------- IMPORTANT
 		glActiveTexture(GL_TEXTURE0);
 
-		// Render for the aircraft model
-		modelMatrixAircraft[3][1] = terrain.getHeightTerrain(modelMatrixAircraft[3][0], modelMatrixAircraft[3][2]) + 2.0;
-		modelAircraft.render(modelMatrixAircraft);
 
-		// Lambo car
-		glDisable(GL_CULL_FACE);
-		glm::mat4 modelMatrixLamboChasis = glm::mat4(modelMatrixLambo);
-		modelMatrixLamboChasis[3][1] = terrain.getHeightTerrain(modelMatrixLamboChasis[3][0], modelMatrixLamboChasis[3][2]);
-		modelMatrixLamboChasis = glm::scale(modelMatrixLamboChasis, glm::vec3(1.3, 1.3, 1.3));
-		modelLambo.render(modelMatrixLamboChasis);
-		glActiveTexture(GL_TEXTURE0);
-		glm::mat4 modelMatrixLamboLeftDor = glm::mat4(modelMatrixLamboChasis);
-		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(1.08676, 0.707316, 0.982601));
-		modelMatrixLamboLeftDor = glm::rotate(modelMatrixLamboLeftDor, glm::radians(dorRotCount), glm::vec3(1.0, 0, 0));
-		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(-1.08676, -0.707316, -0.982601));
-		modelLamboLeftDor.render(modelMatrixLamboLeftDor);
-		modelLamboRightDor.render(modelMatrixLamboChasis);
-		modelLamboFrontLeftWheel.render(modelMatrixLamboChasis);
-		modelLamboFrontRightWheel.render(modelMatrixLamboChasis);
-		modelLamboRearLeftWheel.render(modelMatrixLamboChasis);
-		modelLamboRearRightWheel.render(modelMatrixLamboChasis);
-		// Se regresa el cull faces IMPORTANTE para las puertas
-		glEnable(GL_CULL_FACE);
-
-		// Helicopter
-		glm::mat4 modelMatrixHeliChasis = glm::mat4(modelMatrixHeli);
-		modelHeliChasis.render(modelMatrixHeliChasis);
-
-		glm::mat4 modelMatrixHeliHeli = glm::mat4(modelMatrixHeliChasis);
-		modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, -0.249548));
-		modelMatrixHeliHeli = glm::rotate(modelMatrixHeliHeli, rotHelHelY, glm::vec3(0, 1, 0));
-		modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, 0.249548));
-		modelHeliHeli.render(modelMatrixHeliHeli);
+		
 
 		// Render the lamps
 		for (int i = 0; i < lamp1Position.size(); i++){
@@ -1284,6 +1274,76 @@ void applicationLoop() {
 		skyboxSphere.render();
 		glCullFace(oldCullFaceMode);
 		glDepthFunc(oldDepthFuncMode);
+
+
+		// Actualiza la posicion con las posiciones correctas de los objetos con transparencia. 
+		blendingDesordenado.find("aircraft")->second = glm::vec3(modelMatrixAircraft[3]);
+
+		blendingDesordenado.find("lambo")->second = glm::vec3(modelMatrixLambo[3]);
+		blendingDesordenado.find("heli")->second = glm::vec3(modelMatrixHeli[3]);
+
+		// Ordenar los objetos con canal alfa
+		std::map<float, std::pair<std::string, glm::vec3>> blendingOrdenado;
+		std::map<std::string, glm::vec3>::iterator itBlend;
+
+		for ( itBlend = blendingDesordenado.begin(); itBlend != blendingDesordenado.end(); itBlend++)
+		{
+			float distanceFromCamera = glm::distance(camera->getPosition(), itBlend->second);
+			blendingOrdenado[distanceFromCamera] = std::make_pair(itBlend->first, itBlend->second);
+		}
+
+		// Renderizar los objetos con Transparencia:
+		// Se pueden renderizar despues de los colliders para que tambine aplique la transparencia
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); //Transparencia normal
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE); //Trasnparencia estilo fantasma
+		for (std::map<float, std::pair<std::string, glm::vec3>>::reverse_iterator it = blendingOrdenado.rbegin(); it != blendingOrdenado.rend(); it++)
+		{
+			if (it->second.first.compare("aircraft") == 0)
+			{
+				//Render del aircraft
+				modelMatrixAircraft[3][1] = terrain.getHeightTerrain(modelMatrixAircraft[3][0], modelMatrixAircraft[3][2]) + 2.0;
+				modelAircraft.render(modelMatrixAircraft);
+
+			}
+			else if (it->second.first.compare("lambo") == 0)
+			{
+				// Lambo car
+				glDisable(GL_CULL_FACE);
+				glm::mat4 modelMatrixLamboChasis = glm::mat4(modelMatrixLambo);
+				modelMatrixLamboChasis[3][1] = terrain.getHeightTerrain(modelMatrixLamboChasis[3][0], modelMatrixLamboChasis[3][2]);
+				modelMatrixLamboChasis = glm::scale(modelMatrixLamboChasis, glm::vec3(1.3, 1.3, 1.3));
+				modelLambo.render(modelMatrixLamboChasis);
+				glActiveTexture(GL_TEXTURE0);
+				glm::mat4 modelMatrixLamboLeftDor = glm::mat4(modelMatrixLamboChasis);
+				modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(1.08676, 0.707316, 0.982601));
+				modelMatrixLamboLeftDor = glm::rotate(modelMatrixLamboLeftDor, glm::radians(dorRotCount), glm::vec3(1.0, 0, 0));
+				modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(-1.08676, -0.707316, -0.982601));
+				modelLamboLeftDor.render(modelMatrixLamboLeftDor);
+				modelLamboRightDor.render(modelMatrixLamboChasis);
+				modelLamboFrontLeftWheel.render(modelMatrixLamboChasis);
+				modelLamboFrontRightWheel.render(modelMatrixLamboChasis);
+				modelLamboRearLeftWheel.render(modelMatrixLamboChasis);
+				modelLamboRearRightWheel.render(modelMatrixLamboChasis);
+				// Se regresa el cull faces IMPORTANTE para las puertas
+				glEnable(GL_CULL_FACE);
+				
+			}
+			else if (it->second.first.compare("heli") == 0)
+			{	
+				// Helicopter
+				glm::mat4 modelMatrixHeliChasis = glm::mat4(modelMatrixHeli);
+				modelHeliChasis.render(modelMatrixHeliChasis);
+
+				glm::mat4 modelMatrixHeliHeli = glm::mat4(modelMatrixHeliChasis);
+				modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, -0.249548));
+				modelMatrixHeliHeli = glm::rotate(modelMatrixHeliHeli, rotHelHelY, glm::vec3(0, 1, 0));
+				modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, 0.249548));
+				modelHeliHeli.render(modelMatrixHeliHeli);
+				
+			}
+		}
+		glDisable(GL_BLEND);
 
 
 		/*******************************************
@@ -1586,6 +1646,10 @@ void applicationLoop() {
 			break;
 		}
 
+
+		glEnable(GL_BLEND);
+		modelText->render("Hola mundo!", 0, 0, 1.0 , 0.0, 0.0, 42);
+		glDisable(GL_BLEND);
 		glfwSwapBuffers(window);
 	}
 }
