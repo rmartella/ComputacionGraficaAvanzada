@@ -94,6 +94,9 @@ Model modelLampPost2;
 // Model animate instance
 // Mayow
 Model mayowModelAnimate;
+Model mrKrabsModelAnimate;
+
+
 // Terrain model instance
 Terrain terrain(-1, -1, 200, 8, "../Textures/heightmap.png");
 
@@ -139,6 +142,9 @@ glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+glm::mat4 modelMatrixMrKrabs = glm::mat4(1.0f);
+
+
 
 int animationIndex = 1;
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
@@ -337,6 +343,11 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//Mayow
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
+
+	//Mr Krabs
+	mrKrabsModelAnimate.loadModel("../models/MrKrabs/DonK-TEST.fbx");
+	mrKrabsModelAnimate.setShader(&shaderMulLighting);
+
 
 	camera->setPosition(glm::vec3(0.0, 0.0, 10.0));
 	camera->setDistanceFromTarget(distanceFromTarget);
@@ -740,6 +751,7 @@ void destroy() {
 
 	// Custom objects animate
 	mayowModelAnimate.destroy();
+	mrKrabsModelAnimate.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -867,7 +879,7 @@ bool processInput(bool continueApplication) {
 	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS){
 		enableCountSelected = false;
 		modelSelected++;
-		if(modelSelected > 2)
+		if(modelSelected > 3) // +1 por el modelo de mrKrabs.
 			modelSelected = 0;
 		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
@@ -953,6 +965,8 @@ bool processInput(bool continueApplication) {
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(0.02, 0.0, 0.0));
 
+	// Mayow Control
+
 	if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
 		modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(1.0f), glm::vec3(0, 1, 0));
 		animationIndex = 0;
@@ -966,6 +980,25 @@ bool processInput(bool continueApplication) {
 		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, -0.02));
 		animationIndex = 0;
 	}
+
+	// Mr Krabs Control.
+	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		modelMatrixMrKrabs = glm::rotate(modelMatrixMrKrabs, glm::radians(1.0f), glm::vec3(0, 1, 0));
+		animationIndex = 0;
+	}
+	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		modelMatrixMrKrabs = glm::rotate(modelMatrixMrKrabs, glm::radians(-1.0f), glm::vec3(0, 1, 0));
+		animationIndex = 0;
+	}if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		modelMatrixMrKrabs = glm::translate(modelMatrixMrKrabs, glm::vec3(0, 0, 0.02));
+		animationIndex = 0;
+	}
+	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		modelMatrixMrKrabs = glm::translate(modelMatrixMrKrabs, glm::vec3(0, 0, -0.02));
+		animationIndex = 0;
+	}
+
+
 
 	bool stateSpace = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
 	if (!isJump && stateSpace)
@@ -1057,10 +1090,15 @@ void applicationLoop() {
 			angleTarget = glm::angle(glm::quat_cast(modelMatrixDart));
 			target = modelMatrixDart[3];
 		}
-		else {
+		else if (modelSelected == 2) {
 			axis = glm::axis(glm::quat_cast(modelMatrixMayow));
 			angleTarget = glm::angle(glm::quat_cast(modelMatrixMayow));
 			target = modelMatrixMayow[3];
+		}
+		else {
+			axis = glm::axis(glm::quat_cast(modelMatrixMrKrabs));
+			angleTarget = glm::angle(glm::quat_cast(modelMatrixMrKrabs));
+			target = modelMatrixMrKrabs[3];
 		}
 
 		if (std::isnan(angleTarget))
@@ -1341,7 +1379,7 @@ void applicationLoop() {
 		 *******************************************/
 		 // Se modifica para tener un tiro parabolico como salto. 
 		modelMatrixMayow[3][1] = -gravity * tmv * tmv + 3.0 * tmv + terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
-
+		modelMatrixMrKrabs[3][1] = -gravity * tmv * tmv + 3.0 * tmv + terrain.getHeightTerrain(modelMatrixMrKrabs[3][0], modelMatrixMrKrabs[3][2]);
 		tmv = currTime - startTimeJump;
 
 
@@ -1351,12 +1389,24 @@ void applicationLoop() {
 
 		}
 
+		if (modelMatrixMrKrabs[3][1] < terrain.getHeightTerrain(modelMatrixMrKrabs[3][0], modelMatrixMrKrabs[3][2])) {
+			isJump = false;
+			modelMatrixMrKrabs[3][1] = terrain.getHeightTerrain(modelMatrixMrKrabs[3][0], modelMatrixMrKrabs[3][2]);
+
+		}
 
 
 		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
 		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
 		mayowModelAnimate.setAnimationIndex(animationIndex);
 		mayowModelAnimate.render(modelMatrixMayowBody);
+
+		//Dibujado de MrKrabs.
+		glm::mat4 modelMatrixMrKrabsBody = glm::mat4(modelMatrixMrKrabs);
+		modelMatrixMrKrabsBody = glm::scale(modelMatrixMrKrabsBody, glm::vec3(0.0021, 0.0021, 0.0021));
+		mrKrabsModelAnimate.setAnimationIndex(animationIndex);
+		mrKrabsModelAnimate.render(modelMatrixMrKrabsBody);
+
 
 		/*******************************************
 		 * Skybox
@@ -1427,6 +1477,18 @@ void applicationLoop() {
 		modelMayowCollider.c = glm::vec3(mayowMatrixCollider[3]);
 		modelMayowCollider.e = mayowModelAnimate.getObb().e * glm::vec3(0.021) * glm::vec3(0.75);
 		addOrUpdateColliders(collidersOBB, "mayow", modelMayowCollider, modelMatrixMayow);
+
+		// Mr Krabs Collider
+		AbstractModel::OBB modelMrKrabsCollider;
+		glm::mat4 mrKrabsMatrixCollider = glm::mat4(modelMatrixMrKrabs);
+		mrKrabsMatrixCollider = glm::rotate(mrKrabsMatrixCollider, glm::radians(-90.0f), glm::vec3(1, 0, 0));
+		modelMrKrabsCollider.u = glm::quat_cast(mrKrabsMatrixCollider);
+		mrKrabsMatrixCollider = glm::scale(mrKrabsMatrixCollider, glm::vec3(0.0021, 0.0021, 0.0021));
+		mrKrabsMatrixCollider = glm::translate(mrKrabsMatrixCollider, mrKrabsModelAnimate.getObb().c  );
+		modelMrKrabsCollider.c = glm::vec3(mrKrabsMatrixCollider[3]) + glm::vec3(0,1.2,0); //Ajuste de la altura del collider
+		modelMrKrabsCollider.e = mrKrabsModelAnimate.getObb().e * glm::vec3(0.25) * glm::vec3(0.75);
+		addOrUpdateColliders(collidersOBB, "mrKrabs", modelMrKrabsCollider, modelMatrixMrKrabs);
+
 
 		// Lamps1 colliders
 		for (int i = 0; i < lamp1Position.size(); i++) {
