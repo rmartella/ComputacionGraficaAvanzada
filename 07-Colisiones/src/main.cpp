@@ -204,6 +204,9 @@ double currTime, lastTime;
 std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> > collidersOBB;
 std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> > collidersSBB;
 
+// Collider triggers
+bool isDartCollision = false;
+
 // Se definen todos las funciones.
 void reshapeCallback(GLFWwindow *Window, int widthRes, int heightRes);
 void keyCallback(GLFWwindow *window, int key, int scancode, int action,
@@ -993,10 +996,10 @@ bool processInput(bool continueApplication) {
 		modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-1.0f), glm::vec3(0, 1, 0));
 		animationIndex = 0;
 	}if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
-		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, 0.02));
+		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, 0.045));
 		animationIndex = 0;
 	}else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
-		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, -0.02));
+		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, -0.045));
 		animationIndex = 0;
 	}
 
@@ -1669,7 +1672,7 @@ void applicationLoop() {
 					std::cout << "Hay colision entre: " << it->first << " y el modelo: " << jt->first << std::endl;
 					isCollision = true;
 
-
+					
 				}
 			}
 			addOrUpdateCollisionDetection(collisionDetection, it->first, isCollision);
@@ -1690,6 +1693,7 @@ void applicationLoop() {
 			addOrUpdateCollisionDetection(collisionDetection, it->first, isCollision);
 		}
 
+		/* ITERADOR DE COLISIONES */
 		std::map<std::string, bool>::iterator itCollision; //Iterador de colisiones 
 		for (itCollision = collisionDetection.begin(); itCollision != collisionDetection.end(); itCollision++)
 		{
@@ -1716,7 +1720,15 @@ void applicationLoop() {
 					//Lista de todos los objetos con colision 
 					if (itCollision->first.compare("mayow") == 0) {
 						//Estamos obteniendo el valor de la primera matriz de transformacion de la tupla que forma parte del obbbuscado.
-						modelMatrixMayow = std::get<1>(obbBuscado->second);
+						modelMatrixMayow = std::get<1>(obbBuscado->second);	
+					}
+
+					
+					/* Correción, punto 6 de la práctica 7 */
+					if (itCollision->first.compare("dart") == 0) {
+						modelMatrixDart = std::get<1>(obbBuscado->second);
+						isDartCollision = true;
+						std::cout << "Deteniendo animacion de dart" << std::endl;
 					}
 				}
 			}
@@ -1807,7 +1819,7 @@ void applicationLoop() {
 				saveFrame = false;
 			}
 		}
-		else if(keyFramesDartJoints.size() > 0){
+		else if(keyFramesDartJoints.size() > 0 && !isDartCollision){
 			// Para reproducir el frame
 			interpolationDartJoints = numPasosDartJoints / (float) maxNumPasosDartJoints;
 			numPasosDartJoints++;
@@ -1835,10 +1847,11 @@ void applicationLoop() {
 				saveFrame = false;
 			}
 		}
-		else if (keyFramesDart.size() > 0) {
+		else if (keyFramesDart.size() > 0 && !isDartCollision) {
 			// Para reproducir el frame
 			interpolationDart = numPasosDart / (float)maxNumPasosDart;
 			numPasosDart++;
+
 			if (interpolationDart > 1.0) {
 				numPasosDart = 0;
 				interpolationDart = 0;
@@ -1847,7 +1860,11 @@ void applicationLoop() {
 			}
 			if (indexFrameDartNext > keyFramesDart.size() - 1)
 				indexFrameDartNext = 0;
-			modelMatrixDart = interpolate(keyFramesDart, indexFrameDart, indexFrameDartNext, 0, interpolationDart);
+			/* Corrección para detener a dart en caso de colision */
+			
+			if (!isDartCollision) {
+				modelMatrixDart = interpolate(keyFramesDart, indexFrameDart, indexFrameDartNext, 0, interpolationDart);
+			}
 		}
 
 		// Constantes de animaciones
