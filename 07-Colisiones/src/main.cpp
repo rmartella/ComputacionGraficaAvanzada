@@ -96,6 +96,9 @@ Model modelLampPost2;
 Model mayowModelAnimate;
 Model mrKrabsModelAnimate;
 
+//Modelos agregados para practica 7
+Model ghostModel;
+Model slimeModel;
 
 // Terrain model instance
 Terrain terrain(-1, -1, 200, 8, "../Textures/heightmap.png");
@@ -144,7 +147,8 @@ glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
 glm::mat4 modelMatrixMrKrabs = glm::mat4(1.0f);
 
-
+glm::mat4 modelMatrixGhost = glm::mat4(1.0f);
+glm::mat4 modelMatrixSlime = glm::mat4(1.0f);
 
 int animationIndex = 1;
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
@@ -173,6 +177,13 @@ int numPasosDart = 0;
 
 // Var animate helicopter
 float rotHelHelY = 0.0;
+
+std::map< std::string, glm::vec3> blendingDesordenado = {
+		{ "slime", glm::vec3()},
+		{"lambo", glm::vec3() },
+		{ "ghost", glm::vec3()} 
+
+};
 
 // Var animate lambo dor
 int stateDoor = 0;
@@ -348,6 +359,12 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	mrKrabsModelAnimate.loadModel("../models/MrKrabs/DonK-TEST.fbx");
 	mrKrabsModelAnimate.setShader(&shaderMulLighting);
 
+	//Extra models.
+	ghostModel.loadModel("../models/Ghost/Ghost2.fbx");
+	ghostModel.setShader(&shaderMulLighting);
+	
+	slimeModel.loadModel("../models/Slime/Slime2.fbx");
+	slimeModel.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 0.0, 10.0));
 	camera->setDistanceFromTarget(distanceFromTarget);
@@ -752,6 +769,8 @@ void destroy() {
 	// Custom objects animate
 	mayowModelAnimate.destroy();
 	mrKrabsModelAnimate.destroy();
+	slimeModel.destroy();
+	ghostModel.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -1055,6 +1074,9 @@ void applicationLoop() {
 
 	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
 	modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+
+	modelMatrixGhost = glm::translate(modelMatrixGhost, glm::vec3(3.0f, 3.0f, 3.0f));
+	modelMatrixGhost = glm::rotate(modelMatrixGhost, glm::radians(-90.0f), glm::vec3(1, 0, 0));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -1407,6 +1429,15 @@ void applicationLoop() {
 		mrKrabsModelAnimate.setAnimationIndex(animationIndex);
 		mrKrabsModelAnimate.render(modelMatrixMrKrabsBody);
 
+		//Dibujad del Ghost.
+		modelMatrixGhost[3][1] = terrain.getHeightTerrain(modelMatrixGhost[3][0], modelMatrixGhost[3][2]);
+		glm::mat4 modelMatrixGhostBody = glm::mat4(modelMatrixGhost);
+		//modelMatrixGhostBody = glm::translate(modelMatrixGhostBody, glm::vec3(3.0, 0.0, 3.0));
+		modelMatrixGhostBody = glm::scale(modelMatrixGhostBody, glm::vec3(0.5, 0.5, 0.5));
+		//modelMatrixGhostBody =  // Enderezamos modelo.
+		ghostModel.render(modelMatrixGhostBody);
+
+
 
 		/*******************************************
 		 * Skybox
@@ -1424,6 +1455,34 @@ void applicationLoop() {
 		glCullFace(oldCullFaceMode);
 		glDepthFunc(oldDepthFuncMode);
 
+		// Ordenar los objetos con canal alfa
+		std::map<float, std::pair<std::string, glm::vec3>> blendingOrdenado;
+		std::map<std::string, glm::vec3>::iterator itBlend;
+
+		for (itBlend = blendingDesordenado.begin(); itBlend != blendingDesordenado.end(); itBlend++)
+		{
+			float distanceFromCamera = glm::distance(camera->getPosition(), itBlend->second);
+			blendingOrdenado[distanceFromCamera] = std::make_pair(itBlend->first, itBlend->second);
+		}
+		// Renderizar los objetos con Transparencia:
+		// Se pueden renderizar despues de los colliders para que tambine aplique la transparencia
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); //Transparencia normal
+		glm::mat4 modelMatrixSlimeBody = glm::mat4(modelMatrixSlime);
+		for (std::map<float, std::pair<std::string, glm::vec3>>::reverse_iterator it = blendingOrdenado.rbegin(); it != blendingOrdenado.rend(); it++)
+		{
+			if (it->second.first.compare("slime") == 0)
+			{
+				glEnable(GL_CULL_FACE);
+				glCullFace(GL_FRONT);
+				modelMatrixSlime[3][1] = terrain.getHeightTerrain(modelMatrixSlime[3][0], modelMatrixSlime[3][2]);
+				modelMatrixSlimeBody = glm::translate(modelMatrixSlimeBody, glm::vec3(5.0, 0.0, 5.0));
+				modelMatrixSlimeBody = glm::scale(modelMatrixSlimeBody, glm::vec3(0.025, 0.025, 0.025));
+				slimeModel.render(modelMatrixSlimeBody);
+				glCullFace(GL_BACK);
+			}
+		}
+		glDisable(GL_BLEND);
 		/*******************************************
 		 * Creacion de colliders
 		 * IMPORTANT do this before interpolations
@@ -1489,6 +1548,18 @@ void applicationLoop() {
 		modelMrKrabsCollider.e = mrKrabsModelAnimate.getObb().e * glm::vec3(0.25) * glm::vec3(0.75);
 		addOrUpdateColliders(collidersOBB, "mrKrabs", modelMrKrabsCollider, modelMatrixMrKrabs);
 
+		// Ghost Collider
+		AbstractModel::OBB modelGhostCollider;
+		glm::mat4 ghostMatrixCollider = glm::mat4(modelMatrixGhost);
+		//ghostMatrixCollider = glm::rotate(ghostMatrixCollider, glm::radians(-90.0f), glm::vec3(1, 0, 0));
+		modelGhostCollider.u = glm::quat_cast(ghostMatrixCollider);
+		ghostMatrixCollider = glm::scale(ghostMatrixCollider, glm::vec3(0.5, 0.5, 0.5));
+		ghostMatrixCollider = glm::translate(ghostMatrixCollider, ghostModel.getObb().c);
+		modelGhostCollider.c = glm::vec3(ghostMatrixCollider[3]); //+glm::vec3(0, 1.2, 0); //Ajuste de la altura del collider
+		modelGhostCollider.e = ghostModel.getObb().e * glm::vec3(0.5) * glm::vec3(0.75);
+		addOrUpdateColliders(collidersOBB, "ghost", modelGhostCollider, modelMatrixGhost);
+
+		
 
 		// Lamps1 colliders
 		for (int i = 0; i < lamp1Position.size(); i++) {
@@ -1514,6 +1585,15 @@ void applicationLoop() {
 		modelColliderRock.ratio = modelRock.getSbb().ratio * 1.0; //Se multiplica por el escalamiento definido anteriormente. 
 		addOrUpdateColliders(collidersSBB, "rock", modelColliderRock, matrixModelRock); //Metodo sobrecargado para actualizar los colliders con el estado anterior a la colision
 
+		
+		// Slime Collider.
+		AbstractModel::SBB modelSlimeCollider;
+		glm::mat4 modelMatrixSlimeCollider = glm::mat4(modelMatrixSlimeBody); // Mantenemos las transformaciones
+		modelMatrixSlimeCollider = glm::scale(modelMatrixSlimeCollider, glm::vec3(0.025));
+		modelMatrixSlimeCollider = glm::translate(modelMatrixSlimeCollider, slimeModel.getSbb().c); // Trasladamos el collider al modelo en si obteniendo el centro.
+		modelSlimeCollider.c = glm::vec3(modelMatrixSlimeCollider[3]) + glm::vec3(0, 1.2, 0);
+		modelSlimeCollider.ratio = slimeModel.getSbb().ratio * 0.025; //Se multiplica por el escalamiento definido anteriormente.
+		addOrUpdateColliders(collidersSBB, "slime", modelSlimeCollider, modelMatrixSlimeCollider); //Metodo sobrecargado para actualizar los colliders con el estado anterior a la colision
 
 
 		/*******************************************
