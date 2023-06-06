@@ -56,6 +56,8 @@ Shader shaderSkybox;
 Shader shaderMulLighting;
 //Shader para el terreno
 Shader shaderTerrain;
+//Shader para el sistema de particulas de la fuente de agua
+Shader shaderParticulasFuente;
 
 std::shared_ptr<Camera> camera(new ThirdPersonCamera());
 float distanceFromTarget = 7.0;
@@ -189,6 +191,12 @@ float GRAVITY = 1.81;
 double tmv = 0;
 double startTimeJump = 0;
 
+//Variables para el sistema de particulas de la fuente de agua.
+GLuint initVel, startTime;
+GLuint VAO;
+GLuint numeroParticulas = 4000;
+double currTimeParticulasFuenteAnimation, lastTimeParticulasFuenteAnimation;
+
 // Colliders
 std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> > collidersOBB;
 std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> > collidersSBB;
@@ -203,6 +211,70 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 void init(int width, int height, std::string strTitle, bool bFullScreen);
 void destroy();
 bool processInput(bool continueApplication = true);
+
+void initParticles() {
+	// Generar los buffers para la fuente de agua.
+	glGenBuffers(1, &initVel);
+	glGenBuffers(1, &startTime);
+
+	// Reservar memoria para los buffers.
+	int size = numeroParticulas * 3 * sizeof(float);
+	glBindBuffer(GL_ARRAY_BUFFER, initVel);
+	glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, startTime);
+	glBufferData(GL_ARRAY_BUFFER, numeroParticulas * sizeof(float), NULL, GL_STATIC_DRAW);
+
+	// Llena la información del buffer de velocidades iniciales.
+	glm::vec3 v(0.0f, 0.0f, 0.0f);
+	float velocity, theta, phi;
+	GLfloat *data = new GLfloat[numeroParticulas * 3];
+
+	for (unsigned int i = 0; i < numeroParticulas; i++) {
+		theta = glm::mix(0.0f, glm::pi<float>() / 6.0f, ( (float)rand() / RAND_MAX) );
+		phi = glm::mix(0.0f, glm::two_pi<float>(), ((float)rand() / RAND_MAX) );
+
+		v.x = sinf(theta) * cosf(phi);
+		v.y = cosf(theta);
+		v.z = sinf(theta) * sinf(phi);
+
+		velocity = glm::mix(0.6f, 0.8f, ((float)rand() / RAND_MAX));
+		v = glm::normalize(v) * velocity;
+
+		data[3 * i] = v.x;
+		data[3 * i + 1] = v.y;
+		data[3 * i + 2] = v.z;
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, initVel);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
+
+	// Llenar la información del tiempo de inicio.
+	delete[] data;
+	data = new GLfloat[numeroParticulas];
+	float time = 0.0f;
+	float rate = 0.00075f;
+	for (unsigned int i = 0; i < numeroParticulas; i++) {
+		data[i] = time;
+		time += rate;
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, startTime);
+	glBufferSubData(GL_ARRAY_BUFFER, 0 , numeroParticulas * sizeof(float), data);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	delete[] data;
+
+	// Crear el VAO que contiene los buffers.
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, initVel);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glBindVertexArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, startTime);
+	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(1);
+	glBindVertexArray(0);
+}
 
 // Implementacion de todas las funciones.
 void init(int width, int height, std::string strTitle, bool bFullScreen) {

@@ -59,6 +59,8 @@ Shader shaderSkybox;
 Shader shaderMulLighting;
 //Shader para el terreno
 Shader shaderTerrain;
+//Shader para visualizar una sola textura
+Shader shaderViewTexture;
 
 std::shared_ptr<Camera> camera(new ThirdPersonCamera());
 float distanceFromTarget = 7.0;
@@ -66,6 +68,10 @@ float distanceFromTarget = 7.0;
 Sphere skyboxSphere(20, 20);
 Box boxCollider;
 Sphere sphereCollider(10, 10);
+Box boxRenderImagen; // Podemos utilizar para renderizar la interfaz! :D
+
+
+
 
 // Models complex instances
 Model modelRock;
@@ -264,6 +270,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shaderSkybox.initialize("../Shaders/skyBox.vs", "../Shaders/skyBox.fs");
 	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation.vs", "../Shaders/multipleLights.fs");
 	shaderTerrain.initialize("../Shaders/terrain.vs", "../Shaders/terrain.fs");
+	shaderViewTexture.initialize("../Shaders/texturizado.vs", "../Shaders/texturizado.fs");
 
 	// Inicializacion de los objetos.
 	skyboxSphere.init();
@@ -277,6 +284,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	sphereCollider.init();
 	sphereCollider.setShader(&shader);
 	sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
+
+	//Inicialización de objeto que mostrará una imagen.
+	boxRenderImagen.init();
+	boxRenderImagen.setShader(&shaderViewTexture);
 
 	modelRock.loadModel("../models/rock/rock.obj");
 	modelRock.setShader(&shaderMulLighting);
@@ -407,7 +418,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	textureCesped.freeImage(bitmap);
 
 	// Definiendo la textura a utilizar
-	Texture textureWall("../Textures/whiteWall.jpg");
+	Texture textureWall("../Textures/goku.png");
 	// Carga el mapa de bits (FIBITMAP es el tipo de dato de la libreria)
 	bitmap = textureWall.loadImage();
 	// Convertimos el mapa de bits en un arreglo unidimensional de tipo unsigned char
@@ -710,11 +721,13 @@ void destroy() {
 	shaderMulLighting.destroy();
 	shaderSkybox.destroy();
 	shaderTerrain.destroy();
+	shaderViewTexture.destroy();
 
 	// Basic objects Delete
 	skyboxSphere.destroy();
 	boxCollider.destroy();
 	sphereCollider.destroy();
+	boxRenderImagen.destroy();
 
 	// Terrains objects Delete
 	terrain.destroy();
@@ -987,6 +1000,16 @@ void applicationLoop() {
 		std::vector<glm::mat4> matrixDart;
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		// Dibujado de una textura sola en pantalla.
+		shaderViewTexture.setMatrix4("view", 1, false, glm::value_ptr(glm::mat4(1.0f)));
+		shaderViewTexture.setMatrix4("projection", 1, false, glm::value_ptr(glm::mat4(1.0f)));
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureWallID);
+		boxRenderImagen.setScale(glm::vec3(2,1,1));
+		boxRenderImagen.render();
+
 
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f),
 				(float) screenWidth / (float) screenHeight, 0.01f, 100.0f);
@@ -1648,7 +1671,7 @@ void applicationLoop() {
 
 
 		glEnable(GL_BLEND);
-		modelText->render("Hola mundo!", 0, 0, 1.0 , 0.0, 0.0, 42);
+		modelText->render("Viva Cristo Rey", 0, 0, 1.0 , 0.0, 0.0, 42);
 		glDisable(GL_BLEND);
 		glfwSwapBuffers(window);
 	}
