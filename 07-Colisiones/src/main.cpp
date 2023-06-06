@@ -132,10 +132,11 @@ bool isJumpMrKrabs = false;
 bool isRayoCollision = false;
 bool isRayoColSlime = false;
 bool isRayoColGhost = false;
+bool isMayowCollision = false;
 double startTimeJump = 0.0;
 double tmv = 0.0;
 double tmvMrKrabs = 0.0;
-float gravity = 1.3;
+float gravity = 0.85;
 
 bool generarRayo = false;
 glm::vec3 origenRayoPicking;
@@ -157,6 +158,7 @@ glm::mat4 modelMatrixGhost = glm::mat4(1.0f);
 glm::mat4 modelMatrixSlime = glm::mat4(1.0f);
 
 int animationIndex = 1;
+int cMrKrabs = 2;
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 2;
 bool enableCountSelected = true;
@@ -994,7 +996,7 @@ bool processInput(bool continueApplication) {
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(0.02, 0.0, 0.0));
 
 	// Mayow Control
-
+	
 	if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
 		modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(1.0f), glm::vec3(0, 1, 0));
 		animationIndex = 0;
@@ -1014,26 +1016,28 @@ bool processInput(bool continueApplication) {
 		tmv = 0;
 	}
 
+	cMrKrabs = 2;
 	// Mr Krabs Control.
 	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
 		modelMatrixMrKrabs = glm::rotate(modelMatrixMrKrabs, glm::radians(1.0f), glm::vec3(0, 1, 0));
-		animationIndex = 0;
+		cMrKrabs = 2;
 	}
 	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
 		modelMatrixMrKrabs = glm::rotate(modelMatrixMrKrabs, glm::radians(-1.0f), glm::vec3(0, 1, 0));
-		animationIndex = 0;
+		animationIndex = 2;
 	}if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
 		modelMatrixMrKrabs = glm::translate(modelMatrixMrKrabs, glm::vec3(0, 0, 0.045));
-		animationIndex = 0;
+		cMrKrabs = 0;
 	}
 	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
 		modelMatrixMrKrabs = glm::translate(modelMatrixMrKrabs, glm::vec3(0, 0, -0.045));
-		animationIndex = 0;
+		cMrKrabs = 0;
 	}
 	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !isJumpMrKrabs) {
 		isJumpMrKrabs = true;
 		startTimeJump = currTime;
 		tmvMrKrabs = 0;
+		cMrKrabs = 2;
 	}
 
 
@@ -1087,6 +1091,7 @@ void applicationLoop() {
 	glm::vec3 axis;
 	glm::vec3 target;
 	float angleTarget;
+	glm::mat4 airborneMayow = glm::mat4(1.0f);
 
 	matrixModelRock = glm::translate(matrixModelRock, glm::vec3(-3.0, 0.0, 2.0));
 
@@ -1436,11 +1441,27 @@ void applicationLoop() {
 		 * Custom Anim objects obj
 		 *******************************************/
 		 // Se modifica para tener un tiro parabolico como salto. 
-		modelMatrixMayow[3][1] = -gravity * tmv * tmv + 3.0 * tmv + terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
+		
 		modelMatrixMrKrabs[3][1] = -gravity * tmvMrKrabs * tmvMrKrabs + 3.0 * tmvMrKrabs + terrain.getHeightTerrain(modelMatrixMrKrabs[3][0], modelMatrixMrKrabs[3][2]);
 		
-		if(isJump)
-			tmv = currTime - startTimeJump;
+		if (isJump)
+			if (isMayowCollision) {			
+				airborneMayow[3][1] = modelMatrixMayow[3][1];
+				isMayowCollision = false;
+			}
+			else
+			{
+				tmv = currTime - startTimeJump;
+				modelMatrixMayow[3][1] = -gravity * tmv * tmv + 3.0 * tmv + airborneMayow[3][1] + terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
+			}
+		else
+		{	
+			airborneMayow[3][1] = 0;
+			modelMatrixMayow[3][1] = -gravity * tmv * tmv + 3.0 * tmv + airborneMayow[3][1] + terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
+		}
+			
+
+			
 		
 		if(isJumpMrKrabs)
 			tmvMrKrabs = currTime - startTimeJump;
@@ -1467,7 +1488,7 @@ void applicationLoop() {
 		//Dibujado de MrKrabs.
 		glm::mat4 modelMatrixMrKrabsBody = glm::mat4(modelMatrixMrKrabs);
 		modelMatrixMrKrabsBody = glm::scale(modelMatrixMrKrabsBody, glm::vec3(0.0021, 0.0021, 0.0021));
-		mrKrabsModelAnimate.setAnimationIndex(animationIndex);
+		mrKrabsModelAnimate.setAnimationIndex(cMrKrabs);
 		mrKrabsModelAnimate.render(modelMatrixMrKrabsBody);
 
 		//Dibujad del Ghost.
@@ -1777,6 +1798,25 @@ void applicationLoop() {
 					//Se actualiza la matriz de transformacion. La actual pasa a ser la matriz anterior. 
 					addOrUpdateColliders(collidersSBB, itCollision->first);
 				}
+				else {
+					//Lista de todos los objetos con colision 
+					if (itCollision->first.compare("mayow") == 0) {
+						//Estamos obteniendo el valor de la primera matriz de transformacion de la tupla que forma parte del obbbuscado.
+
+						if (isJump) {
+							//modelMatrixMayow = std::get<2>(obbBuscado->second);
+							std::cout << "Colision en salto " << std::endl;
+							isMayowCollision = true;
+
+						}
+						else
+						{
+							modelMatrixMayow = std::get<1>(obbBuscado->second);
+
+						}
+					}
+
+				}
 			}
 
 			// Se realiza el mismo proceso pero para la OBB
@@ -1788,8 +1828,20 @@ void applicationLoop() {
 					//Lista de todos los objetos con colision 
 					if (itCollision->first.compare("mayow") == 0) {
 						//Estamos obteniendo el valor de la primera matriz de transformacion de la tupla que forma parte del obbbuscado.
-						modelMatrixMayow = std::get<1>(obbBuscado->second);	
+						
+						if (isJump) {
+							//modelMatrixMayow = std::get<2>(obbBuscado->second);
+							std::cout<< "Colision en salto "<<std::endl;
+							isMayowCollision = true;
+							
+						}
+						else
+						{
+							modelMatrixMayow = std::get<1>(obbBuscado->second);
+							
+						}
 					}
+					
 
 					
 					/* Correción, punto 6 de la práctica 7 */
@@ -1804,6 +1856,8 @@ void applicationLoop() {
 
 
 		}
+
+		//std::cout << "Colision de salto:" << isMayowCollision << std::endl;
 
 		/*******************************************
 		* Detección de Colisiones con Rayos
