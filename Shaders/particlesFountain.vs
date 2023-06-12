@@ -18,6 +18,20 @@ void main()
     vec3 pos = vec3(0.0);
     Transp = 0.0;
 
+    // Validar que haya nacido la particula
+    if(Time > StartTime)
+    {
+        float t = Time - StartTime;
+        if(t < ParticleLifetime)
+		{
+			// Calculate the particle position
+			pos = VertexInitVel * t + 0.5 * Gravity * t * t;
+
+			// Calculate the transparency
+			Transp = 1.0 - t / ParticleLifetime;
+		}
+    }
+
     // Draw at the current position
     gl_Position = projection * view * model * vec4(pos, 1.0);
 }

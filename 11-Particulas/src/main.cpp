@@ -179,7 +179,9 @@ std::vector<float> lamp2Orientation = {21.37 + 90, -65.0 + 90};
 std::map<std::string, glm::vec3> blendingUnsorted = {
 		{"aircraft", glm::vec3(10.0, 0.0, -17.5)},
 		{"lambo", glm::vec3(23.0, 0.0, 0.0)},
-		{"heli", glm::vec3(5.0, 10.0, -5.0)}
+		{"heli", glm::vec3(5.0, 10.0, -5.0)},
+		{"particulasFuente", glm::vec3(0.0)}
+
 };
 
 double deltaTime;
@@ -234,10 +236,10 @@ void initParticles() {
 		phi = glm::mix(0.0f, glm::two_pi<float>(), ((float)rand() / RAND_MAX) );
 
 		v.x = sinf(theta) * cosf(phi);
-		v.y = cosf(theta);
+		//v.y = cosf(theta);
 		v.z = sinf(theta) * sinf(phi);
 
-		velocity = glm::mix(0.6f, 0.8f, ((float)rand() / RAND_MAX));
+		velocity = glm::mix(0.1f, 1.8f, ((float)rand() / RAND_MAX));
 		v = glm::normalize(v) * velocity;
 
 		data[3 * i] = v.x;
@@ -252,7 +254,7 @@ void initParticles() {
 	delete[] data;
 	data = new GLfloat[numeroParticulas];
 	float time = 0.0f;
-	float rate = 0.00075f;
+	float rate = 0.075f;  //Tasa de nacimiento entre las particulas.
 	for (unsigned int i = 0; i < numeroParticulas; i++) {
 		data[i] = time;
 		time += rate;
@@ -268,11 +270,12 @@ void initParticles() {
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, initVel);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-	glBindVertexArray(0);
+	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, startTime);
 	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 0, NULL);
 	glEnableVertexAttribArray(1);
+
 	glBindVertexArray(0);
 }
 
@@ -335,6 +338,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shaderSkybox.initialize("../Shaders/skyBox.vs", "../Shaders/skyBox_fog.fs");
 	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation_fog.vs", "../Shaders/multipleLights_fog.fs");
 	shaderTerrain.initialize("../Shaders/terrain_fog.vs", "../Shaders/terrain_fog.fs");
+	shaderParticulasFuente.initialize("../Shaders/particlesFountain.vs","../Shaders/particlesFountain.fs");
 
 	// Inicializacion de los objetos.
 	skyboxSphere.init();
@@ -772,6 +776,42 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 		std::cout << "Failed to load texture" << std::endl;
 	// Libera la memoria de la textura
 	textureTerrainBlendMap.freeImage(bitmap);
+
+	// Definiendo la textura para las particulas
+	Texture textureTerrainPariculaFuente("../Textures/bluewater.png");
+	// Carga el mapa de bits (FIBITMAP es el tipo de dato de la libreria)
+	bitmap = textureTerrainPariculaFuente.loadImage(true);
+	// Convertimos el mapa de bits en un arreglo unidimensional de tipo unsigned char
+	data = textureTerrainPariculaFuente.convertToData(bitmap, imageWidth,
+		imageHeight);
+	// Creando la textura con id 1
+	glGenTextures(1, &textureParticleFountainID);
+	// Enlazar esa textura a una tipo de textura de 2D.
+	glBindTexture(GL_TEXTURE_2D, textureParticleFountainID);
+	// set the texture wrapping parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// Verifica si se pudo abrir la textura
+	if (data) {
+		// Transferis los datos de la imagen a memoria
+		// Tipo de textura, Mipmaps, Formato interno de openGL, ancho, alto, Mipmaps,
+		// Formato interno de la libreria de la imagen, el tipo de dato y al apuntador
+		// a los datos
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0,
+			GL_BGRA, GL_UNSIGNED_BYTE, data);
+		// Generan los niveles del mipmap (OpenGL es el ecargado de realizarlos)
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+		std::cout << "Failed to load texture" << std::endl;
+	// Libera la memoria de la textura
+	textureTerrainPariculaFuente.freeImage(bitmap);
+
+	// Inicialización de los buffers de particulas.
+	initParticles();
 }
 
 void destroy() {
@@ -785,6 +825,7 @@ void destroy() {
 	shaderMulLighting.destroy();
 	shaderSkybox.destroy();
 	shaderTerrain.destroy();
+	shaderParticulasFuente.destroy();
 
 	// Basic objects Delete
 	skyboxSphere.destroy();
@@ -841,6 +882,14 @@ void destroy() {
 	// Cube Maps Delete
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	glDeleteTextures(1, &skyboxTextureID);
+
+	// Eliminar el buffer del sistema de particulas
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glDeleteBuffers(1, &initVel);
+	glDeleteBuffers(1, &startTime);
+	glBindVertexArray(0);
+	glDeleteVertexArrays(1, &VAO);
+	
 }
 
 void reshapeCallback(GLFWwindow *Window, int widthRes, int heightRes) {
@@ -1112,6 +1161,11 @@ void applicationLoop() {
 		shaderTerrain.setMatrix4("view", 1, false,
 				glm::value_ptr(view));
 
+		// Settea la matriz de vista y projection al shader de particulas.
+		shaderParticulasFuente.setMatrix4("projection", 1, false, glm::value_ptr(projection));	// Setea la matriz de proyeccion
+		shaderParticulasFuente.setMatrix4("view", 1, false, glm::value_ptr(view));				// Setea la matriz de vista
+
+
 		/*******************************************
 		 * Propiedades de neblina
 		 *******************************************/
@@ -1380,6 +1434,8 @@ void applicationLoop() {
 		blendingUnsorted.find("lambo")->second = glm::vec3(modelMatrixLambo[3]);
 		// Update the helicopter
 		blendingUnsorted.find("heli")->second = glm::vec3(modelMatrixHeli[3]);
+		// Update el sistema de particulas de agua de la fuente
+		blendingUnsorted.find("particulasFuente")->second = glm::vec3(modelMatrixFountain[3]);
 
 		/**********
 		 * Sorter with alpha objects
@@ -1433,6 +1489,31 @@ void applicationLoop() {
 				modelMatrixHeliHeli = glm::rotate(modelMatrixHeliHeli, rotHelHelY, glm::vec3(0, 1, 0));
 				modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, 0.249548));
 				modelHeliHeli.render(modelMatrixHeliHeli);
+			}
+			else if (it->second.first.compare("particulasFuente") == 0) {
+				// Render de particulas
+				glm::mat4 modelMatrixParticulasFuente = glm::mat4(1.0f);
+				modelMatrixParticulasFuente = glm::translate(modelMatrixParticulasFuente, it->second.second);
+				modelMatrixParticulasFuente[3][1] = terrain.getHeightTerrain(modelMatrixParticulasFuente[3][0], modelMatrixParticulasFuente[3][2] ) + 4.0f;
+				currTimeParticulasFuenteAnimation = TimeManager::Instance().GetTime();
+
+				if (currTimeParticulasFuenteAnimation - lastTimeParticulasFuenteAnimation > 12.0) {
+					lastTimeParticulasFuenteAnimation = currTimeParticulasFuenteAnimation;
+				}
+				glDepthMask(GL_FALSE);
+				glPointSize(100.0f);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, textureParticleFountainID);
+				shaderParticulasFuente.turnOn();
+				shaderParticulasFuente.setFloat("Time", float(currTimeParticulasFuenteAnimation - lastTimeParticulasFuenteAnimation) );
+				shaderParticulasFuente.setFloat("ParticleLifetime", 5.0f);
+				shaderParticulasFuente.setInt("ParticleTex", 0);
+				shaderParticulasFuente.setVectorFloat3("Gravity", glm::value_ptr(glm::vec3(0.0f, -0.05f, 0.0f)) );
+				shaderParticulasFuente.setMatrix4("model", 1, false, glm::value_ptr(modelMatrixParticulasFuente));
+				glBindVertexArray(VAO);
+				glDrawArrays(GL_POINTS, 0, numeroParticulas);
+				glDepthMask(GL_TRUE);
+				shaderParticulasFuente.turnOff();
 			}
 		}
 		glEnable(GL_CULL_FACE);
