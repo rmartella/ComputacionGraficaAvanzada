@@ -42,6 +42,10 @@
 // Include Colision headers functions
 #include "Headers/Colisiones.h"
 
+
+// My includes for abstraccion
+#include "Headers/GameObject.h"
+
 #define ARRAY_SIZE_IN_ELEMENTS(a) (sizeof(a)/sizeof(a[0]))
 
 // Constantes para los personajes
@@ -89,7 +93,7 @@ Model modelLampPost2;
 // Modelos animados: 
 // Pruebas:
 // Mayow
-Model mayowModelAnimate;
+//Model mayowModelAnimate;
 
 // Finales:
 // Personaje:
@@ -98,6 +102,11 @@ Model playerModelAnimated;
 Model zombieModel;
 // Modelos de efectos:
 Model modelDisparo;
+
+
+// Pruebas:
+// GameObjects:
+GameObject* mayowGameObject;
 
 
 // Relevantes al terreno: 
@@ -141,7 +150,7 @@ float gravity = 1.3;
 // Model matrix definitions
 glm::mat4 matrixModelRock = glm::mat4(1.0);
 glm::mat4 modelMatrixHeli = glm::mat4(1.0f);
-glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+//glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
 
 
 int animationIndex = 1;
@@ -315,8 +324,9 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	modelLampPost2.setShader(&shaderMulLighting);
 
 	//Mayow
-	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
-	mayowModelAnimate.setShader(&shaderMulLighting);
+	/*mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
+	mayowModelAnimate.setShader(&shaderMulLighting);*/
+	mayowGameObject = new GameObject("Mayow", "../models/mayow/personaje2.fbx", &shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 0.0, 10.0));
 	camera->setDistanceFromTarget(distanceFromTarget);
@@ -743,7 +753,8 @@ void destroy() {
 	modelLampPost2.destroy();
 
 	// Custom objects animate
-	mayowModelAnimate.destroy();
+	/*mayowModelAnimate.destroy();*/
+	delete mayowGameObject;
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -835,14 +846,17 @@ bool processInput(bool continueApplication) {
 
 		//Rotar al personaje
 		if (abs(axes[0]) >= 0.3f) {
-			modelMatrixMayow = glm::rotate(modelMatrixMayow, axes[0] * -0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
+			//modelMatrixMayow = glm::rotate(modelMatrixMayow, axes[0] * -0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
+			
+			mayowGameObject->Rotate(axes[0] * -0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
 
 		}
 
 		//Mover al personaje
 		if (abs(axes[1]) >= 0.3f) {
-			modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0.0f, 0.0f, axes[1] * 0.02f));
+			//modelMatrixMayow = glm::translate(modelMatrixMayow,);
 			animationIndex = 0;
+			mayowGameObject->Translate(glm::vec3(0.0f, 0.0f, axes[1] * 0.02f));
 		}
 
 		//Mover la camara
@@ -908,18 +922,27 @@ bool processInput(bool continueApplication) {
 	
 
 	if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-		modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
+		//modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
+		//mayowGameObject->Rotate(VELOCIDAD_ROTACION_PERSONAJE, glm::vec3(0, 1, 0));
+		mayowGameObject->ModelMatrix = glm::rotate(mayowGameObject->ModelMatrix, glm::radians(VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
 		animationIndex = 0;
 	}
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-		modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
+		//modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
+		//mayowGameObject->Rotate(-VELOCIDAD_ROTACION_PERSONAJE, glm::vec3(0, 1, 0));
+		mayowGameObject->ModelMatrix = glm::rotate(mayowGameObject->ModelMatrix, glm::radians(-VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
+		
 		animationIndex = 0;
 	}if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, VELOCIDAD_MOVIMIENTO_PERSONAJE));
+		//modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, VELOCIDAD_MOVIMIENTO_PERSONAJE));
+		//mayowGameObject->Translate(glm::vec3(0, 0, VELOCIDAD_MOVIMIENTO_PERSONAJE));
+		mayowGameObject->ModelMatrix = glm::translate(mayowGameObject->ModelMatrix, glm::vec3(0, 0, VELOCIDAD_MOVIMIENTO_PERSONAJE));
 		animationIndex = 0;
 	}
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, -VELOCIDAD_MOVIMIENTO_PERSONAJE));
+		//modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, -VELOCIDAD_MOVIMIENTO_PERSONAJE));
+		//mayowGameObject->Translate(glm::vec3(0, 0, -VELOCIDAD_MOVIMIENTO_PERSONAJE));
+		mayowGameObject->ModelMatrix = glm::translate(mayowGameObject->ModelMatrix, glm::vec3(0, 0, -VELOCIDAD_MOVIMIENTO_PERSONAJE));
 		animationIndex = 0;
 	}
 
@@ -947,10 +970,12 @@ void applicationLoop() {
 
 	modelMatrixHeli = glm::translate(modelMatrixHeli, glm::vec3(5.0, 10.0, -5.0));
 
-
-	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
-	modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-90.0f), glm::vec3(0, 1, 0));
-
+	//modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
+	//mayowGameObject->Translate(glm::vec3(13.0f, 0.05f, -5.0f));
+	mayowGameObject->ModelMatrix = glm::translate(mayowGameObject->ModelMatrix, glm::vec3(13.0f, 0.05f, -5.0f));
+	//modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+	//mayowGameObject->Rotate(-90.0f, glm::vec3(0, 1, 0));
+	mayowGameObject->ModelMatrix = glm::rotate(mayowGameObject->ModelMatrix, glm::radians(-90.0f), glm::vec3(0, 1, 0));
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
 	keyFramesDartJoints = getKeyRotFrames(fileName);
@@ -985,9 +1010,9 @@ void applicationLoop() {
 			
 		}
 		else {
-			axis = glm::axis(glm::quat_cast(modelMatrixMayow));
-			angleTarget = glm::angle(glm::quat_cast(modelMatrixMayow));
-			target = modelMatrixMayow[3];
+			axis = glm::axis(glm::quat_cast(mayowGameObject->ModelMatrix));
+			angleTarget = glm::angle(glm::quat_cast(mayowGameObject->ModelMatrix));
+			target = mayowGameObject->ModelMatrix[3];
 		}
 
 		if (std::isnan(angleTarget))
@@ -1205,23 +1230,28 @@ void applicationLoop() {
 		 * Custom Anim objects obj
 		 *******************************************/
 		 // Se modifica para tener un tiro parabolico como salto. 
-		modelMatrixMayow[3][1] = -gravity * tmv * tmv + 3.0 * tmv + terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
+		mayowGameObject->ModelMatrix[3][1] = -gravity * tmv * tmv + 3.0 * tmv + terrain.getHeightTerrain(mayowGameObject->ModelMatrix[3][0], mayowGameObject->ModelMatrix[3][2]);
 
 		tmv = currTime - startTimeJump;
 
 
-		if (modelMatrixMayow[3][1] < terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2])) {
+		if (mayowGameObject->ModelMatrix[3][1] < terrain.getHeightTerrain(mayowGameObject->ModelMatrix[3][0], mayowGameObject->ModelMatrix[3][2])) {
 			isJump = false;
-			modelMatrixMayow[3][1] = terrain.getHeightTerrain(modelMatrixMayow[3][0], modelMatrixMayow[3][2]);
+			mayowGameObject->ModelMatrix[3][1] = terrain.getHeightTerrain(mayowGameObject->ModelMatrix[3][0], mayowGameObject->ModelMatrix[3][2]);
 
 		}
 
 
 
-		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
-		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
-		mayowModelAnimate.setAnimationIndex(animationIndex);
-		mayowModelAnimate.render(modelMatrixMayowBody);
+		mayowGameObject->Transform = glm::mat4(mayowGameObject->ModelMatrix);
+		
+		//modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
+		//mayowModelAnimate.setAnimationIndex(animationIndex);
+		mayowGameObject->Scale(glm::vec3(0.021, 0.021, 0.021));
+		mayowGameObject->animationIndex = animationIndex;
+		mayowGameObject->Draw();
+		//mayowModelAnimate.render(modelMatrixMayowBody);
+		
 
 		/*******************************************
 		 * Skybox
@@ -1245,15 +1275,17 @@ void applicationLoop() {
 		 *******************************************/
 
 		// Mayow Collider
-		AbstractModel::OBB modelMayowCollider;
+		/*AbstractModel::OBB modelMayowCollider;
 		glm::mat4 mayowMatrixCollider = glm::mat4(modelMatrixMayow);
 		mayowMatrixCollider = glm::rotate(mayowMatrixCollider, glm::radians(-90.0f), glm::vec3(1, 0, 0));
 		modelMayowCollider.u = glm::quat_cast(mayowMatrixCollider);
 		mayowMatrixCollider = glm::scale(mayowMatrixCollider, glm::vec3(0.021, 0.021, 0.021));
 		mayowMatrixCollider = glm::translate(mayowMatrixCollider, mayowModelAnimate.getObb().c);
 		modelMayowCollider.c = glm::vec3(mayowMatrixCollider[3]);
-		modelMayowCollider.e = mayowModelAnimate.getObb().e * glm::vec3(0.021) * glm::vec3(0.75);
-		addOrUpdateColliders(collidersOBB, "mayow", modelMayowCollider, modelMatrixMayow);
+		modelMayowCollider.e = mayowModelAnimate.getObb().e * glm::vec3(0.021) * glm::vec3(0.75);*/
+
+		mayowGameObject->UpdateColliderOBB(-90.0f, glm::vec3(1, 0, 0), glm::vec3(0.021, 0.021, 0.021), glm::vec3(0.75));
+		addOrUpdateColliders(collidersOBB, "mayow", mayowGameObject->GetOBB(), mayowGameObject->ModelMatrix);
 
 		// Lamps1 colliders
 		for (int i = 0; i < lamp1Position.size(); i++) {
@@ -1401,7 +1433,8 @@ void applicationLoop() {
 					//Lista de todos los objetos con colision 
 					if (itCollision->first.compare("mayow") == 0) {
 						//Estamos obteniendo el valor de la primera matriz de transformacion de la tupla que forma parte del obbbuscado.
-						modelMatrixMayow = std::get<1>(obbBuscado->second);
+						//modelMatrixMayow = std::get<1>(obbBuscado->second);
+						mayowGameObject->ModelMatrix = std::get<1>(obbBuscado->second);
 					}
 				}
 			}
@@ -1411,7 +1444,7 @@ void applicationLoop() {
 		}
 
 		//Generacion de un rayo
-		glm::mat4 modelMatrixRayMay = glm::mat4(modelMatrixMayow);
+		glm::mat4 modelMatrixRayMay = glm::mat4(mayowGameObject->Transform);
 		modelMatrixRayMay = glm::translate(modelMatrixRayMay, glm::vec3(0, 1, 0)); //Trasladmos un poco para no quedar a la altura del pie
 		float maxDistanceRay = 10.0;
 		glm::vec3 rayDirection = modelMatrixRayMay[2];
