@@ -209,12 +209,12 @@ double currTimeParticlesAnimation, lastTimeParticlesAnimation;
 //Posible abstracción. Se puede hacer una clase que contenga todos los atributos de un sistema de particulas
 GLuint initVelFire, startTimeFire;
 GLuint VAOParticlesFire;
-GLuint nParticlesFire = 200;
+GLuint nParticlesFire = 2000;
 GLuint posBuf[2], velBuf[2], age[2];
 GLuint particleArray[2];
 GLuint feedback[2];
 GLuint drawBuf = 1;
-float particleSize = 0.5, particleLifetime = 2.0;
+float particleSize = 1.0, particleLifetime = 6.0;
 double currTimeParticlesAnimationFire, lastTimeParticlesAnimationFire; //Este tipo de variables deben existir por particulars
 
 // Colliders
@@ -445,7 +445,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation_fog.vs", "../Shaders/multipleLights_fog.fs");
 	shaderTerrain.initialize("../Shaders/terrain_fog.vs", "../Shaders/terrain_fog.fs");
 	shaderParticlesFountain.initialize("../Shaders/particlesFountain.vs", "../Shaders/particlesFountain.fs");
-	shaderParticlesFire.initialize("../Shaders/particlesFire.vs", "../Shaders/particlesFire.fs", {"Position", "Velocity", "Age"});
+	shaderParticlesFire.initialize("../Shaders/particlesLluvia.vert", "../Shaders/particlesLluvia.fs", {"Position", "Velocity", "Age"});
 
 	// Inicializacion de los objetos.
 	skyboxSphere.init();
@@ -904,7 +904,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 		std::cout << "Failed to load texture" << std::endl;
 	textureParticlesFountain.freeImage(bitmap);
 
-	Texture textureParticleFire("../Textures/fire.png");
+	Texture textureParticleFire("../Textures/bluewater.png");
 	bitmap = textureParticleFire.loadImage();
 	data = textureParticleFire.convertToData(bitmap, imageWidth, imageHeight);
 	glGenTextures(1, &textureParticleFireID);
@@ -946,8 +946,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shaderParticlesFire.setInt("RandomTex", 1);
 	shaderParticlesFire.setFloat("ParticleLifetime", particleLifetime);
 	shaderParticlesFire.setFloat("ParticleSize", particleSize);
-	shaderParticlesFire.setVectorFloat3("Accel", glm::value_ptr(glm::vec3(0.0f,0.1f,0.0f)));
-	shaderParticlesFire.setVectorFloat3("Emitter", glm::value_ptr(glm::vec3(0.0f)));
+	shaderParticlesFire.setVectorFloat3("Accel", glm::value_ptr(glm::vec3(0.0f,-5.8f,0.0f)));
+	shaderParticlesFire.setVectorFloat3("Emitter", glm::value_ptr(glm::vec3(0.0f, 10.0f, 0.0f)));
 
 	glm::mat3 basis;
 	glm::vec3 u, v, n;
@@ -1731,7 +1731,7 @@ void applicationLoop() {
 				shaderParticlesFire.setMatrix4("model", 1, false, glm::value_ptr(modelFireParticles));
 
 				shaderParticlesFire.turnOn();
-				shaderParticlesFire.setVectorFloat3("colorFuego", glm::value_ptr(glm::vec3(0.0f, 0.0f, 0.0f)));
+				shaderParticlesFire.setVectorFloat3("colorFuego", glm::value_ptr(glm::vec3(1.0f, 1.0f, 1.0f)));
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, textureParticleFireID);
 				glDepthMask(GL_FALSE);
