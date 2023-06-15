@@ -44,6 +44,7 @@
     <ClInclude Include="include\Headers\Cylinder.h" />
     <ClInclude Include="include\Headers\FirstPersonCamera.h" />
     <ClInclude Include="include\Headers\FontTypeRendering.h" />
+    <ClInclude Include="include\Headers\GameObject.h" />
     <ClInclude Include="include\Headers\mathUtil.h" />
     <ClInclude Include="include\Headers\Mesh.h" />
     <ClInclude Include="include\Headers\Model.h" />

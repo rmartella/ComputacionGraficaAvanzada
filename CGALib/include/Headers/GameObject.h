@@ -24,6 +24,7 @@ public:
 	void Scale(glm::vec3 scale);
 
 	
+	
 	void UpdateColliderOBB(float angle, glm::vec3 rotation, glm::vec3 scale, glm::vec3 factor);
 	AbstractModel::OBB GetOBB();
 
@@ -73,6 +74,7 @@ void GameObject::LoadModel(std::string pathToModel) {
 }
 void GameObject::Draw()
 {
+	this->model.setAnimationIndex(animationIndex);
 	this->model.render(this->Transform);
 }
 

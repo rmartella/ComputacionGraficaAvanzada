@@ -116,6 +116,9 @@
     <ClInclude Include="include\Headers\FontTypeRendering.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="include\Headers\GameObject.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Shaders\colorShader.fs">

@@ -107,6 +107,7 @@ Model modelDisparo;
 // Pruebas:
 // GameObjects:
 GameObject* mayowGameObject;
+GameObject* jugadorGameObject;
 std::vector<GameObject*> Lamparas;
 std::vector<GameObject*> Lamparas2;
 
@@ -295,6 +296,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	mayowGameObject = new GameObject("Mayow", "../models/mayow/personaje2.fbx", &shaderMulLighting);
 
+
+	// Modelo de juego: Jugador.
+	jugadorGameObject = new GameObject("Player", "../models/Player/PlayerAnimated.fbx", &shaderMulLighting);
+
 	// Camera
 	camera->setPosition(glm::vec3(0.0, 0.0, 10.0));
 	camera->setDistanceFromTarget(distanceFromTarget);
@@ -440,6 +445,7 @@ void destroy() {
 	// Custom objects animate
 	/*mayowModelAnimate.destroy();*/
 	delete mayowGameObject;
+	delete jugadorGameObject;
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -616,9 +622,25 @@ void applicationLoop() {
 
 	matrixModelRock = glm::translate(matrixModelRock, glm::vec3(-3.0, 0.0, 2.0));
 
+	jugadorGameObject->ModelMatrix = glm::translate(jugadorGameObject->ModelMatrix, glm::vec3(3.0, 0.0, 2.0));
 
 	mayowGameObject->ModelMatrix = glm::translate(mayowGameObject->ModelMatrix, glm::vec3(13.0f, 0.05f, -5.0f));
 	mayowGameObject->ModelMatrix = glm::rotate(mayowGameObject->ModelMatrix, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+
+	for (int i = 0; i < lamp1Position.size(); i++) {
+
+		GameObject* lamp = new GameObject("Light", "../models/Street-Lamp-Black/objLamp.obj", &shaderMulLighting);
+
+		Lamparas.push_back(lamp);
+	}
+
+	for (int i = 0; i < lamp2Position.size(); i++) {
+
+		GameObject* lamp = new GameObject("light2", "../models/Street_Light/Lamp.obj", &shaderMulLighting);
+		GameObject* post = new GameObject("Post2", "../models/Street_Light/LampPost.obj", &shaderMulLighting);
+		Lamparas2.push_back(lamp);
+	}
+
 
 	lastTime = TimeManager::Instance().GetTime();
 
@@ -701,15 +723,15 @@ void applicationLoop() {
 		shaderTerrain.setInt("pointLightCount", lamp1Position.size() + lamp2Orientation.size());
 		for (int i = 0; i < lamp1Position.size(); i++) {
 
-			GameObject* lamp = new GameObject("Light", "../models/Street-Lamp-Black/objLamp.obj", &shaderMulLighting);
+			
 
-			lamp->ModelMatrix = glm::mat4(1.0f);
+			Lamparas[i]->ModelMatrix = glm::mat4(1.0f);
 			//glm::mat4 matrixAdjustLamp = glm::mat4(1.0f);
-			lamp->ModelMatrix = glm::translate(lamp->ModelMatrix, lamp1Position[i]);
-			lamp->ModelMatrix = glm::rotate(lamp->ModelMatrix, glm::radians(lamp1Orientation[i]), glm::vec3(0, 1, 0));
-			lamp->ModelMatrix = glm::scale(lamp->ModelMatrix, glm::vec3(0.5, 0.5, 0.5));
-			lamp->ModelMatrix = glm::translate(lamp->ModelMatrix, glm::vec3(0, 10.3585, 0));
-			glm::vec3 lampPosition = glm::vec3(lamp->ModelMatrix[3]);
+			Lamparas[i]->ModelMatrix = glm::translate(Lamparas[i]->ModelMatrix, lamp1Position[i]);
+			Lamparas[i]->ModelMatrix = glm::rotate(Lamparas[i]->ModelMatrix, glm::radians(lamp1Orientation[i]), glm::vec3(0, 1, 0));
+			Lamparas[i]->ModelMatrix = glm::scale(Lamparas[i]->ModelMatrix, glm::vec3(0.5, 0.5, 0.5));
+			Lamparas[i]->ModelMatrix = glm::translate(Lamparas[i]->ModelMatrix, glm::vec3(0, 10.3585, 0));
+			glm::vec3 lampPosition = glm::vec3(Lamparas[i]->ModelMatrix[3]);
 			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(i) + "].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));
 			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(i) + "].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));
 			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(i) + "].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));
@@ -725,20 +747,20 @@ void applicationLoop() {
 			shaderTerrain.setFloat("pointLights[" + std::to_string(i) + "].linear", 0.09);
 			shaderTerrain.setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.02);
 
-			Lamparas.push_back(lamp);
+			
 		}
 		for (int i = 0; i < lamp2Position.size(); i++) {
 
-			GameObject* lamp = new GameObject("light2", "../models/Street_Light/Lamp.obj", &shaderMulLighting);
-			GameObject* post = new GameObject("Post2", "../models/Street_Light/LampPost.obj", &shaderMulLighting);
+			
 
 			//glm::mat4 matrixAdjustLamp = glm::mat4(1.0f);
-			lamp->ModelMatrix = glm::mat4(1.0f);
-			lamp->ModelMatrix = glm::translate(lamp->ModelMatrix, lamp2Position[i]);
-			lamp->ModelMatrix = glm::rotate(lamp->ModelMatrix, glm::radians(lamp2Orientation[i]), glm::vec3(0, 1, 0));
-			lamp->ModelMatrix = glm::scale(lamp->ModelMatrix, glm::vec3(1.0, 1.0, 1.0));
-			lamp->ModelMatrix = glm::translate(lamp->ModelMatrix, glm::vec3(0.759521, 5.00174, 0));
-			glm::vec3 lampPosition = glm::vec3(lamp->ModelMatrix[3]);
+			
+			Lamparas2[i]->ModelMatrix = glm::mat4(1.0f);
+			Lamparas2[i]->ModelMatrix = glm::translate(Lamparas2[i]->ModelMatrix, lamp2Position[i]);
+			Lamparas2[i]->ModelMatrix = glm::rotate(Lamparas2[i]->ModelMatrix, glm::radians(lamp2Orientation[i]), glm::vec3(0, 1, 0));
+			Lamparas2[i]->ModelMatrix = glm::scale(Lamparas2[i]->ModelMatrix, glm::vec3(1.0, 1.0, 1.0));
+			Lamparas2[i]->ModelMatrix = glm::translate(Lamparas2[i]->ModelMatrix, glm::vec3(0.759521, 5.00174, 0));
+			glm::vec3 lampPosition = glm::vec3(Lamparas2[i]->ModelMatrix[3]);
 			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));
 			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));
 			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));
@@ -754,7 +776,7 @@ void applicationLoop() {
 			shaderTerrain.setFloat("pointLights[" + std::to_string(lamp1Position.size() + i) + "].linear", 0.09);
 			shaderTerrain.setFloat("pointLights[" + std::to_string(lamp1Position.size() + i) + "].quadratic", 0.02);
 
-			Lamparas2.push_back(lamp);
+			
 		}
 
 		/*******************************************
@@ -791,6 +813,8 @@ void applicationLoop() {
 		/*******************************************
 		 * Custom objects obj
 		 *******************************************/
+
+
 		 //Rock render
 		matrixModelRock[3][1] = terrain.getHeightTerrain(matrixModelRock[3][0], matrixModelRock[3][2]);
 		modelRock.render(matrixModelRock);
@@ -812,6 +836,9 @@ void applicationLoop() {
 			modelLamp1.setScale(glm::vec3(0.5, 0.5, 0.5));
 			modelLamp1.setOrientation(glm::vec3(0, lamp1Orientation[i], 0));
 			modelLamp1.render();
+
+		
+			Lamparas[i]->Rotate(lamp1Orientation[i], glm::vec3(0, 1, 0));
 		}
 
 		for (int i = 0; i < lamp2Position.size(); i++) {
@@ -828,8 +855,10 @@ void applicationLoop() {
 
 
 		/*******************************************
-		 * Custom Anim objects obj
+		 * RENDER & ACTUALIZACIÒN DE NUESTROS OBJETOS.
 		 *******************************************/
+
+		// Mayow
 		 // Se modifica para tener un tiro parabolico como salto. 
 		mayowGameObject->ModelMatrix[3][1] = -gravity * tmv * tmv + 3.0 * tmv + terrain.getHeightTerrain(mayowGameObject->ModelMatrix[3][0], mayowGameObject->ModelMatrix[3][2]);
 
@@ -846,8 +875,15 @@ void applicationLoop() {
 		mayowGameObject->Scale(glm::vec3(0.021, 0.021, 0.021));
 		mayowGameObject->animationIndex = animationIndex;
 		mayowGameObject->Draw();
-		//mayowModelAnimate.render(modelMatrixMayowBody);
-		
+
+
+		// Jugador
+		jugadorGameObject->ModelMatrix[3][1] = terrain.getHeightTerrain(jugadorGameObject->ModelMatrix[3][0], jugadorGameObject->ModelMatrix[3][2]);
+		jugadorGameObject->animationIndex = 1;
+		jugadorGameObject->Transform = glm::mat4(jugadorGameObject->ModelMatrix);
+		jugadorGameObject->Scale(glm::vec3(0.00025, 0.00025, 0.00025));
+		jugadorGameObject->Draw();
+
 
 		/*******************************************
 		 * Skybox
