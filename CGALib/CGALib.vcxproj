@@ -73,6 +73,10 @@
     <None Include="..\Shaders\particlesFire.vs" />
     <None Include="..\Shaders\particlesFountain.fs" />
     <None Include="..\Shaders\particlesFountain.vs" />
+    <None Include="..\Shaders\particlesLluvia.fs" />
+    <None Include="..\Shaders\particlesLluvia.vert" />
+    <None Include="..\Shaders\particlesSmoke.fs" />
+    <None Include="..\Shaders\particlesSmoke.vert" />
     <None Include="..\Shaders\shadow_mapping_depth.fs" />
     <None Include="..\Shaders\shadow_mapping_depth.vs" />
     <None Include="..\Shaders\skyBox.fs" />
