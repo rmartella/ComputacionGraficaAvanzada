@@ -72,7 +72,7 @@ float calculateShadow(vec3 lightDir){
     float currentDepth = projCoords.z;
 
     // This is the first version of the shadow mapping with shadow acne
-    // float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
+    //float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
 
     // This is the second version of the shadow mapping with shadow bias to correct the shadow acne
     // float bias = 0.005;
