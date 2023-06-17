@@ -22,7 +22,7 @@ public:
 	void Translate(glm::vec3 translation);
 	void Rotate(float angle, glm::vec3 axis);
 	void Scale(glm::vec3 scale);
-
+	void SetShader(Shader* shader);
 	
 	
 	void UpdateColliderOBB(float angle, glm::vec3 rotation, glm::vec3 scale, glm::vec3 factor);
@@ -103,6 +103,10 @@ void GameObject::UpdateColliderOBB(float angle, glm::vec3 rotation ,glm::vec3 sc
 	boxCollider.c = glm::vec3(ColliderTransform[3]);
 	boxCollider.e = this->model.getObb().e * scale * factor;
 
+}
+
+void GameObject::SetShader(Shader* shader) {
+	this->model.setShader(shader);
 }
 
 AbstractModel::OBB GameObject::GetOBB() {

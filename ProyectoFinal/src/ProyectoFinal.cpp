@@ -42,6 +42,11 @@
 // Include Colision headers functions
 #include "Headers/Colisiones.h"
 
+// Shadow Box Include
+#include "Headers/ShadowBox.h"
+
+// Include Sound headers functions
+#include <AL/alut.h>
 
 // My includes for abstraccion
 #include "Headers/GameObject.h"
@@ -57,6 +62,9 @@
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
 
+// Constantes para las sombras.
+const unsigned int SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
+
 int screenWidth;
 int screenHeight;
 
@@ -69,7 +77,9 @@ Shader shaderSkybox;
 Shader shaderMulLighting;
 //Shader para el terreno
 Shader shaderTerrain;
-
+//Shader para dibujar el buffer de profundidad.
+Shader shaderDepth;
+ShadowBox* shadowBox;
 
 // CAMARA:
 std::shared_ptr<Camera> camera(new ThirdPersonCamera());
@@ -150,6 +160,7 @@ float gravity = 1.3;
 glm::mat4 matrixModelRock = glm::mat4(1.0);
 
 int animationIndex = 1;
+int animationIndexPlayer = 1;
 
 // Var animate lambo dor
 int stateDoor = 0;
@@ -170,6 +181,40 @@ double currTime, lastTime;
 std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> > collidersOBB;
 std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> > collidersSBB;
 
+// FrameBuffers
+GLuint depthMap, depthMapFBO;
+
+/**********************
+ * OpenAL config
+ **********************/
+
+// OpenAL Defines
+#define NUM_BUFFERS 1
+#define NUM_SOURCES 1
+#define NUM_ENVIRONMENTS 1
+// Listener
+ALfloat listenerPos[] = { 0.0, 0.0, 4.0 };
+ALfloat listenerVel[] = { 0.0, 0.0, 0.0 };
+ALfloat listenerOri[] = { 0.0, 0.0, 1.0, 0.0, 1.0, 0.0 };
+// Source 0
+ALfloat BGMusic0Pos[] = { -2.0, 0.0, 0.0 };
+ALfloat BGMusic0Vel[] = { 0.0, 0.0, 0.0 };
+// Source 1
+ALfloat FootStepPos[] = { 2.0, 0.0, 0.0 };
+ALfloat FootStepVel[] = { 0.0, 0.0, 0.0 };
+
+// Buffers
+ALuint buffer[NUM_BUFFERS];
+ALuint source[NUM_SOURCES];
+ALuint environment[NUM_ENVIRONMENTS];
+//Configs
+ALsizei size, freq;
+ALenum format;
+ALvoid *data;
+int ch;
+ALboolean loop;
+std::vector<bool> sourcesPlay = { true, true };
+
 // *-------------------------------------------------*
 // *--------   PROTOTIPOS DE FUNCIONES        -------*
 // *-------------------------------------------------*
@@ -185,6 +230,9 @@ void loadTexture(std::string pathToTexture, GLuint* textureID);
 void init(int width, int height, std::string strTitle, bool bFullScreen);
 void destroy();
 bool processInput(bool continueApplication = true);
+void prepareScene();
+void prepareDepthScene();
+void renderScene(bool renderParticles = true);
 // funciones para el comportamiento del juego
 void spawnZombie(glm::vec3 spawnPositions);
 void followPlayer();
@@ -256,9 +304,9 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	// Inicialización de los shaders
 	shader.initialize("../Shaders/colorShader.vs", "../Shaders/colorShader.fs");
 	shaderSkybox.initialize("../Shaders/skyBox.vs", "../Shaders/skyBox.fs");
-	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation.vs", "../Shaders/multipleLights.fs");
-	shaderTerrain.initialize("../Shaders/terrain.vs", "../Shaders/terrain.fs");
-
+	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation_shadow.vs", "../Shaders/multipleLights_shadow.fs");
+	shaderTerrain.initialize("../Shaders/terrain_shadow.vs", "../Shaders/terrain_shadow.fs");
+	shaderDepth.initialize("../Shaders/shadow_mapping_depth.vs", "../Shaders/shadow_mapping_depth.fs");
 	// Inicializacion de los objetos.
 	skyboxSphere.init();
 	skyboxSphere.setShader(&shaderSkybox);
@@ -277,11 +325,11 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	RayModel.setColor(glm::vec4(1.0));
 
 	modelRock.loadModel("../models/rock/rock.obj");
-	modelRock.setShader(&shaderMulLighting);
+	
 
 	// Terreno
 	terrain.init();
-	terrain.setShader(&shaderTerrain);
+	
 	terrain.setPosition(glm::vec3(100, 0, 100));
 
 	//Lamp models
@@ -295,7 +343,6 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	// Modelo de pruebas: Mayow
 
 	mayowGameObject = new GameObject("Mayow", "../models/mayow/personaje2.fbx", &shaderMulLighting);
-
 
 	// Modelo de juego: Jugador.
 	jugadorGameObject = new GameObject("Player", "../models/Player/PlayerAnimated.fbx", &shaderMulLighting);
@@ -368,7 +415,74 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//
 	/// -------------------------------------------------
 	loadTexture("../Textures/blendMap2.png", &textureTerrainBlendMapID);
-	
+
+
+	/*******************************************
+	 * Inicializacion del framebuffer para
+	 * almacenar el buffer de profunidadad
+	 *******************************************/
+	glGenFramebuffers(1, &depthMapFBO);
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+		SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);*/
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+	/*******************************************
+	 * OpenAL init
+	 *******************************************/
+	alutInit(0, nullptr);
+	alListenerfv(AL_POSITION, listenerPos);
+	alListenerfv(AL_VELOCITY, listenerVel);
+	alListenerfv(AL_ORIENTATION, listenerOri);
+	alGetError(); // clear any error messages
+	if (alGetError() != AL_NO_ERROR) {
+		printf("- Error creating buffers !!\n");
+		exit(1);
+	}
+	else {
+		printf("init() - No errors yet.");
+	}
+
+	// Generate buffers, or else no sound will happen!
+	alGenBuffers(NUM_BUFFERS, buffer);
+	buffer[0] = alutCreateBufferFromFile("../sounds/bg01.wav");
+	//buffer[1] = alutCreateBufferFromFile("../sounds/walk.wav");
+	int errorAlut = alutGetError();
+	if (errorAlut != ALUT_ERROR_NO_ERROR) {
+		printf("- Error open files with alut %d !!\n", errorAlut);
+		exit(2);
+	}
+	alGetError(); /* clear error */
+	alGenSources(NUM_SOURCES, source);
+	if (alGetError() != AL_NO_ERROR) {
+		printf("- Error creating sources !!\n");
+		exit(2);
+	}
+	else {
+		printf("init - no errors after alGenSources\n");
+	}
+	alSourcef(source[0], AL_PITCH, 1.0f);
+	alSourcef(source[0], AL_GAIN, 3.0f);
+	alSourcefv(source[0], AL_POSITION, BGMusic0Pos);
+	alSourcefv(source[0], AL_VELOCITY, BGMusic0Vel);
+	alSourcei(source[0], AL_BUFFER, buffer[0]);
+	alSourcei(source[0], AL_LOOPING, AL_TRUE);
+	alSourcef(source[0], AL_MAX_DISTANCE, 2000);
+
 }
 
 void loadTexture(std::string pathToTexture, GLuint* textureID)
@@ -580,6 +694,7 @@ bool processInput(bool continueApplication) {
 		//mayowGameObject->Rotate(VELOCIDAD_ROTACION_PERSONAJE, glm::vec3(0, 1, 0));
 		mayowGameObject->ModelMatrix = glm::rotate(mayowGameObject->ModelMatrix, glm::radians(VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
 		animationIndex = 0;
+		animationIndexPlayer = 2;
 	}
 	else if ( glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
 		//modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
@@ -587,17 +702,20 @@ bool processInput(bool continueApplication) {
 		mayowGameObject->ModelMatrix = glm::rotate(mayowGameObject->ModelMatrix, glm::radians(-VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
 		
 		animationIndex = 0;
+		animationIndexPlayer = 2;
 	}if ( glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
 		//modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, VELOCIDAD_MOVIMIENTO_PERSONAJE));
 		//mayowGameObject->Translate(glm::vec3(0, 0, VELOCIDAD_MOVIMIENTO_PERSONAJE));
 		mayowGameObject->ModelMatrix = glm::translate(mayowGameObject->ModelMatrix, glm::vec3(0, 0, VELOCIDAD_MOVIMIENTO_PERSONAJE));
 		animationIndex = 0;
+		animationIndexPlayer = 2;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
 		//modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, -VELOCIDAD_MOVIMIENTO_PERSONAJE));
 		//mayowGameObject->Translate(glm::vec3(0, 0, -VELOCIDAD_MOVIMIENTO_PERSONAJE));
 		mayowGameObject->ModelMatrix = glm::translate(mayowGameObject->ModelMatrix, glm::vec3(0, 0, -VELOCIDAD_MOVIMIENTO_PERSONAJE));
 		animationIndex = 0;
+		animationIndexPlayer = 2;
 	}
 
 	bool stateSpace = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
@@ -644,6 +762,9 @@ void applicationLoop() {
 
 	lastTime = TimeManager::Instance().GetTime();
 
+	glm::vec3 lightPos = glm::vec3(10.0, 10.0, 0.0);
+	shadowBox = new ShadowBox(-lightPos, camera.get(), 30.0f, 0.1f, 45.0f);
+
 	while (psi) {
 		currTime = TimeManager::Instance().GetTime();
 		if (currTime - lastTime < 0.016666667) {
@@ -678,6 +799,20 @@ void applicationLoop() {
 		camera->updateCamera();
 		view = camera->getViewMatrix();
 
+		// Matriz de proyección del shadow mapping
+		glm::mat4 lightProjection = glm::mat4(1.0f), lightView = glm::mat4(1.0f);
+		shadowBox->update(screenWidth, screenHeight);
+		glm::vec3 centerBox = shadowBox->getCenter();
+		glm::mat4 lightSpaceMatrix;
+		lightView = glm::lookAt(centerBox, centerBox + glm::normalize(-lightPos), glm::vec3(0.0, 1.0, 0.0));
+		lightProjection[0][0] = 2.0f / (shadowBox->getWidth());
+		lightProjection[1][1] = 2.0f / (shadowBox->getHeight());
+		lightProjection[2][2] = -2.0f / (shadowBox->getLength());
+		lightProjection[3][3] = 1.0f;
+		lightSpaceMatrix = lightProjection * lightView;
+		shaderDepth.setMatrix4("lightSpaceMatrix", 1, false, glm::value_ptr(lightSpaceMatrix));
+
+
 		// Settea la matriz de vista y projection al shader con solo color
 		shader.setMatrix4("projection", 1, false, glm::value_ptr(projection));
 		shader.setMatrix4("view", 1, false, glm::value_ptr(view));
@@ -692,29 +827,33 @@ void applicationLoop() {
 			glm::value_ptr(projection));
 		shaderMulLighting.setMatrix4("view", 1, false,
 			glm::value_ptr(view));
+		shaderMulLighting.setMatrix4("lightSpaceMatrix", 1, false,
+			glm::value_ptr(lightSpaceMatrix));
 		// Settea la matriz de vista y projection al shader con multiples luces
 		shaderTerrain.setMatrix4("projection", 1, false,
 			glm::value_ptr(projection));
 		shaderTerrain.setMatrix4("view", 1, false,
 			glm::value_ptr(view));
+		shaderTerrain.setMatrix4("lightSpaceMatrix", 1, false,
+			glm::value_ptr(lightSpaceMatrix));
 
 		/*******************************************
 		 * Propiedades Luz direccional
 		 *******************************************/
 		shaderMulLighting.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
-		shaderMulLighting.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
-		shaderMulLighting.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
-		shaderMulLighting.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.4, 0.4, 0.4)));
-		shaderMulLighting.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-1.0, 0.0, 0.0)));
+		shaderMulLighting.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
+		shaderMulLighting.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
+		shaderMulLighting.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
+		shaderMulLighting.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-0.707106781, -0.707106781, 0.0)));
 
 		/*******************************************
 		 * Propiedades Luz direccional Terrain
 		 *******************************************/
 		shaderTerrain.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
-		shaderTerrain.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
-		shaderTerrain.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
-		shaderTerrain.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.4, 0.4, 0.4)));
-		shaderTerrain.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-1.0, 0.0, 0.0)));
+		shaderTerrain.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
+		shaderTerrain.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
+		shaderTerrain.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
+		shaderTerrain.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-0.707106781, -0.707106781, 0.0)));
 
 		/*******************************************
 		 * Propiedades PointLights
@@ -780,109 +919,30 @@ void applicationLoop() {
 		}
 
 		/*******************************************
-		 * Terrain Cesped
+		 * 1.- We render the depth buffer
 		 *******************************************/
-		glm::mat4 modelCesped = glm::mat4(1.0);
-		modelCesped = glm::translate(modelCesped, glm::vec3(0.0, 0.0, 0.0));
-		modelCesped = glm::scale(modelCesped, glm::vec3(200.0, 0.001, 200.0));
-		// Se activa la textura del background
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureTerrainBackgroundID);
-		shaderTerrain.setInt("backgroundTexture", 0);
-		// Se activa la textura de tierra
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, textureTerrainRID);
-		shaderTerrain.setInt("rTexture", 1);
-		// Se activa la textura de hierba
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, textureTerrainGID);
-		shaderTerrain.setInt("gTexture", 2);
-		// Se activa la textura del camino
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, textureTerrainBID);
-		shaderTerrain.setInt("bTexture", 3);
-		// Se activa la textura del blend map
-		glActiveTexture(GL_TEXTURE4);
-		glBindTexture(GL_TEXTURE_2D, textureTerrainBlendMapID);
-		shaderTerrain.setInt("blendMapTexture", 4);
-		shaderTerrain.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(40, 40)));
-		terrain.render();
-		shaderTerrain.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(0, 0)));
-		glBindTexture(GL_TEXTURE_2D, 0);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		// render scene from light's point of view
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		//glCullFace(GL_FRONT);
+		prepareDepthScene();
+		renderScene(false);
+		//glCullFace(GL_BACK);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		/*******************************************
-		 * Custom objects obj
+		 * 2.- We render the normal objects
 		 *******************************************/
-
-
-		 //Rock render
-		matrixModelRock[3][1] = terrain.getHeightTerrain(matrixModelRock[3][0], matrixModelRock[3][2]);
-		modelRock.render(matrixModelRock);
-		// Forze to enable the unit texture to 0 always ----------------- IMPORTANT
-		glActiveTexture(GL_TEXTURE0);
-
-		
-
-
-		// Lambo car
-		glDisable(GL_CULL_FACE);
-		// Se regresa el cull faces IMPORTANTE para las puertas
-		glEnable(GL_CULL_FACE);
-
-		// Render the lamps
-		for (int i = 0; i < lamp1Position.size(); i++) {
-			lamp1Position[i].y = terrain.getHeightTerrain(lamp1Position[i].x, lamp1Position[i].z);
-			modelLamp1.setPosition(lamp1Position[i]);
-			modelLamp1.setScale(glm::vec3(0.5, 0.5, 0.5));
-			modelLamp1.setOrientation(glm::vec3(0, lamp1Orientation[i], 0));
-			modelLamp1.render();
-
-		
-			Lamparas[i]->Rotate(lamp1Orientation[i], glm::vec3(0, 1, 0));
-		}
-
-		for (int i = 0; i < lamp2Position.size(); i++) {
-			lamp2Position[i].y = terrain.getHeightTerrain(lamp2Position[i].x, lamp2Position[i].z);
-			modelLamp2.setPosition(lamp2Position[i]);
-			modelLamp2.setScale(glm::vec3(1.0, 1.0, 1.0));
-			modelLamp2.setOrientation(glm::vec3(0, lamp2Orientation[i], 0));
-			modelLamp2.render();
-			modelLampPost2.setPosition(lamp2Position[i]);
-			modelLampPost2.setScale(glm::vec3(1.0, 1.0, 1.0));
-			modelLampPost2.setOrientation(glm::vec3(0, lamp2Orientation[i], 0));
-			modelLampPost2.render();
-		}
-
-
-		/*******************************************
-		 * RENDER & ACTUALIZACIÒN DE NUESTROS OBJETOS.
-		 *******************************************/
-
-		// Mayow
-		 // Se modifica para tener un tiro parabolico como salto. 
-		mayowGameObject->ModelMatrix[3][1] = -gravity * tmv * tmv + 3.0 * tmv + terrain.getHeightTerrain(mayowGameObject->ModelMatrix[3][0], mayowGameObject->ModelMatrix[3][2]);
-
-		tmv = currTime - startTimeJump;
-
-
-		if (mayowGameObject->ModelMatrix[3][1] < terrain.getHeightTerrain(mayowGameObject->ModelMatrix[3][0], mayowGameObject->ModelMatrix[3][2])) {
-			isJump = false;
-			mayowGameObject->ModelMatrix[3][1] = terrain.getHeightTerrain(mayowGameObject->ModelMatrix[3][0], mayowGameObject->ModelMatrix[3][2]);
-
-		}
-
-		mayowGameObject->Transform = glm::mat4(mayowGameObject->ModelMatrix);
-		mayowGameObject->Scale(glm::vec3(0.021, 0.021, 0.021));
-		mayowGameObject->animationIndex = animationIndex;
-		mayowGameObject->Draw();
-
-
-		// Jugador
-		jugadorGameObject->ModelMatrix[3][1] = terrain.getHeightTerrain(jugadorGameObject->ModelMatrix[3][0], jugadorGameObject->ModelMatrix[3][2]);
-		jugadorGameObject->animationIndex = 1;
-		jugadorGameObject->Transform = glm::mat4(jugadorGameObject->ModelMatrix);
-		jugadorGameObject->Scale(glm::vec3(0.00025, 0.00025, 0.00025));
-		jugadorGameObject->Draw();
+		glViewport(0, 0, screenWidth, screenHeight);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		prepareScene();
+		glActiveTexture(GL_TEXTURE10);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+		shaderMulLighting.setInt("shadowMap", 10);
+		shaderTerrain.setInt("shadowMap", 10);
 
 
 		/*******************************************
@@ -900,6 +960,11 @@ void applicationLoop() {
 		skyboxSphere.render();
 		glCullFace(oldCullFaceMode);
 		glDepthFunc(oldDepthFuncMode);
+		/*******************************************
+		* Render the Scene Elements
+		*******************************************/
+		renderScene(true);
+
 
 		/*******************************************
 		 * Creacion de colliders
@@ -975,8 +1040,10 @@ void applicationLoop() {
 			addOrUpdateColliders(collidersOBB, "lamp2-" + std::to_string(i), modelColliderPost, modelColliderLampPost);
 		}
 
-		//Detector de colisiones SBB
-
+		/*******************************************
+		 * Test Colisions
+		 *******************************************/
+		// Detector de colisiones SBB
 		for (std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::iterator it = collidersSBB.begin(); it != collidersSBB.end(); it++)
 		{
 			bool isCollision = false;
@@ -1101,29 +1168,177 @@ void applicationLoop() {
 
 		// Constantes de animaciones
 		animationIndex = 1;
-
-		/*******************************************
-		 * State machines
-		 *******************************************/
-
-		 // State machine for the lambo car
-		switch (stateDoor) {
-		case 0:
-			dorRotCount += 0.5;
-			if (dorRotCount > 75)
-				stateDoor = 1;
-			break;
-		case 1:
-			dorRotCount -= 0.5;
-			if (dorRotCount < 0) {
-				dorRotCount = 0.0;
-				stateDoor = 0;
-			}
-			break;
-		}
+		animationIndexPlayer = 1;
 
 		glfwSwapBuffers(window);
+
+
+		/*******************************************
+		 * OpenAL sound data
+		 *******************************************/
+
+		BGMusic0Pos[0] = camera->getPosition().x;
+		BGMusic0Pos[1] = camera->getPosition().y;
+		BGMusic0Pos[2] = camera->getPosition().z;
+		alSourcefv(source[0], AL_POSITION, BGMusic0Pos);
+
+		 // Listener for the Camera.
+		listenerPos[0] = camera->getPosition().x;
+		listenerPos[1] = camera->getPosition().y;
+		listenerPos[2] = camera->getPosition().z;
+		alListenerfv(AL_POSITION, listenerPos);
+		listenerOri[0] = camera->getFront().x;
+		listenerOri[1] = camera->getFront().y;
+		listenerOri[2] = camera->getFront().z;
+		listenerOri[3] = camera->getUp().x;
+		listenerOri[4] = camera->getUp().y;
+		listenerOri[5] = camera->getUp().z;
+		alListenerfv(AL_ORIENTATION, listenerOri);
+
+		for (unsigned int i = 0; i < sourcesPlay.size(); i++) {
+			if (sourcesPlay[i]) {
+				sourcesPlay[i] = false;
+				alSourcePlay(source[i]);
+			}
+		}
+		
 	}
+}
+
+void prepareScene() {
+
+	// Set Shaders for first pass
+
+	modelRock.setShader(&shaderMulLighting);
+	modelLamp1.setShader(&shaderMulLighting);
+	modelLamp2.setShader(&shaderMulLighting);
+	modelLampPost2.setShader(&shaderMulLighting);
+
+	terrain.setShader(&shaderTerrain);
+
+	mayowGameObject->SetShader(&shaderMulLighting);
+	jugadorGameObject->SetShader(&shaderMulLighting);
+}
+
+void prepareDepthScene() {
+
+	modelRock.setShader(&shaderDepth);
+	modelLamp1.setShader(&shaderDepth);
+	modelLamp2.setShader(&shaderDepth);
+	modelLampPost2.setShader(&shaderDepth);
+
+	terrain.setShader(&shaderDepth);
+
+	mayowGameObject->SetShader(&shaderDepth);
+	jugadorGameObject->SetShader(&shaderDepth);
+}
+
+void renderScene(bool renderParticles) {
+	/*******************************************
+	* Terrain Cesped
+	*******************************************/
+	glm::mat4 modelCesped = glm::mat4(1.0);
+	modelCesped = glm::translate(modelCesped, glm::vec3(0.0, 0.0, 0.0));
+	modelCesped = glm::scale(modelCesped, glm::vec3(200.0, 0.001, 200.0));
+	// Se activa la textura del background
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureTerrainBackgroundID);
+	shaderTerrain.setInt("backgroundTexture", 0);
+	// Se activa la textura de tierra
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, textureTerrainRID);
+	shaderTerrain.setInt("rTexture", 1);
+	// Se activa la textura de hierba
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, textureTerrainGID);
+	shaderTerrain.setInt("gTexture", 2);
+	// Se activa la textura del camino
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, textureTerrainBID);
+	shaderTerrain.setInt("bTexture", 3);
+	// Se activa la textura del blend map
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, textureTerrainBlendMapID);
+	shaderTerrain.setInt("blendMapTexture", 4);
+	shaderTerrain.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(40, 40)));
+	terrain.render();
+	shaderTerrain.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(0, 0)));
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	/*******************************************
+	 * Custom objects obj
+	 *******************************************/
+
+
+	 //Rock render
+	matrixModelRock[3][1] = terrain.getHeightTerrain(matrixModelRock[3][0], matrixModelRock[3][2]);
+	modelRock.render(matrixModelRock);
+	// Forze to enable the unit texture to 0 always ----------------- IMPORTANT
+	glActiveTexture(GL_TEXTURE0);
+
+
+
+
+	// Lambo car
+	glDisable(GL_CULL_FACE);
+	// Se regresa el cull faces IMPORTANTE para las puertas
+	glEnable(GL_CULL_FACE);
+
+	// Render the lamps
+	for (int i = 0; i < lamp1Position.size(); i++) {
+		lamp1Position[i].y = terrain.getHeightTerrain(lamp1Position[i].x, lamp1Position[i].z);
+		modelLamp1.setPosition(lamp1Position[i]);
+		modelLamp1.setScale(glm::vec3(0.5, 0.5, 0.5));
+		modelLamp1.setOrientation(glm::vec3(0, lamp1Orientation[i], 0));
+		modelLamp1.render();
+
+
+		Lamparas[i]->Rotate(lamp1Orientation[i], glm::vec3(0, 1, 0));
+	}
+
+	for (int i = 0; i < lamp2Position.size(); i++) {
+		lamp2Position[i].y = terrain.getHeightTerrain(lamp2Position[i].x, lamp2Position[i].z);
+		modelLamp2.setPosition(lamp2Position[i]);
+		modelLamp2.setScale(glm::vec3(1.0, 1.0, 1.0));
+		modelLamp2.setOrientation(glm::vec3(0, lamp2Orientation[i], 0));
+		modelLamp2.render();
+		modelLampPost2.setPosition(lamp2Position[i]);
+		modelLampPost2.setScale(glm::vec3(1.0, 1.0, 1.0));
+		modelLampPost2.setOrientation(glm::vec3(0, lamp2Orientation[i], 0));
+		modelLampPost2.render();
+	}
+
+
+
+	/*******************************************
+	* RENDER & ACTUALIZACIÒN DE NUESTROS OBJETOS.
+	*******************************************/
+
+		 // Mayow
+		  // Se modifica para tener un tiro parabolico como salto. 
+	mayowGameObject->ModelMatrix[3][1] = -gravity * tmv * tmv + 3.0 * tmv + terrain.getHeightTerrain(mayowGameObject->ModelMatrix[3][0], mayowGameObject->ModelMatrix[3][2]);
+
+	tmv = currTime - startTimeJump;
+
+
+	if (mayowGameObject->ModelMatrix[3][1] < terrain.getHeightTerrain(mayowGameObject->ModelMatrix[3][0], mayowGameObject->ModelMatrix[3][2])) {
+		isJump = false;
+		mayowGameObject->ModelMatrix[3][1] = terrain.getHeightTerrain(mayowGameObject->ModelMatrix[3][0], mayowGameObject->ModelMatrix[3][2]);
+
+	}
+
+	mayowGameObject->Transform = glm::mat4(mayowGameObject->ModelMatrix);
+	mayowGameObject->Scale(glm::vec3(0.021, 0.021, 0.021));
+	mayowGameObject->animationIndex = animationIndex;
+	mayowGameObject->Draw();
+
+
+	// Jugador
+	jugadorGameObject->ModelMatrix[3][1] = terrain.getHeightTerrain(jugadorGameObject->ModelMatrix[3][0], jugadorGameObject->ModelMatrix[3][2]);
+	jugadorGameObject->animationIndex = animationIndexPlayer;
+	jugadorGameObject->Transform = glm::mat4(jugadorGameObject->ModelMatrix);
+	jugadorGameObject->Scale(glm::vec3(0.00025, 0.00025, 0.00025));
+	jugadorGameObject->Draw();
 }
 
 void startScene(std::string sceneName) {
