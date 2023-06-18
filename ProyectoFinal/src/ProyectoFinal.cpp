@@ -88,6 +88,7 @@ Sphere skyboxSphere(20, 20);
 Box boxCollider;
 Sphere sphereCollider(10, 10);
 Cylinder RayModel(10, 10, 1.0, 1.0, 1.0); //Creamos modelo de cilindro que servira como nuestro "rayo"
+Box zombiePlaceHolder;
 
 // Models complex instances
 Model modelRock;
@@ -118,6 +119,8 @@ Model modelDisparo;
 // GameObjects:
 GameObject* mayowGameObject;
 GameObject* jugadorGameObject;
+std::vector<Box> zombieContainer;
+int zombieOffset = 0;
 std::vector<GameObject*> Lamparas;
 std::vector<GameObject*> Lamparas2;
 
@@ -323,6 +326,11 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	RayModel.init();
 	RayModel.setShader(&shader);
 	RayModel.setColor(glm::vec4(1.0));
+
+	zombiePlaceHolder.init();
+	zombiePlaceHolder.setShader(&shader);
+	zombiePlaceHolder.setColor(glm::vec4(1.0, 0.0, 0.0, 1.0));
+
 
 	modelRock.loadModel("../models/rock/rock.obj");
 	
@@ -544,6 +552,7 @@ void destroy() {
 	boxCollider.destroy();
 	sphereCollider.destroy();
 	RayModel.destroy();
+	zombiePlaceHolder.destroy();
 
 	// Terrains objects Delete
 	terrain.destroy();
@@ -687,33 +696,38 @@ bool processInput(bool continueApplication) {
 	offsetY = 0;
 
 
-	
-
 	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
 		//modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
 		//mayowGameObject->Rotate(VELOCIDAD_ROTACION_PERSONAJE, glm::vec3(0, 1, 0));
-		mayowGameObject->ModelMatrix = glm::rotate(mayowGameObject->ModelMatrix, glm::radians(VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
+		//mayowGameObject->ModelMatrix = glm::rotate(mayowGameObject->ModelMatrix, glm::radians(VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
+
+		jugadorGameObject->ModelMatrix = glm::rotate(jugadorGameObject->ModelMatrix, glm::radians(VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
+
 		animationIndex = 0;
 		animationIndexPlayer = 2;
 	}
 	else if ( glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
 		//modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
 		//mayowGameObject->Rotate(-VELOCIDAD_ROTACION_PERSONAJE, glm::vec3(0, 1, 0));
-		mayowGameObject->ModelMatrix = glm::rotate(mayowGameObject->ModelMatrix, glm::radians(-VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
+		//mayowGameObject->ModelMatrix = glm::rotate(mayowGameObject->ModelMatrix, glm::radians(-VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
+		
+		jugadorGameObject->ModelMatrix = glm::rotate(jugadorGameObject->ModelMatrix, glm::radians(-VELOCIDAD_ROTACION_PERSONAJE), glm::vec3(0, 1, 0));
 		
 		animationIndex = 0;
 		animationIndexPlayer = 2;
 	}if ( glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
 		//modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, VELOCIDAD_MOVIMIENTO_PERSONAJE));
 		//mayowGameObject->Translate(glm::vec3(0, 0, VELOCIDAD_MOVIMIENTO_PERSONAJE));
-		mayowGameObject->ModelMatrix = glm::translate(mayowGameObject->ModelMatrix, glm::vec3(0, 0, VELOCIDAD_MOVIMIENTO_PERSONAJE));
+		//mayowGameObject->ModelMatrix = glm::translate(mayowGameObject->ModelMatrix, glm::vec3(0, 0, VELOCIDAD_MOVIMIENTO_PERSONAJE));
+		jugadorGameObject->ModelMatrix = glm::translate(jugadorGameObject->ModelMatrix, glm::vec3(0, 0, VELOCIDAD_MOVIMIENTO_PERSONAJE));
 		animationIndex = 0;
 		animationIndexPlayer = 2;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
 		//modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, -VELOCIDAD_MOVIMIENTO_PERSONAJE));
 		//mayowGameObject->Translate(glm::vec3(0, 0, -VELOCIDAD_MOVIMIENTO_PERSONAJE));
-		mayowGameObject->ModelMatrix = glm::translate(mayowGameObject->ModelMatrix, glm::vec3(0, 0, -VELOCIDAD_MOVIMIENTO_PERSONAJE));
+		//mayowGameObject->ModelMatrix = glm::translate(mayowGameObject->ModelMatrix, glm::vec3(0, 0, -VELOCIDAD_MOVIMIENTO_PERSONAJE));
+		jugadorGameObject->ModelMatrix = glm::translate(jugadorGameObject->ModelMatrix, glm::vec3(0, 0, -VELOCIDAD_MOVIMIENTO_PERSONAJE));
 		animationIndex = 0;
 		animationIndexPlayer = 2;
 	}
@@ -784,9 +798,9 @@ void applicationLoop() {
 			(float)screenWidth / (float)screenHeight, 0.01f, 100.0f);
 
 		
-		axis = glm::axis(glm::quat_cast(mayowGameObject->ModelMatrix));
-		angleTarget = glm::angle(glm::quat_cast(mayowGameObject->ModelMatrix));
-		target = mayowGameObject->ModelMatrix[3];
+		axis = glm::axis(glm::quat_cast(jugadorGameObject->ModelMatrix));
+		angleTarget = glm::angle(glm::quat_cast(jugadorGameObject->ModelMatrix));
+		target = jugadorGameObject->ModelMatrix[3];
 		
 
 		if (std::isnan(angleTarget))
@@ -1339,6 +1353,49 @@ void renderScene(bool renderParticles) {
 	jugadorGameObject->Transform = glm::mat4(jugadorGameObject->ModelMatrix);
 	jugadorGameObject->Scale(glm::vec3(0.00025, 0.00025, 0.00025));
 	jugadorGameObject->Draw();
+
+	/*
+	*  COMPORTAMIENTO DEL ZOMBIE:
+	* 
+	* 1. GENERAR UN ZOMBIE
+	* 2. ASIGNAR LA DIRECCIÓN AL JUGADOR.
+	* 3. DESPLAZARLO CADA FRAME.
+	* 4. VERIFICAR EL COLLIDER, SI MUERE REPRODUCIR ANIMACIÓN, LUEGO DESTRUIR OBJETO.
+	* 5. SI NO MUERE, SEGUIR DESPLAZANDO.
+	
+	*/
+
+	// GENERAR UN NUEVO ZOMBIE HASTA LA CANTIDAD MÁXIMA DE ENEMIGOS.
+	if (zombieContainer.size() < 20) {
+		zombieContainer.push_back(zombiePlaceHolder);
+	}
+
+	// GENERATING RANDOM POSITION FOR ZOMBIE GENERATION.
+	
+		
+
+	zombieContainer[0].setScale(glm::vec3(1.0f));
+	zombieContainer[0].setColor(glm::vec4(1.0f, 1.0f, 1.0f,1.0f));
+	zombieContainer[0].setPosition(glm::vec3(3.0, (terrain.getHeightTerrain(zombieContainer[0].getPosition().x, zombieContainer[0].getPosition().z)), 2.0));
+	zombieContainer[0].render();
+	
+	zombieOffset += 0;
+
+	std::cout<< "Zombie Container Size: " << zombieContainer.size() << std::endl;
+		
+		for (int i = 0; i < zombieContainer.size(); i++) {
+
+			zombieContainer[i].setPosition(glm::vec3(3.0 + i, (terrain.getHeightTerrain(zombieContainer[i].getPosition().x, zombieContainer[i].getPosition().z)), 2.0));
+			zombieContainer[0].setColor(glm::vec4(0.5f, 1.0f, 0.5f, 1.0f));
+			zombieContainer[i].setScale(glm::vec3(0.7, 1.7, 0.7));
+			zombieContainer[i].render(mayowGameObject->ModelMatrix);
+
+			
+
+		}
+	
+	
+
 }
 
 void startScene(std::string sceneName) {
