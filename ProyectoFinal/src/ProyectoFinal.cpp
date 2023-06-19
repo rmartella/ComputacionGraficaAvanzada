@@ -1,4 +1,5 @@
 #define _USE_MATH_DEFINES
+#define _DEBUG_FLAG 0
 #include <cmath>
 //glew include
 #include <GL/glew.h>
@@ -6,6 +7,7 @@
 //std includes
 #include <string>
 #include <iostream>
+#include <random>
 
 //glfw include
 #include <GLFW/glfw3.h>
@@ -53,10 +55,11 @@
 
 #define ARRAY_SIZE_IN_ELEMENTS(a) (sizeof(a)/sizeof(a[0]))
 
-// Constantes para los personajes
+// Constantes de juego.
 #define VELOCIDAD_MOVIMIENTO_PERSONAJE 0.1f
 #define VELOCIDAD_ROTACION_PERSONAJE 0.5f
 #define GRAVEDAD_SALTO_PERSONAJE 0.5f
+#define NUMERO_ENEMIGOS 75
 
 // Constantes para la camara
 #define SCREEN_WIDTH 1024
@@ -119,6 +122,11 @@ Model modelDisparo;
 // GameObjects:
 GameObject* mayowGameObject;
 GameObject* jugadorGameObject;
+GameObject* zombieGameObject;
+
+
+
+//std::vector<GameObject> zombieGameObjects;
 std::vector<Box> zombieContainer;
 int zombieOffset = 0;
 std::vector<GameObject*> Lamparas;
@@ -149,6 +157,10 @@ std::string fileNames[6] = {
 		"../Textures/mp_bloodvalley/blood-valley_rt.tga",	//RIGHT	
 		"../Textures/mp_bloodvalley/blood-valley_lf.tga" };	//LEFT
 
+// Random Number Generator
+std::random_device rd;
+std::mt19937 generador(rd());
+std::uniform_int_distribution<> distrib(1, 50);  //Tamaño del area de generación del zombie en (X,Z)
 
 // CONTROL DEL JUEGO:
 bool exitApp = false;
@@ -354,6 +366,9 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	// Modelo de juego: Jugador.
 	jugadorGameObject = new GameObject("Player", "../models/Player/PlayerAnimated.fbx", &shaderMulLighting);
+
+	// Modelo de juego: Zombie.
+	zombieGameObject = new GameObject("Zombie", "../models/Player/PlayerAnimated.fbx", &shaderMulLighting);
 
 	// Camera
 	camera->setPosition(glm::vec3(0.0, 0.0, 10.0));
@@ -569,6 +584,7 @@ void destroy() {
 	/*mayowModelAnimate.destroy();*/
 	delete mayowGameObject;
 	delete jugadorGameObject;
+	delete zombieGameObject;
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -752,12 +768,17 @@ void applicationLoop() {
 	glm::vec3 target;
 	float angleTarget;
 
+	//Initial Positions???
+
 	matrixModelRock = glm::translate(matrixModelRock, glm::vec3(-3.0, 0.0, 2.0));
 
 	jugadorGameObject->ModelMatrix = glm::translate(jugadorGameObject->ModelMatrix, glm::vec3(3.0, 0.0, 2.0));
 
 	mayowGameObject->ModelMatrix = glm::translate(mayowGameObject->ModelMatrix, glm::vec3(13.0f, 0.05f, -5.0f));
 	mayowGameObject->ModelMatrix = glm::rotate(mayowGameObject->ModelMatrix, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+
+	zombieGameObject->ModelMatrix = glm::translate(zombieGameObject->ModelMatrix, glm::vec3(5.0, 0.0, 2.0));
+
 
 	for (int i = 0; i < lamp1Position.size(); i++) {
 
@@ -988,6 +1009,12 @@ void applicationLoop() {
 		mayowGameObject->UpdateColliderOBB(-90.0f, glm::vec3(1, 0, 0), glm::vec3(0.021, 0.021, 0.021), glm::vec3(0.75));
 		addOrUpdateColliders(collidersOBB, "mayow", mayowGameObject->GetOBB(), mayowGameObject->ModelMatrix);
 
+		jugadorGameObject->UpdateColliderOBB(-90.0f, glm::vec3(1, 0, 0), glm::vec3(0.009, 0.051, 0.030), glm::vec3(1.0));
+		addOrUpdateColliders(collidersOBB, "jugador", jugadorGameObject->GetOBB(), jugadorGameObject->ModelMatrix);
+
+		
+		
+
 		// Lamps1 colliders
 		for (int i = 0; i < lamp1Position.size(); i++) {
 			AbstractModel::OBB lampCollider;
@@ -1110,6 +1137,9 @@ void applicationLoop() {
 			addOrUpdateCollisionDetection(collisionDetection, it->first, isCollision);
 		}
 
+		/*******************************************
+		 * Comportamiendo de Colliders
+		 *******************************************/
 		std::map<std::string, bool>::iterator itCollision; //Iterador de colisiones 
 		for (itCollision = collisionDetection.begin(); itCollision != collisionDetection.end(); itCollision++)
 		{
@@ -1138,6 +1168,11 @@ void applicationLoop() {
 						//Estamos obteniendo el valor de la primera matriz de transformacion de la tupla que forma parte del obbbuscado.
 						//modelMatrixMayow = std::get<1>(obbBuscado->second);
 						mayowGameObject->ModelMatrix = std::get<1>(obbBuscado->second);
+					}
+
+					if (itCollision->first.compare("jugador") == 0) {
+						jugadorGameObject->ModelMatrix = std::get<1>(obbBuscado->second);
+						
 					}
 				}
 			}
@@ -1232,6 +1267,8 @@ void prepareScene() {
 
 	mayowGameObject->SetShader(&shaderMulLighting);
 	jugadorGameObject->SetShader(&shaderMulLighting);
+	zombieGameObject->SetShader(&shaderMulLighting);
+	
 }
 
 void prepareDepthScene() {
@@ -1245,6 +1282,8 @@ void prepareDepthScene() {
 
 	mayowGameObject->SetShader(&shaderDepth);
 	jugadorGameObject->SetShader(&shaderDepth);
+	zombieGameObject->SetShader(&shaderDepth);
+	
 }
 
 void renderScene(bool renderParticles) {
@@ -1342,7 +1381,7 @@ void renderScene(bool renderParticles) {
 	}
 
 	mayowGameObject->Transform = glm::mat4(mayowGameObject->ModelMatrix);
-	mayowGameObject->Scale(glm::vec3(0.021, 0.021, 0.021));
+	mayowGameObject->SetScale(glm::vec3(0.021, 0.021, 0.021));
 	mayowGameObject->animationIndex = animationIndex;
 	mayowGameObject->Draw();
 
@@ -1351,13 +1390,13 @@ void renderScene(bool renderParticles) {
 	jugadorGameObject->ModelMatrix[3][1] = terrain.getHeightTerrain(jugadorGameObject->ModelMatrix[3][0], jugadorGameObject->ModelMatrix[3][2]);
 	jugadorGameObject->animationIndex = animationIndexPlayer;
 	jugadorGameObject->Transform = glm::mat4(jugadorGameObject->ModelMatrix);
-	jugadorGameObject->Scale(glm::vec3(0.00025, 0.00025, 0.00025));
+	jugadorGameObject->SetScale(glm::vec3(0.00025, 0.00025, 0.00025));
 	jugadorGameObject->Draw();
 
 	/*
 	*  COMPORTAMIENTO DEL ZOMBIE:
 	* 
-	* 1. GENERAR UN ZOMBIE
+	* 1. GENERAR UN ZOMBIE EN UN LUGAR ALEATORIO.
 	* 2. ASIGNAR LA DIRECCIÓN AL JUGADOR.
 	* 3. DESPLAZARLO CADA FRAME.
 	* 4. VERIFICAR EL COLLIDER, SI MUERE REPRODUCIR ANIMACIÓN, LUEGO DESTRUIR OBJETO.
@@ -1365,36 +1404,43 @@ void renderScene(bool renderParticles) {
 	
 	*/
 
+	// GENERATING RANDOM POSITION FOR ZOMBIE GENERATION.
+
+	int rnd_x = distrib(generador);
+	int rnd_z = distrib(generador);
+
+	// Zombie
+	zombieGameObject->ModelMatrix[3][1] = terrain.getHeightTerrain(zombieGameObject->ModelMatrix[3][0], zombieGameObject->ModelMatrix[3][2]);
+	zombieGameObject->animationIndex = 1;
+	zombieGameObject->Transform = glm::mat4(zombieGameObject->ModelMatrix);
+	zombieGameObject->SetScale(glm::vec3(0.00025, 0.00025, 0.00025));
+	zombieGameObject->Draw();
+
+	zombiePlaceHolder.setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	zombiePlaceHolder.setPosition(glm::vec3(rnd_x,  (terrain.getHeightTerrain(zombiePlaceHolder.getPosition().x, zombiePlaceHolder.getPosition().z)) , rnd_z));
+	//zombiePlaceHolder.render();
+
 	// GENERAR UN NUEVO ZOMBIE HASTA LA CANTIDAD MÁXIMA DE ENEMIGOS.
-	if (zombieContainer.size() < 20) {
+	if (zombieContainer.size() < NUMERO_ENEMIGOS) {
 		zombieContainer.push_back(zombiePlaceHolder);
 	}
-
-	// GENERATING RANDOM POSITION FOR ZOMBIE GENERATION.
-	
-		
-
-	zombieContainer[0].setScale(glm::vec3(1.0f));
-	zombieContainer[0].setColor(glm::vec4(1.0f, 1.0f, 1.0f,1.0f));
-	zombieContainer[0].setPosition(glm::vec3(3.0, (terrain.getHeightTerrain(zombieContainer[0].getPosition().x, zombieContainer[0].getPosition().z)), 2.0));
-	zombieContainer[0].render();
 	
 	zombieOffset += 0;
-
+	#if _DEBUG_FLAG
 	std::cout<< "Zombie Container Size: " << zombieContainer.size() << std::endl;
-		
+	std::cout << "RNG : " << distrib(generador) << std::endl;
+	#endif
+
 		for (int i = 0; i < zombieContainer.size(); i++) {
 
-			zombieContainer[i].setPosition(glm::vec3(3.0 + i, (terrain.getHeightTerrain(zombieContainer[i].getPosition().x, zombieContainer[i].getPosition().z)), 2.0));
-			zombieContainer[0].setColor(glm::vec4(0.5f, 1.0f, 0.5f, 1.0f));
+			//zombieContainer[i].setPosition(glm::vec3(3.0 + i, (terrain.getHeightTerrain(zombieContainer[i].getPosition().x, zombieContainer[i].getPosition().z)), 2.0));
+			zombieContainer[i].setColor(glm::vec4(0.5f, 1.0f, 0.5f, 1.0f));
 			zombieContainer[i].setScale(glm::vec3(0.7, 1.7, 0.7));
 			zombieContainer[i].render(mayowGameObject->ModelMatrix);
-
 			
-
+			//zombieGameObjects[i].Draw();
+			
 		}
-	
-	
 
 }
 

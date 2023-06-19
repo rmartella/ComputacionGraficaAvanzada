@@ -15,14 +15,18 @@ public:
 
 	//Public
 	GameObject(std::string tag,std::string pathToModel, Shader* shader);
+	GameObject();
 	~GameObject();
 
 	void Draw();
+	void Draw(Model* modelReference);
 	//void DrawCollider();
 	void Translate(glm::vec3 translation);
 	void Rotate(float angle, glm::vec3 axis);
-	void Scale(glm::vec3 scale);
+	void SetScale(glm::vec3 scale);
+	glm::vec3 GetScale();
 	void SetShader(Shader* shader);
+
 	
 	
 	void UpdateColliderOBB(float angle, glm::vec3 rotation, glm::vec3 scale, glm::vec3 factor);
@@ -59,8 +63,15 @@ GameObject::GameObject(std::string tag,std::string pathToModel, Shader* shader)
 
 	//Put Collider
 	
-
 }
+
+GameObject::GameObject() {
+	this->ModelMatrix = glm::mat4(1.0f);
+	this->Transform = glm::mat4(1.0f);
+	this->ColliderTransform = glm::mat4(1.0f);
+	
+}
+
 
 GameObject::~GameObject()
 {
@@ -78,6 +89,12 @@ void GameObject::Draw()
 	this->model.render(this->Transform);
 }
 
+void GameObject::Draw(Model* modelReference)
+{
+	this->model = *modelReference;
+	Draw();
+}
+
 void GameObject::Translate(glm::vec3 translation)
 {
 	this->Transform = glm::translate(this->Transform, translation);
@@ -88,9 +105,14 @@ void GameObject::Rotate(float angle, glm::vec3 axis)
 	this->Transform = glm::rotate(this->Transform, angle, axis);
 }
 
-void GameObject::Scale(glm::vec3 scale)
+void GameObject::SetScale(glm::vec3 scale)
 {
 	this->Transform = glm::scale(this->Transform, scale);
+}
+
+glm::vec3 GameObject::GetScale()
+{
+	return glm::vec3(this->Transform[0][0], this->Transform[1][1], this->Transform[2][2]);
 }
 
 void GameObject::UpdateColliderOBB(float angle, glm::vec3 rotation ,glm::vec3 scale, glm::vec3 factor) 
