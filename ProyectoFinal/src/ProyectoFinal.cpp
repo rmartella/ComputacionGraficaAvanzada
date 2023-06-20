@@ -1511,10 +1511,14 @@ void renderScene(bool renderParticles) {
 			enemyCollection[i]->ModelMatrix = glm::rotate(currentTransform, glm::radians(0.0f), glm::vec3(0, 1, 0));
 		}
 
+
+
 		if (i == 0) {
 			std::cout << "Angulo: " << glm::degrees(angulo) << "  crozz.y : " << cross.y << std::endl;
 			
 		}
+		glm::vec3 goal = (enemyCollection[i]->ModelMatrix[2]);
+		enemyCollection[i]->ModelMatrix = glm::translate(enemyCollection[i]->ModelMatrix,  -currDirection * 0.01f);
 			
 
 		//
@@ -1539,7 +1543,7 @@ void renderScene(bool renderParticles) {
 		//	enemyCollection[i]->Rotate(-90.0f, glm::vec3(0, 1, 0));
 
 
-
+		enemyCollection[i]->animationIndex = 2;
 		enemyCollection[i]->Transform = glm::mat4(enemyCollection[i]->ModelMatrix);
 		enemyCollection[i]->SetScale(glm::vec3(0.00015, 0.00015, 0.00015));
 		enemyCollection[i]->Draw();
