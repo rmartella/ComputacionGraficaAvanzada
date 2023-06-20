@@ -59,7 +59,7 @@
 #define VELOCIDAD_MOVIMIENTO_PERSONAJE 0.1f
 #define VELOCIDAD_ROTACION_PERSONAJE 0.5f
 #define GRAVEDAD_SALTO_PERSONAJE 0.5f
-#define NUMERO_ENEMIGOS 50
+#define NUMERO_ENEMIGOS 15
 
 // Constantes para la camara
 #define SCREEN_WIDTH 1024
@@ -610,6 +610,12 @@ void destroy() {
 	delete mayowGameObject;
 	delete jugadorGameObject;
 	delete zombieGameObject;
+	
+	for (size_t i = 0; i < enemyCollection.size(); i++)
+	{
+		delete enemyCollection[i];
+	}
+
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -828,7 +834,7 @@ void applicationLoop() {
 
 	while (psi) {
 		currTime = TimeManager::Instance().GetTime();
-		if (currTime - lastTime < 0.016666667) {
+		if (currTime - lastTime < 0.00833333334) {
 			glfwPollEvents();
 			continue;
 		}
@@ -1038,7 +1044,11 @@ void applicationLoop() {
 		jugadorGameObject->UpdateColliderOBB(-90.0f, glm::vec3(1, 0, 0), glm::vec3(0.005, 0.015, 0.015), glm::vec3(1.0));
 		addOrUpdateColliders(collidersOBB, "jugador", jugadorGameObject->GetOBB(), jugadorGameObject->ModelMatrix);
 
-		
+		for (size_t i = 0; i < enemyCollection.size(); i++)
+		{
+			enemyCollection[i]->UpdateColliderOBB(-90.0f, glm::vec3(1, 0, 0), glm::vec3(0.005, 0.015, 0.015), glm::vec3(1.0));
+			addOrUpdateColliders(collidersOBB, "enemy" + std::to_string(i), enemyCollection[i]->GetOBB(), enemyCollection[i]->ModelMatrix);
+		}
 		
 
 		// Lamps1 colliders
@@ -1199,6 +1209,10 @@ void applicationLoop() {
 					if (itCollision->first.compare("jugador") == 0) {
 						jugadorGameObject->ModelMatrix = std::get<1>(obbBuscado->second);
 						
+					}
+
+					if (itCollision->first.find("enemy") == 0) {
+						std::cout << "ENEMY TEST !" << std::endl;
 					}
 				}
 			}
