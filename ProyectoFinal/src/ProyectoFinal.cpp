@@ -59,14 +59,14 @@
 #define VELOCIDAD_MOVIMIENTO_PERSONAJE 0.1f
 #define VELOCIDAD_ROTACION_PERSONAJE 0.5f
 #define GRAVEDAD_SALTO_PERSONAJE 0.5f
-#define NUMERO_ENEMIGOS 15
+#define NUMERO_ENEMIGOS 3
 
 // Constantes para la camara
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
 
 // Constantes para las sombras.
-const unsigned int SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;
+const unsigned int SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
 
 int screenWidth;
 int screenHeight;
@@ -373,18 +373,19 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	// Contenedor de Zombies.
 	for (int i = 0; i < NUMERO_ENEMIGOS; i++) {
-		int rnd_x = distrib(generador);
-		int rnd_z = distrib(generador);
+		
 
 		// Zombie
 		zombieGameObject->animationIndex = 1;
 		
-		zombieGameObject->Transform = glm::mat4(zombieGameObject->ModelMatrix);
+		//zombieGameObject->Transform = glm::mat4(zombieGameObject->ModelMatrix);
+		int rnd_x = distrib(generador);
+		int rnd_z = distrib(generador);
 		zombieGameObject->ModelMatrix[3][0] = rnd_x;
 		zombieGameObject->ModelMatrix[3][2] = rnd_z;
-		zombieGameObject->ModelMatrix[3][1] = terrain.getHeightTerrain(zombieGameObject->ModelMatrix[3][0], zombieGameObject->ModelMatrix[3][2]);
+		//zombieGameObject->ModelMatrix[3][1] = terrain.getHeightTerrain(zombieGameObject->ModelMatrix[3][0], zombieGameObject->ModelMatrix[3][2]);
 		//zombieGameObject->Translate(glm::vec3(rnd_x, 0.0, rnd_z));
-		zombieGameObject->SetScale(glm::vec3(0.00015, 0.00015, 0.00015));
+		//zombieGameObject->SetScale(glm::vec3(0.00015, 0.00015, 0.00015));
 		// GENERAR UN NUEVO ZOMBIE HASTA LA CANTIDAD MÁXIMA DE ENEMIGOS.
 		if (enemyCollection.size() < NUMERO_ENEMIGOS) {
 			//Hacer una copia del zombie
@@ -611,10 +612,7 @@ void destroy() {
 	delete jugadorGameObject;
 	delete zombieGameObject;
 	
-	for (size_t i = 0; i < enemyCollection.size(); i++)
-	{
-		delete enemyCollection[i];
-	}
+	
 
 
 	// Textures Delete
@@ -808,8 +806,9 @@ void applicationLoop() {
 	mayowGameObject->ModelMatrix = glm::translate(mayowGameObject->ModelMatrix, glm::vec3(13.0f, 0.05f, -5.0f));
 	mayowGameObject->ModelMatrix = glm::rotate(mayowGameObject->ModelMatrix, glm::radians(-90.0f), glm::vec3(0, 1, 0));
 
+	
 	zombieGameObject->ModelMatrix = glm::translate(zombieGameObject->ModelMatrix, glm::vec3(5.0, 0.0, 2.0));
-
+	
 	
 
 	for (int i = 0; i < lamp1Position.size(); i++) {
@@ -1046,7 +1045,7 @@ void applicationLoop() {
 
 		for (size_t i = 0; i < enemyCollection.size(); i++)
 		{
-			enemyCollection[i]->UpdateColliderOBB(-90.0f, glm::vec3(1, 0, 0), glm::vec3(0.005, 0.015, 0.015), glm::vec3(1.0));
+			enemyCollection[i]->UpdateColliderOBB(-90.0f, glm::vec3(1, 0, 0), glm::vec3(0.008, 0.062, 0.018), glm::vec3(1.0));
 			addOrUpdateColliders(collidersOBB, "enemy" + std::to_string(i), enemyCollection[i]->GetOBB(), enemyCollection[i]->ModelMatrix);
 		}
 		
@@ -1235,6 +1234,25 @@ void applicationLoop() {
 		modelMatrixRayMay = glm::scale(modelMatrixRayMay, glm::vec3(0.05f, maxDistanceRay, 0.05f));
 
 		RayModel.render(modelMatrixRayMay);
+
+		//Rayo por modelos
+		for (size_t i = 0; i < enemyCollection.size(); i++)
+		{
+			//Generacion de un rayo
+			glm::mat4 modelMatrixRayEnemy = glm::mat4(enemyCollection[i]->ModelMatrix);
+			modelMatrixRayEnemy = glm::translate(modelMatrixRayEnemy, glm::vec3(0, 1, 0)); //Trasladmos un poco para no quedar a la altura del pie
+			float maxDistanceRay = 5.0;
+			glm::vec3 rayDirection = modelMatrixRayEnemy[2];
+			glm::vec3 origen = modelMatrixRayEnemy[3]; //Punto inicial
+			glm::vec3 mid = origen + rayDirection * (maxDistanceRay / 2.0f); //Partiendo de la ecuacion canonica de la recta.
+			glm::vec3 targetRay = origen + rayDirection * maxDistanceRay;
+
+			modelMatrixRayEnemy[3] = glm::vec4(mid, 1.0);
+			modelMatrixRayEnemy = glm::rotate(modelMatrixRayEnemy, glm::radians(90.0f), glm::vec3(1, 0, 0));
+			modelMatrixRayEnemy = glm::scale(modelMatrixRayEnemy, glm::vec3(0.05f, maxDistanceRay, 0.05f));
+			//modelMatrixRayEnemy = glm::rotate(modelMatrixRayEnemy, glm::radians(90.0f), glm::vec3(0, 0, 1));
+			RayModel.render(modelMatrixRayEnemy);
+		}
 
 		//Realizar la colision rayo contra esfera. 
 		std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> >::iterator itSBB;
@@ -1458,7 +1476,72 @@ void renderScene(bool renderParticles) {
 	
 	for (size_t i = 0; i < enemyCollection.size(); i++)
 	{
+
+		//Actualizar altura a la del terreno.
+		enemyCollection[i]->ModelMatrix[3][1] = terrain.getHeightTerrain(zombieGameObject->ModelMatrix[3][0], zombieGameObject->ModelMatrix[3][2]);
 		enemyCollection[i]->ModelMatrix[3][1] = terrain.getHeightTerrain(enemyCollection[i]->ModelMatrix[3][0], enemyCollection[i]->ModelMatrix[3][2]);
+
+		//Obtenemos la posición del jugador y del zombie
+		glm::vec3 targetPos = glm::vec3(jugadorGameObject->ModelMatrix[3][0], jugadorGameObject->ModelMatrix[3][1], jugadorGameObject->ModelMatrix[3][2]);	
+		glm::vec3 currPos = glm::vec3(enemyCollection[i]->ModelMatrix[3][0], enemyCollection[i]->ModelMatrix[3][1], enemyCollection[i]->ModelMatrix[3][2]);
+
+		//Obtenemos la dirección hacia el jugador
+		glm::vec3 direction = glm::normalize(targetPos - currPos);
+		glm::vec3 currDirection = glm::normalize(enemyCollection[i]->ModelMatrix[2]);
+		
+			
+		glm::mat4 currentTransform = enemyCollection[i]->ModelMatrix;	//Almacenamos temporalmente la matriz de transformación del zombie para poder rotarla.
+
+
+		float dot = glm::dot(direction, currDirection);			//producto punto para encontrar despues el angulo entre las direcciones.
+		glm::vec3 cross = glm::cross(direction, currDirection); //producto cruz para encontrar la dirección de rotación. El vector perdendicular resultante es el eje Y. (UP)
+
+		glm::clamp(dot, -1.0f, 1.0f);
+		float angulo = acos(dot);
+
+		if (direction != currDirection)
+		{
+			if (cross.y < 0)
+					enemyCollection[i]->ModelMatrix = glm::rotate(currentTransform, glm::radians(angulo), glm::vec3(0, 1, 0));
+			if (cross.y > 0)		
+					enemyCollection[i]->ModelMatrix = glm::rotate(currentTransform, glm::radians(-angulo), glm::vec3(0, 1, 0));
+		}
+		else
+		{
+			enemyCollection[i]->ModelMatrix = glm::rotate(currentTransform, glm::radians(0.0f), glm::vec3(0, 1, 0));
+		}
+
+		if (i == 0) {
+			std::cout << "Angulo: " << glm::degrees(angulo) << "  crozz.y : " << cross.y << std::endl;
+			
+		}
+			
+
+		//
+		//////Obtener el angulo entre el zombie y el jugador.
+		////float angle = glm::atan(z, x);
+		////float dangle = glm::degrees(angle)  ;
+
+		////
+		
+		////
+
+		////Aplicar rotación al zombie
+		//enemyCollection[i]->ModelMatrix[0][0] = glm::cos(glm::radians(dangle));
+		//enemyCollection[i]->ModelMatrix[0][2] = glm::sin(glm::radians(dangle));
+		//enemyCollection[i]->ModelMatrix[2][0] = -glm::sin(	glm::radians(dangle));
+		//enemyCollection[i]->ModelMatrix[2][2] = glm::cos(glm::radians(dangle));
+		//
+
+		//if (dangle > 0)
+		//	enemyCollection[i]->Rotate(180.0f, glm::vec3(0, 1, 0));
+		//else
+		//	enemyCollection[i]->Rotate(-90.0f, glm::vec3(0, 1, 0));
+
+
+
+		enemyCollection[i]->Transform = glm::mat4(enemyCollection[i]->ModelMatrix);
+		enemyCollection[i]->SetScale(glm::vec3(0.00015, 0.00015, 0.00015));
 		enemyCollection[i]->Draw();
 	}
 
