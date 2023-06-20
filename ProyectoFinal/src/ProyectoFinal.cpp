@@ -59,14 +59,14 @@
 #define VELOCIDAD_MOVIMIENTO_PERSONAJE 0.1f
 #define VELOCIDAD_ROTACION_PERSONAJE 0.5f
 #define GRAVEDAD_SALTO_PERSONAJE 0.5f
-#define NUMERO_ENEMIGOS 75
+#define NUMERO_ENEMIGOS 50
 
 // Constantes para la camara
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
 
 // Constantes para las sombras.
-const unsigned int SHADOW_WIDTH = 4096, SHADOW_HEIGHT = 4096;
+const unsigned int SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;
 
 int screenWidth;
 int screenHeight;
@@ -124,6 +124,7 @@ GameObject* mayowGameObject;
 GameObject* jugadorGameObject;
 GameObject* zombieGameObject;
 
+std::vector<GameObject*> enemyCollection;
 
 
 //std::vector<GameObject> zombieGameObjects;
@@ -369,6 +370,30 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	// Modelo de juego: Zombie.
 	zombieGameObject = new GameObject("Zombie", "../models/Player/PlayerAnimated.fbx", &shaderMulLighting);
+
+	// Contenedor de Zombies.
+	for (int i = 0; i < NUMERO_ENEMIGOS; i++) {
+		int rnd_x = distrib(generador);
+		int rnd_z = distrib(generador);
+
+		// Zombie
+		zombieGameObject->animationIndex = 1;
+		
+		zombieGameObject->Transform = glm::mat4(zombieGameObject->ModelMatrix);
+		zombieGameObject->ModelMatrix[3][0] = rnd_x;
+		zombieGameObject->ModelMatrix[3][2] = rnd_z;
+		zombieGameObject->ModelMatrix[3][1] = terrain.getHeightTerrain(zombieGameObject->ModelMatrix[3][0], zombieGameObject->ModelMatrix[3][2]);
+		//zombieGameObject->Translate(glm::vec3(rnd_x, 0.0, rnd_z));
+		zombieGameObject->SetScale(glm::vec3(0.00015, 0.00015, 0.00015));
+		// GENERAR UN NUEVO ZOMBIE HASTA LA CANTIDAD MÁXIMA DE ENEMIGOS.
+		if (enemyCollection.size() < NUMERO_ENEMIGOS) {
+			//Hacer una copia del zombie
+			GameObject* temp = new GameObject();
+			memcpy(temp, zombieGameObject, sizeof(GameObject));
+			//Guardamos un zombie generico en el vector de enemigos
+			enemyCollection.push_back(temp);
+		}
+	}
 
 	// Camera
 	camera->setPosition(glm::vec3(0.0, 0.0, 10.0));
@@ -779,6 +804,7 @@ void applicationLoop() {
 
 	zombieGameObject->ModelMatrix = glm::translate(zombieGameObject->ModelMatrix, glm::vec3(5.0, 0.0, 2.0));
 
+	
 
 	for (int i = 0; i < lamp1Position.size(); i++) {
 
@@ -1009,7 +1035,7 @@ void applicationLoop() {
 		mayowGameObject->UpdateColliderOBB(-90.0f, glm::vec3(1, 0, 0), glm::vec3(0.021, 0.021, 0.021), glm::vec3(0.75));
 		addOrUpdateColliders(collidersOBB, "mayow", mayowGameObject->GetOBB(), mayowGameObject->ModelMatrix);
 
-		jugadorGameObject->UpdateColliderOBB(-90.0f, glm::vec3(1, 0, 0), glm::vec3(0.009, 0.051, 0.030), glm::vec3(1.0));
+		jugadorGameObject->UpdateColliderOBB(-90.0f, glm::vec3(1, 0, 0), glm::vec3(0.005, 0.015, 0.015), glm::vec3(1.0));
 		addOrUpdateColliders(collidersOBB, "jugador", jugadorGameObject->GetOBB(), jugadorGameObject->ModelMatrix);
 
 		
@@ -1268,6 +1294,11 @@ void prepareScene() {
 	mayowGameObject->SetShader(&shaderMulLighting);
 	jugadorGameObject->SetShader(&shaderMulLighting);
 	zombieGameObject->SetShader(&shaderMulLighting);
+
+	for (size_t i = 0; i < enemyCollection.size(); i++)
+	{
+		enemyCollection[i]->SetShader(&shaderMulLighting);
+	}
 	
 }
 
@@ -1283,6 +1314,12 @@ void prepareDepthScene() {
 	mayowGameObject->SetShader(&shaderDepth);
 	jugadorGameObject->SetShader(&shaderDepth);
 	zombieGameObject->SetShader(&shaderDepth);
+
+	for (size_t i = 0; i < enemyCollection.size(); i++)
+	{
+		enemyCollection[i]->SetShader(&shaderDepth);
+	}
+
 	
 }
 
@@ -1390,7 +1427,7 @@ void renderScene(bool renderParticles) {
 	jugadorGameObject->ModelMatrix[3][1] = terrain.getHeightTerrain(jugadorGameObject->ModelMatrix[3][0], jugadorGameObject->ModelMatrix[3][2]);
 	jugadorGameObject->animationIndex = animationIndexPlayer;
 	jugadorGameObject->Transform = glm::mat4(jugadorGameObject->ModelMatrix);
-	jugadorGameObject->SetScale(glm::vec3(0.00025, 0.00025, 0.00025));
+	jugadorGameObject->SetScale(glm::vec3(0.00015, 0.00015, 0.00015));
 	jugadorGameObject->Draw();
 
 	/*
@@ -1404,43 +1441,47 @@ void renderScene(bool renderParticles) {
 	
 	*/
 
-	// GENERATING RANDOM POSITION FOR ZOMBIE GENERATION.
-
-	int rnd_x = distrib(generador);
-	int rnd_z = distrib(generador);
-
-	// Zombie
-	zombieGameObject->ModelMatrix[3][1] = terrain.getHeightTerrain(zombieGameObject->ModelMatrix[3][0], zombieGameObject->ModelMatrix[3][2]);
-	zombieGameObject->animationIndex = 1;
-	zombieGameObject->Transform = glm::mat4(zombieGameObject->ModelMatrix);
-	zombieGameObject->SetScale(glm::vec3(0.00025, 0.00025, 0.00025));
-	zombieGameObject->Draw();
-
-	zombiePlaceHolder.setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	zombiePlaceHolder.setPosition(glm::vec3(rnd_x,  (terrain.getHeightTerrain(zombiePlaceHolder.getPosition().x, zombiePlaceHolder.getPosition().z)) , rnd_z));
-	//zombiePlaceHolder.render();
-
-	// GENERAR UN NUEVO ZOMBIE HASTA LA CANTIDAD MÁXIMA DE ENEMIGOS.
-	if (zombieContainer.size() < NUMERO_ENEMIGOS) {
-		zombieContainer.push_back(zombiePlaceHolder);
+	
+	for (size_t i = 0; i < enemyCollection.size(); i++)
+	{
+		enemyCollection[i]->ModelMatrix[3][1] = terrain.getHeightTerrain(enemyCollection[i]->ModelMatrix[3][0], enemyCollection[i]->ModelMatrix[3][2]);
+		enemyCollection[i]->Draw();
 	}
+
+
+
+	
+
+	//zombiePlaceHolder.setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	//zombiePlaceHolder.setPosition(glm::vec3(rnd_x, (terrain.getHeightTerrain(zombiePlaceHolder.getPosition().x, zombiePlaceHolder.getPosition().z)), rnd_z));
+	////zombiePlaceHolder.render();
+
+	//if (zombieContainer.size() < NUMERO_ENEMIGOS) {
+	//	zombieContainer.push_back(zombiePlaceHolder);
+	//}
+	
+
+
 	
 	zombieOffset += 0;
 	#if _DEBUG_FLAG
-	std::cout<< "Zombie Container Size: " << zombieContainer.size() << std::endl;
+	std::cout<< "enemy collection size: " << enemyCollection.size() << std::endl;
 	std::cout << "RNG : " << distrib(generador) << std::endl;
 	#endif
 
-		for (int i = 0; i < zombieContainer.size(); i++) {
+		//for (int i = 0; i < zombieContainer.size(); i++) {
 
-			//zombieContainer[i].setPosition(glm::vec3(3.0 + i, (terrain.getHeightTerrain(zombieContainer[i].getPosition().x, zombieContainer[i].getPosition().z)), 2.0));
-			zombieContainer[i].setColor(glm::vec4(0.5f, 1.0f, 0.5f, 1.0f));
-			zombieContainer[i].setScale(glm::vec3(0.7, 1.7, 0.7));
-			zombieContainer[i].render(mayowGameObject->ModelMatrix);
-			
-			//zombieGameObjects[i].Draw();
-			
-		}
+		//	//zombieContainer[i].setPosition(glm::vec3(3.0 + i, (terrain.getHeightTerrain(zombieContainer[i].getPosition().x, zombieContainer[i].getPosition().z)), 2.0));
+		//	zombieContainer[i].setColor(glm::vec4(0.5f, 1.0f, 0.5f, 1.0f));
+		//	zombieContainer[i].setScale(glm::vec3(0.7, 1.7, 0.7));
+		//	zombieContainer[i].render(mayowGameObject->ModelMatrix);
+		//	
+		//	
+		//	//zombieGameObjects[i].Draw();
+		//	
+		//}
+
+	
 
 }
 
