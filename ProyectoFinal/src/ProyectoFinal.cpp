@@ -62,7 +62,7 @@
 #define NUMERO_ENEMIGOS 3
 
 // Constantes para la camara
-#define SCREEN_WIDTH 1024
+#define SCREEN_WIDTH 1350
 #define SCREEN_HEIGHT 768
 
 // Constantes para las sombras.
@@ -83,7 +83,8 @@ Shader shaderTerrain;
 //Shader para dibujar el buffer de profundidad.
 Shader shaderDepth;
 ShadowBox* shadowBox;
-
+// Shader para dibujar la interfaz grafica
+Shader shaderViewTexture;
 // CAMARA:
 std::shared_ptr<Camera> camera(new ThirdPersonCamera());
 float distanceFromTarget = 7.0;
@@ -92,6 +93,7 @@ Box boxCollider;
 Sphere sphereCollider(10, 10);
 Cylinder RayModel(10, 10, 1.0, 1.0, 1.0); //Creamos modelo de cilindro que servira como nuestro "rayo"
 Box zombiePlaceHolder;
+Box boxRenderImagen;
 
 // Models complex instances
 Model modelRock;
@@ -140,6 +142,9 @@ GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textur
 GLuint textureTerrainBackgroundID, textureTerrainRID, textureTerrainGID, textureTerrainBID, textureTerrainBlendMapID;
 GLuint skyboxTextureID;
 
+// UI textures:
+GLuint textureHealthBarID, scoreTextureID, texturePauseMenuID, textureGameOverID, textureItemContainer;
+
 GLenum types[6] = {
 GL_TEXTURE_CUBE_MAP_POSITIVE_X,
 GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
@@ -174,6 +179,15 @@ float gravity = 1.3;
 
 //FIN DE CONTROLES DE JUEGO.
 glm::mat4 matrixModelRock = glm::mat4(1.0);
+
+// CONTROLES DE ESCNEA
+enum GameState {
+	PLAY, PAUSE, GAMEOVER
+};
+bool isPaused = false;
+bool isGameOver = false;
+GameState state = PLAY;
+
 
 int animationIndex = 1;
 int animationIndexPlayer = 1;
@@ -256,7 +270,7 @@ void checkCollisions();
 void checkCollisionsZombie();
 void checkCollisionsDisparo();
 
-void drawGUI();
+void drawGUIElement(GLuint textureID, glm::vec3 scale, glm::vec3 pos);
 void startScene(std::string sceneName);
 
 void initOpenGL(int width, int height, std::string strTitle, bool bFullScreen) {
@@ -323,7 +337,13 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation_shadow.vs", "../Shaders/multipleLights_shadow.fs");
 	shaderTerrain.initialize("../Shaders/terrain_shadow.vs", "../Shaders/terrain_shadow.fs");
 	shaderDepth.initialize("../Shaders/shadow_mapping_depth.vs", "../Shaders/shadow_mapping_depth.fs");
+	shaderViewTexture.initialize("../Shaders/texturizado.vs", "../Shaders/texturizado.fs");
+
 	// Inicializacion de los objetos.
+
+	boxRenderImagen.init();
+	boxRenderImagen.setShader(&shaderViewTexture);
+
 	skyboxSphere.init();
 	skyboxSphere.setShader(&shaderSkybox);
 	skyboxSphere.setScale(glm::vec3(20.0f, 20.0f, 20.0f));
@@ -465,6 +485,12 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	/// -------------------------------------------------
 	loadTexture("../Textures/blendMap2.png", &textureTerrainBlendMapID);
 
+	//Texturas para interfaz gráfica.
+	loadTexture("../Textures/UI/health.png", &textureHealthBarID);
+	loadTexture("../Textures/UI/score.png", &scoreTextureID);
+	loadTexture("../Textures/UI/pauseMenu.png", &texturePauseMenuID);
+	loadTexture("../Textures/UI/gameOver.png", &textureGameOverID);
+	loadTexture("../Textures/UI/container.png", &textureItemContainer);
 
 	/*******************************************
 	 * Inicializacion del framebuffer para
@@ -785,6 +811,23 @@ bool processInput(bool continueApplication) {
 		tmv = 0;
 	}
 
+	bool statePause = glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS;
+	if (statePause)
+	{
+		if (state == PAUSE) {
+			state = PLAY;
+			isPaused = false;
+		}
+			
+			
+		else {
+			state = PAUSE;
+			isPaused = true;
+		}
+			
+		
+	}
+
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -798,19 +841,12 @@ void applicationLoop() {
 	float angleTarget;
 
 	//Initial Positions???
-
 	matrixModelRock = glm::translate(matrixModelRock, glm::vec3(-3.0, 0.0, 2.0));
-
 	jugadorGameObject->ModelMatrix = glm::translate(jugadorGameObject->ModelMatrix, glm::vec3(3.0, 0.0, 2.0));
-
 	mayowGameObject->ModelMatrix = glm::translate(mayowGameObject->ModelMatrix, glm::vec3(13.0f, 0.05f, -5.0f));
 	mayowGameObject->ModelMatrix = glm::rotate(mayowGameObject->ModelMatrix, glm::radians(-90.0f), glm::vec3(0, 1, 0));
-
-	
 	zombieGameObject->ModelMatrix = glm::translate(zombieGameObject->ModelMatrix, glm::vec3(5.0, 0.0, 2.0));
 	
-	
-
 	for (int i = 0; i < lamp1Position.size(); i++) {
 
 		GameObject* lamp = new GameObject("Light", "../models/Street-Lamp-Black/objLamp.obj", &shaderMulLighting);
@@ -825,13 +861,15 @@ void applicationLoop() {
 		Lamparas2.push_back(lamp);
 	}
 
-
 	lastTime = TimeManager::Instance().GetTime();
 
 	glm::vec3 lightPos = glm::vec3(10.0, 10.0, 0.0);
 	shadowBox = new ShadowBox(-lightPos, camera.get(), 30.0f, 0.1f, 45.0f);
 
+	std::cout << "State: " << state << std::endl;
+
 	while (psi) {
+
 		currTime = TimeManager::Instance().GetTime();
 		if (currTime - lastTime < 0.00833333334) {
 			glfwPollEvents();
@@ -846,471 +884,507 @@ void applicationLoop() {
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glm::mat4 projection = glm::perspective(glm::radians(45.0f),
-			(float)screenWidth / (float)screenHeight, 0.01f, 100.0f);
-
 		
-		axis = glm::axis(glm::quat_cast(jugadorGameObject->ModelMatrix));
-		angleTarget = glm::angle(glm::quat_cast(jugadorGameObject->ModelMatrix));
-		target = jugadorGameObject->ModelMatrix[3];
-		
-
-		if (std::isnan(angleTarget))
-			angleTarget = 0.0;
-		if (axis.y < 0)
-			angleTarget = -angleTarget;
-		
-		camera->setCameraTarget(target);
-		camera->setAngleTarget(angleTarget);
-		camera->updateCamera();
-		view = camera->getViewMatrix();
-
-		// Matriz de proyección del shadow mapping
-		glm::mat4 lightProjection = glm::mat4(1.0f), lightView = glm::mat4(1.0f);
-		shadowBox->update(screenWidth, screenHeight);
-		glm::vec3 centerBox = shadowBox->getCenter();
-		glm::mat4 lightSpaceMatrix;
-		lightView = glm::lookAt(centerBox, centerBox + glm::normalize(-lightPos), glm::vec3(0.0, 1.0, 0.0));
-		lightProjection[0][0] = 2.0f / (shadowBox->getWidth());
-		lightProjection[1][1] = 2.0f / (shadowBox->getHeight());
-		lightProjection[2][2] = -2.0f / (shadowBox->getLength());
-		lightProjection[3][3] = 1.0f;
-		lightSpaceMatrix = lightProjection * lightView;
-		shaderDepth.setMatrix4("lightSpaceMatrix", 1, false, glm::value_ptr(lightSpaceMatrix));
+		if (state == PLAY) {
+			glm::mat4 projection = glm::perspective(glm::radians(45.0f),
+				(float)screenWidth / (float)screenHeight, 0.01f, 100.0f);
 
 
-		// Settea la matriz de vista y projection al shader con solo color
-		shader.setMatrix4("projection", 1, false, glm::value_ptr(projection));
-		shader.setMatrix4("view", 1, false, glm::value_ptr(view));
-
-		// Settea la matriz de vista y projection al shader con skybox
-		shaderSkybox.setMatrix4("projection", 1, false,
-			glm::value_ptr(projection));
-		shaderSkybox.setMatrix4("view", 1, false,
-			glm::value_ptr(glm::mat4(glm::mat3(view))));
-		// Settea la matriz de vista y projection al shader con multiples luces
-		shaderMulLighting.setMatrix4("projection", 1, false,
-			glm::value_ptr(projection));
-		shaderMulLighting.setMatrix4("view", 1, false,
-			glm::value_ptr(view));
-		shaderMulLighting.setMatrix4("lightSpaceMatrix", 1, false,
-			glm::value_ptr(lightSpaceMatrix));
-		// Settea la matriz de vista y projection al shader con multiples luces
-		shaderTerrain.setMatrix4("projection", 1, false,
-			glm::value_ptr(projection));
-		shaderTerrain.setMatrix4("view", 1, false,
-			glm::value_ptr(view));
-		shaderTerrain.setMatrix4("lightSpaceMatrix", 1, false,
-			glm::value_ptr(lightSpaceMatrix));
-
-		/*******************************************
-		 * Propiedades Luz direccional
-		 *******************************************/
-		shaderMulLighting.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
-		shaderMulLighting.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
-		shaderMulLighting.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
-		shaderMulLighting.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
-		shaderMulLighting.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-0.707106781, -0.707106781, 0.0)));
-
-		/*******************************************
-		 * Propiedades Luz direccional Terrain
-		 *******************************************/
-		shaderTerrain.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
-		shaderTerrain.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
-		shaderTerrain.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
-		shaderTerrain.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
-		shaderTerrain.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-0.707106781, -0.707106781, 0.0)));
-
-		/*******************************************
-		 * Propiedades PointLights
-		 *******************************************/
-		shaderMulLighting.setInt("pointLightCount", lamp1Position.size() + lamp2Orientation.size());
-		shaderTerrain.setInt("pointLightCount", lamp1Position.size() + lamp2Orientation.size());
-		for (int i = 0; i < lamp1Position.size(); i++) {
-
-			
-
-			Lamparas[i]->ModelMatrix = glm::mat4(1.0f);
-			//glm::mat4 matrixAdjustLamp = glm::mat4(1.0f);
-			Lamparas[i]->ModelMatrix = glm::translate(Lamparas[i]->ModelMatrix, lamp1Position[i]);
-			Lamparas[i]->ModelMatrix = glm::rotate(Lamparas[i]->ModelMatrix, glm::radians(lamp1Orientation[i]), glm::vec3(0, 1, 0));
-			Lamparas[i]->ModelMatrix = glm::scale(Lamparas[i]->ModelMatrix, glm::vec3(0.5, 0.5, 0.5));
-			Lamparas[i]->ModelMatrix = glm::translate(Lamparas[i]->ModelMatrix, glm::vec3(0, 10.3585, 0));
-			glm::vec3 lampPosition = glm::vec3(Lamparas[i]->ModelMatrix[3]);
-			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(i) + "].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));
-			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(i) + "].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));
-			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(i) + "].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));
-			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(i) + "].position", glm::value_ptr(lampPosition));
-			shaderMulLighting.setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0);
-			shaderMulLighting.setFloat("pointLights[" + std::to_string(i) + "].linear", 0.09);
-			shaderMulLighting.setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.01);
-			shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(i) + "].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));
-			shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(i) + "].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));
-			shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(i) + "].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));
-			shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(i) + "].position", glm::value_ptr(lampPosition));
-			shaderTerrain.setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0);
-			shaderTerrain.setFloat("pointLights[" + std::to_string(i) + "].linear", 0.09);
-			shaderTerrain.setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.02);
-
-			
-		}
-		for (int i = 0; i < lamp2Position.size(); i++) {
-
-			
-
-			//glm::mat4 matrixAdjustLamp = glm::mat4(1.0f);
-			
-			Lamparas2[i]->ModelMatrix = glm::mat4(1.0f);
-			Lamparas2[i]->ModelMatrix = glm::translate(Lamparas2[i]->ModelMatrix, lamp2Position[i]);
-			Lamparas2[i]->ModelMatrix = glm::rotate(Lamparas2[i]->ModelMatrix, glm::radians(lamp2Orientation[i]), glm::vec3(0, 1, 0));
-			Lamparas2[i]->ModelMatrix = glm::scale(Lamparas2[i]->ModelMatrix, glm::vec3(1.0, 1.0, 1.0));
-			Lamparas2[i]->ModelMatrix = glm::translate(Lamparas2[i]->ModelMatrix, glm::vec3(0.759521, 5.00174, 0));
-			glm::vec3 lampPosition = glm::vec3(Lamparas2[i]->ModelMatrix[3]);
-			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));
-			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));
-			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));
-			shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].position", glm::value_ptr(lampPosition));
-			shaderMulLighting.setFloat("pointLights[" + std::to_string(lamp1Position.size() + i) + "].constant", 1.0);
-			shaderMulLighting.setFloat("pointLights[" + std::to_string(lamp1Position.size() + i) + "].linear", 0.09);
-			shaderMulLighting.setFloat("pointLights[" + std::to_string(lamp1Position.size() + i) + "].quadratic", 0.01);
-			shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));
-			shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));
-			shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));
-			shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].position", glm::value_ptr(lampPosition));
-			shaderTerrain.setFloat("pointLights[" + std::to_string(lamp1Position.size() + i) + "].constant", 1.0);
-			shaderTerrain.setFloat("pointLights[" + std::to_string(lamp1Position.size() + i) + "].linear", 0.09);
-			shaderTerrain.setFloat("pointLights[" + std::to_string(lamp1Position.size() + i) + "].quadratic", 0.02);
-
-			
-		}
-
-		/*******************************************
-		 * 1.- We render the depth buffer
-		 *******************************************/
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		// render scene from light's point of view
-		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-		glClear(GL_DEPTH_BUFFER_BIT);
-		//glCullFace(GL_FRONT);
-		prepareDepthScene();
-		renderScene(false);
-		//glCullFace(GL_BACK);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		/*******************************************
-		 * 2.- We render the normal objects
-		 *******************************************/
-		glViewport(0, 0, screenWidth, screenHeight);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		prepareScene();
-		glActiveTexture(GL_TEXTURE10);
-		glBindTexture(GL_TEXTURE_2D, depthMap);
-		shaderMulLighting.setInt("shadowMap", 10);
-		shaderTerrain.setInt("shadowMap", 10);
+			axis = glm::axis(glm::quat_cast(jugadorGameObject->ModelMatrix));
+			angleTarget = glm::angle(glm::quat_cast(jugadorGameObject->ModelMatrix));
+			target = jugadorGameObject->ModelMatrix[3];
 
 
-		/*******************************************
-		 * Skybox
-		 *******************************************/
-		GLint oldCullFaceMode;
-		GLint oldDepthFuncMode;
-		// deshabilita el modo del recorte de caras ocultas para ver las esfera desde adentro
-		glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFaceMode);
-		glGetIntegerv(GL_DEPTH_FUNC, &oldDepthFuncMode);
-		shaderSkybox.setFloat("skybox", 0);
-		glCullFace(GL_FRONT);
-		glDepthFunc(GL_LEQUAL);
-		glActiveTexture(GL_TEXTURE0);
-		skyboxSphere.render();
-		glCullFace(oldCullFaceMode);
-		glDepthFunc(oldDepthFuncMode);
-		/*******************************************
-		* Render the Scene Elements
-		*******************************************/
-		renderScene(true);
+			if (std::isnan(angleTarget))
+				angleTarget = 0.0;
+			if (axis.y < 0)
+				angleTarget = -angleTarget;
+
+			camera->setCameraTarget(target);
+			camera->setAngleTarget(angleTarget);
+			camera->updateCamera();
+			view = camera->getViewMatrix();
+
+			// Matriz de proyección del shadow mapping
+			glm::mat4 lightProjection = glm::mat4(1.0f), lightView = glm::mat4(1.0f);
+			shadowBox->update(screenWidth, screenHeight);
+			glm::vec3 centerBox = shadowBox->getCenter();
+			glm::mat4 lightSpaceMatrix;
+			lightView = glm::lookAt(centerBox, centerBox + glm::normalize(-lightPos), glm::vec3(0.0, 1.0, 0.0));
+			lightProjection[0][0] = 2.0f / (shadowBox->getWidth());
+			lightProjection[1][1] = 2.0f / (shadowBox->getHeight());
+			lightProjection[2][2] = -2.0f / (shadowBox->getLength());
+			lightProjection[3][3] = 1.0f;
+			lightSpaceMatrix = lightProjection * lightView;
+			shaderDepth.setMatrix4("lightSpaceMatrix", 1, false, glm::value_ptr(lightSpaceMatrix));
 
 
-		/*******************************************
-		 * Creacion de colliders
-		 * IMPORTANT do this before interpolations
-		 *******************************************/
+			// Settea la matriz de vista y projection al shader con solo color
+			shader.setMatrix4("projection", 1, false, glm::value_ptr(projection));
+			shader.setMatrix4("view", 1, false, glm::value_ptr(view));
 
-		mayowGameObject->UpdateColliderOBB(-90.0f, glm::vec3(1, 0, 0), glm::vec3(0.021, 0.021, 0.021), glm::vec3(0.75));
-		addOrUpdateColliders(collidersOBB, "mayow", mayowGameObject->GetOBB(), mayowGameObject->ModelMatrix);
+			// Settea la matriz de vista y projection al shader con skybox
+			shaderSkybox.setMatrix4("projection", 1, false,
+				glm::value_ptr(projection));
+			shaderSkybox.setMatrix4("view", 1, false,
+				glm::value_ptr(glm::mat4(glm::mat3(view))));
+			// Settea la matriz de vista y projection al shader con multiples luces
+			shaderMulLighting.setMatrix4("projection", 1, false,
+				glm::value_ptr(projection));
+			shaderMulLighting.setMatrix4("view", 1, false,
+				glm::value_ptr(view));
+			shaderMulLighting.setMatrix4("lightSpaceMatrix", 1, false,
+				glm::value_ptr(lightSpaceMatrix));
+			// Settea la matriz de vista y projection al shader con multiples luces
+			shaderTerrain.setMatrix4("projection", 1, false,
+				glm::value_ptr(projection));
+			shaderTerrain.setMatrix4("view", 1, false,
+				glm::value_ptr(view));
+			shaderTerrain.setMatrix4("lightSpaceMatrix", 1, false,
+				glm::value_ptr(lightSpaceMatrix));
 
-		jugadorGameObject->UpdateColliderOBB(-90.0f, glm::vec3(1, 0, 0), glm::vec3(0.005, 0.015, 0.015), glm::vec3(1.0));
-		addOrUpdateColliders(collidersOBB, "jugador", jugadorGameObject->GetOBB(), jugadorGameObject->ModelMatrix);
+			/*******************************************
+			 * Propiedades Luz direccional
+			 *******************************************/
+			shaderMulLighting.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
+			shaderMulLighting.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
+			shaderMulLighting.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
+			shaderMulLighting.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
+			shaderMulLighting.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-0.707106781, -0.707106781, 0.0)));
 
-		for (size_t i = 0; i < enemyCollection.size(); i++)
-		{
-			enemyCollection[i]->UpdateColliderOBB(-90.0f, glm::vec3(1, 0, 0), glm::vec3(0.008, 0.062, 0.018), glm::vec3(1.0));
-			addOrUpdateColliders(collidersOBB, "enemy" + std::to_string(i), enemyCollection[i]->GetOBB(), enemyCollection[i]->ModelMatrix);
-		}
-		
+			/*******************************************
+			 * Propiedades Luz direccional Terrain
+			 *******************************************/
+			shaderTerrain.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
+			shaderTerrain.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
+			shaderTerrain.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
+			shaderTerrain.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
+			shaderTerrain.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-0.707106781, -0.707106781, 0.0)));
 
-		// Lamps1 colliders
-		for (int i = 0; i < lamp1Position.size(); i++) {
-			AbstractModel::OBB lampCollider;
-			glm::mat4 modelMatrixColliderLamp = glm::mat4(1.0);
-			modelMatrixColliderLamp = glm::translate(modelMatrixColliderLamp, lamp1Position[i]);
-			modelMatrixColliderLamp = glm::rotate(modelMatrixColliderLamp, glm::radians(lamp1Orientation[i]),
-				glm::vec3(0, 1, 0));
-			// Set the orientation of collider before doing the scale
-			lampCollider.u = glm::quat_cast(modelMatrixColliderLamp);
-			modelMatrixColliderLamp = glm::scale(modelMatrixColliderLamp, glm::vec3(0.5, 0.5, 0.5));
-			modelMatrixColliderLamp = glm::translate(modelMatrixColliderLamp, modelLamp1.getObb().c);
-			lampCollider.c = glm::vec3(modelMatrixColliderLamp[3]);
-			lampCollider.e = modelLamp1.getObb().e * glm::vec3(0.5, 0.5, 0.5);
-			addOrUpdateColliders(collidersOBB, "lamp1-" + std::to_string(i), lampCollider, modelMatrixColliderLamp);
-		}
-
-		AbstractModel::SBB modelColliderRock;
-		glm::mat4 modelMatrixColliderRock = glm::mat4(matrixModelRock); // Mantenemos las transformaciones
-		modelMatrixColliderRock = glm::scale(modelMatrixColliderRock, glm::vec3(1.0));
-		modelMatrixColliderRock = glm::translate(modelMatrixColliderRock, modelRock.getSbb().c); // Trasladamos el collider al modelo en si obteniendo el centro.
-		modelColliderRock.c = modelMatrixColliderRock[3];
-		modelColliderRock.ratio = modelRock.getSbb().ratio * 1.0; //Se multiplica por el escalamiento definido anteriormente. 
-		addOrUpdateColliders(collidersSBB, "rock", modelColliderRock, matrixModelRock); //Metodo sobrecargado para actualizar los colliders con el estado anterior a la colision
+			/*******************************************
+			 * Propiedades PointLights
+			 *******************************************/
+			shaderMulLighting.setInt("pointLightCount", lamp1Position.size() + lamp2Orientation.size());
+			shaderTerrain.setInt("pointLightCount", lamp1Position.size() + lamp2Orientation.size());
+			for (int i = 0; i < lamp1Position.size(); i++) {
 
 
 
-		/*******************************************
-		 * Render de colliders
-		 *******************************************/
-		for (std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator it =
-			collidersOBB.begin(); it != collidersOBB.end(); it++) {
-			glm::mat4 matrixCollider = glm::mat4(1.0);
-			matrixCollider = glm::translate(matrixCollider, std::get<0>(it->second).c);
-			matrixCollider = matrixCollider * glm::mat4(std::get<0>(it->second).u);
-			matrixCollider = glm::scale(matrixCollider, std::get<0>(it->second).e * 2.0f);
-			boxCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
-			boxCollider.enableWireMode();
-			boxCollider.render(matrixCollider);
-		}
+				Lamparas[i]->ModelMatrix = glm::mat4(1.0f);
+				//glm::mat4 matrixAdjustLamp = glm::mat4(1.0f);
+				Lamparas[i]->ModelMatrix = glm::translate(Lamparas[i]->ModelMatrix, lamp1Position[i]);
+				Lamparas[i]->ModelMatrix = glm::rotate(Lamparas[i]->ModelMatrix, glm::radians(lamp1Orientation[i]), glm::vec3(0, 1, 0));
+				Lamparas[i]->ModelMatrix = glm::scale(Lamparas[i]->ModelMatrix, glm::vec3(0.5, 0.5, 0.5));
+				Lamparas[i]->ModelMatrix = glm::translate(Lamparas[i]->ModelMatrix, glm::vec3(0, 10.3585, 0));
+				glm::vec3 lampPosition = glm::vec3(Lamparas[i]->ModelMatrix[3]);
+				shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(i) + "].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));
+				shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(i) + "].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));
+				shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(i) + "].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));
+				shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(i) + "].position", glm::value_ptr(lampPosition));
+				shaderMulLighting.setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0);
+				shaderMulLighting.setFloat("pointLights[" + std::to_string(i) + "].linear", 0.09);
+				shaderMulLighting.setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.01);
+				shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(i) + "].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));
+				shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(i) + "].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));
+				shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(i) + "].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));
+				shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(i) + "].position", glm::value_ptr(lampPosition));
+				shaderTerrain.setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0);
+				shaderTerrain.setFloat("pointLights[" + std::to_string(i) + "].linear", 0.09);
+				shaderTerrain.setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.02);
 
-		for (std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> >::iterator it =
-			collidersSBB.begin(); it != collidersSBB.end(); it++) {
-			glm::mat4 matrixCollider = glm::mat4(1.0);
-			matrixCollider = glm::translate(matrixCollider, std::get<0>(it->second).c);
-			matrixCollider = glm::scale(matrixCollider, glm::vec3(std::get<0>(it->second).ratio * 2.0f));
-			sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
-			sphereCollider.enableWireMode();
-			sphereCollider.render(matrixCollider);
-		}
 
-		// Lamp2 Colliders.
-		for (size_t i = 0; i < lamp2Position.size(); i++)
-		{
-			AbstractModel::OBB modelColliderPost;
-			glm::mat4 modelColliderLampPost = glm::mat4(1.0);
-			modelColliderLampPost = glm::translate(modelColliderLampPost, lamp2Position[i]);
-			modelColliderLampPost = glm::rotate(modelColliderLampPost, glm::radians(lamp2Orientation[i]),
-				glm::vec3(0, 1, 0));
-			modelColliderPost.u = glm::quat_cast(modelColliderLampPost);
-			modelColliderLampPost = glm::scale(modelColliderLampPost, glm::vec3(1.0));
-			modelColliderLampPost = glm::translate(modelColliderLampPost, modelLampPost2.getObb().c);
-			modelColliderPost.c = modelColliderLampPost[3];
-			modelColliderPost.e = modelLampPost2.getObb().e * glm::vec3(1.0);
-			addOrUpdateColliders(collidersOBB, "lamp2-" + std::to_string(i), modelColliderPost, modelColliderLampPost);
-		}
+			}
+			for (int i = 0; i < lamp2Position.size(); i++) {
 
-		/*******************************************
-		 * Test Colisions
-		 *******************************************/
-		// Detector de colisiones SBB
-		for (std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::iterator it = collidersSBB.begin(); it != collidersSBB.end(); it++)
-		{
-			bool isCollision = false;
-			for (std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::iterator jt = collidersSBB.begin(); jt != collidersSBB.end(); jt++)
+
+
+				//glm::mat4 matrixAdjustLamp = glm::mat4(1.0f);
+
+				Lamparas2[i]->ModelMatrix = glm::mat4(1.0f);
+				Lamparas2[i]->ModelMatrix = glm::translate(Lamparas2[i]->ModelMatrix, lamp2Position[i]);
+				Lamparas2[i]->ModelMatrix = glm::rotate(Lamparas2[i]->ModelMatrix, glm::radians(lamp2Orientation[i]), glm::vec3(0, 1, 0));
+				Lamparas2[i]->ModelMatrix = glm::scale(Lamparas2[i]->ModelMatrix, glm::vec3(1.0, 1.0, 1.0));
+				Lamparas2[i]->ModelMatrix = glm::translate(Lamparas2[i]->ModelMatrix, glm::vec3(0.759521, 5.00174, 0));
+				glm::vec3 lampPosition = glm::vec3(Lamparas2[i]->ModelMatrix[3]);
+				shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));
+				shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));
+				shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));
+				shaderMulLighting.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].position", glm::value_ptr(lampPosition));
+				shaderMulLighting.setFloat("pointLights[" + std::to_string(lamp1Position.size() + i) + "].constant", 1.0);
+				shaderMulLighting.setFloat("pointLights[" + std::to_string(lamp1Position.size() + i) + "].linear", 0.09);
+				shaderMulLighting.setFloat("pointLights[" + std::to_string(lamp1Position.size() + i) + "].quadratic", 0.01);
+				shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));
+				shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));
+				shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));
+				shaderTerrain.setVectorFloat3("pointLights[" + std::to_string(lamp1Position.size() + i) + "].position", glm::value_ptr(lampPosition));
+				shaderTerrain.setFloat("pointLights[" + std::to_string(lamp1Position.size() + i) + "].constant", 1.0);
+				shaderTerrain.setFloat("pointLights[" + std::to_string(lamp1Position.size() + i) + "].linear", 0.09);
+				shaderTerrain.setFloat("pointLights[" + std::to_string(lamp1Position.size() + i) + "].quadratic", 0.02);
+
+
+			}
+
+			/*******************************************
+			 * 1.- We render the depth buffer
+			 *******************************************/
+			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			// render scene from light's point of view
+			glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+			glClear(GL_DEPTH_BUFFER_BIT);
+			//glCullFace(GL_FRONT);
+			prepareDepthScene();
+			renderScene(false);
+			//glCullFace(GL_BACK);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			/*******************************************
+			 * 2.- We render the normal objects
+			 *******************************************/
+			glViewport(0, 0, screenWidth, screenHeight);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			prepareScene();
+			glActiveTexture(GL_TEXTURE10);
+			glBindTexture(GL_TEXTURE_2D, depthMap);
+			shaderMulLighting.setInt("shadowMap", 10);
+			shaderTerrain.setInt("shadowMap", 10);
+
+
+			/*******************************************
+			 * Skybox
+			 *******************************************/
+			GLint oldCullFaceMode;
+			GLint oldDepthFuncMode;
+			// deshabilita el modo del recorte de caras ocultas para ver las esfera desde adentro
+			glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFaceMode);
+			glGetIntegerv(GL_DEPTH_FUNC, &oldDepthFuncMode);
+			shaderSkybox.setFloat("skybox", 0);
+			glCullFace(GL_FRONT);
+			glDepthFunc(GL_LEQUAL);
+			glActiveTexture(GL_TEXTURE0);
+			skyboxSphere.render();
+			glCullFace(oldCullFaceMode);
+			glDepthFunc(oldDepthFuncMode);
+			/*******************************************
+			* Render the Scene Elements
+			*******************************************/
+			renderScene(true);
+
+			/*******************************************
+			 * Creacion de colliders
+			 * IMPORTANT do this before interpolations
+			 *******************************************/
+
+			mayowGameObject->UpdateColliderOBB(-90.0f, glm::vec3(1, 0, 0), glm::vec3(0.021, 0.021, 0.021), glm::vec3(0.75));
+			addOrUpdateColliders(collidersOBB, "mayow", mayowGameObject->GetOBB(), mayowGameObject->ModelMatrix);
+
+			jugadorGameObject->UpdateColliderOBB(-90.0f, glm::vec3(1, 0, 0), glm::vec3(0.005, 0.015, 0.015), glm::vec3(1.0));
+			addOrUpdateColliders(collidersOBB, "jugador", jugadorGameObject->GetOBB(), jugadorGameObject->ModelMatrix);
+
+			for (size_t i = 0; i < enemyCollection.size(); i++)
+			{
+				enemyCollection[i]->UpdateColliderOBB(-90.0f, glm::vec3(1, 0, 0), glm::vec3(0.008, 0.062, 0.018), glm::vec3(1.0));
+				addOrUpdateColliders(collidersOBB, "enemy" + std::to_string(i), enemyCollection[i]->GetOBB(), enemyCollection[i]->ModelMatrix);
+			}
+
+
+			// Lamps1 colliders
+			for (int i = 0; i < lamp1Position.size(); i++) {
+				AbstractModel::OBB lampCollider;
+				glm::mat4 modelMatrixColliderLamp = glm::mat4(1.0);
+				modelMatrixColliderLamp = glm::translate(modelMatrixColliderLamp, lamp1Position[i]);
+				modelMatrixColliderLamp = glm::rotate(modelMatrixColliderLamp, glm::radians(lamp1Orientation[i]),
+					glm::vec3(0, 1, 0));
+				// Set the orientation of collider before doing the scale
+				lampCollider.u = glm::quat_cast(modelMatrixColliderLamp);
+				modelMatrixColliderLamp = glm::scale(modelMatrixColliderLamp, glm::vec3(0.5, 0.5, 0.5));
+				modelMatrixColliderLamp = glm::translate(modelMatrixColliderLamp, modelLamp1.getObb().c);
+				lampCollider.c = glm::vec3(modelMatrixColliderLamp[3]);
+				lampCollider.e = modelLamp1.getObb().e * glm::vec3(0.5, 0.5, 0.5);
+				addOrUpdateColliders(collidersOBB, "lamp1-" + std::to_string(i), lampCollider, modelMatrixColliderLamp);
+			}
+
+			AbstractModel::SBB modelColliderRock;
+			glm::mat4 modelMatrixColliderRock = glm::mat4(matrixModelRock); // Mantenemos las transformaciones
+			modelMatrixColliderRock = glm::scale(modelMatrixColliderRock, glm::vec3(1.0));
+			modelMatrixColliderRock = glm::translate(modelMatrixColliderRock, modelRock.getSbb().c); // Trasladamos el collider al modelo en si obteniendo el centro.
+			modelColliderRock.c = modelMatrixColliderRock[3];
+			modelColliderRock.ratio = modelRock.getSbb().ratio * 1.0; //Se multiplica por el escalamiento definido anteriormente. 
+			addOrUpdateColliders(collidersSBB, "rock", modelColliderRock, matrixModelRock); //Metodo sobrecargado para actualizar los colliders con el estado anterior a la colision
+
+
+
+			/*******************************************
+			 * Render de colliders
+			 *******************************************/
+			for (std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator it =
+				collidersOBB.begin(); it != collidersOBB.end(); it++) {
+				glm::mat4 matrixCollider = glm::mat4(1.0);
+				matrixCollider = glm::translate(matrixCollider, std::get<0>(it->second).c);
+				matrixCollider = matrixCollider * glm::mat4(std::get<0>(it->second).u);
+				matrixCollider = glm::scale(matrixCollider, std::get<0>(it->second).e * 2.0f);
+				boxCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
+				boxCollider.enableWireMode();
+				boxCollider.render(matrixCollider);
+			}
+
+			for (std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> >::iterator it =
+				collidersSBB.begin(); it != collidersSBB.end(); it++) {
+				glm::mat4 matrixCollider = glm::mat4(1.0);
+				matrixCollider = glm::translate(matrixCollider, std::get<0>(it->second).c);
+				matrixCollider = glm::scale(matrixCollider, glm::vec3(std::get<0>(it->second).ratio * 2.0f));
+				sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
+				sphereCollider.enableWireMode();
+				sphereCollider.render(matrixCollider);
+			}
+
+			// Lamp2 Colliders.
+			for (size_t i = 0; i < lamp2Position.size(); i++)
+			{
+				AbstractModel::OBB modelColliderPost;
+				glm::mat4 modelColliderLampPost = glm::mat4(1.0);
+				modelColliderLampPost = glm::translate(modelColliderLampPost, lamp2Position[i]);
+				modelColliderLampPost = glm::rotate(modelColliderLampPost, glm::radians(lamp2Orientation[i]),
+					glm::vec3(0, 1, 0));
+				modelColliderPost.u = glm::quat_cast(modelColliderLampPost);
+				modelColliderLampPost = glm::scale(modelColliderLampPost, glm::vec3(1.0));
+				modelColliderLampPost = glm::translate(modelColliderLampPost, modelLampPost2.getObb().c);
+				modelColliderPost.c = modelColliderLampPost[3];
+				modelColliderPost.e = modelLampPost2.getObb().e * glm::vec3(1.0);
+				addOrUpdateColliders(collidersOBB, "lamp2-" + std::to_string(i), modelColliderPost, modelColliderLampPost);
+			}
+
+			/*******************************************
+			 * Test Colisions
+			 *******************************************/
+			 // Detector de colisiones SBB
+			for (std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::iterator it = collidersSBB.begin(); it != collidersSBB.end(); it++)
 			{
 				bool isCollision = false;
-				if (it != jt && testSphereSphereIntersection(
-					std::get<0>(it->second), std::get<0>(jt->second))) {
+				for (std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::iterator jt = collidersSBB.begin(); jt != collidersSBB.end(); jt++)
+				{
+					bool isCollision = false;
+					if (it != jt && testSphereSphereIntersection(
+						std::get<0>(it->second), std::get<0>(jt->second))) {
 
-					std::cout << "Hay colision entre: " << it->first << " y el modelo: " << jt->first << std::endl;
-					isCollision = true;
+						std::cout << "Hay colision entre: " << it->first << " y el modelo: " << jt->first << std::endl;
+						isCollision = true;
 
 
+					}
 				}
+				addOrUpdateCollisionDetection(collisionDetection, it->first, isCollision);
 			}
-			addOrUpdateCollisionDetection(collisionDetection, it->first, isCollision);
-		}
 
-		// Detector de colisiones OBB
-		for (std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4>>::iterator it = collidersOBB.begin(); it != collidersOBB.end(); it++)
-		{
-			bool isCollision = false;
-			for (std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4>>::iterator jt = collidersOBB.begin(); jt != collidersOBB.end(); jt++)
+			// Detector de colisiones OBB
+			for (std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4>>::iterator it = collidersOBB.begin(); it != collidersOBB.end(); it++)
 			{
+				bool isCollision = false;
+				for (std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4>>::iterator jt = collidersOBB.begin(); jt != collidersOBB.end(); jt++)
+				{
 
-				if (it != jt && testOBBOBB(
-					std::get<0>(it->second), std::get<0>(jt->second))) {
+					if (it != jt && testOBBOBB(
+						std::get<0>(it->second), std::get<0>(jt->second))) {
 
-					std::cout << "Hay colision entre: " << it->first << " y el modelo: " << jt->first << std::endl;
-					isCollision = true;
+						std::cout << "Hay colision entre: " << it->first << " y el modelo: " << jt->first << std::endl;
+						isCollision = true;
 
 
+					}
 				}
+				addOrUpdateCollisionDetection(collisionDetection, it->first, isCollision);
 			}
-			addOrUpdateCollisionDetection(collisionDetection, it->first, isCollision);
-		}
 
-		// Detector de colisiones Esfera Objeto
-		for (std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::iterator it = collidersSBB.begin(); it != collidersSBB.end(); it++)
-		{
-			bool isCollision = false;
-			for (std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4>>::iterator jt = collidersOBB.begin(); jt != collidersOBB.end(); jt++)
+			// Detector de colisiones Esfera Objeto
+			for (std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::iterator it = collidersSBB.begin(); it != collidersSBB.end(); it++)
 			{
-				if (testSphereOBox(std::get<0>(it->second), std::get<0>(jt->second))) {
-					std::cout << " Hay colision del " << it->first << " y el modelo: " << jt->first << std::endl;
-					isCollision = true;
-					addOrUpdateCollisionDetection(collisionDetection, jt->first, true);
-				}
-			}
-			addOrUpdateCollisionDetection(collisionDetection, it->first, isCollision);
-		}
-
-		/*******************************************
-		 * Comportamiendo de Colliders
-		 *******************************************/
-		std::map<std::string, bool>::iterator itCollision; //Iterador de colisiones 
-		for (itCollision = collisionDetection.begin(); itCollision != collisionDetection.end(); itCollision++)
-		{
-			//Recuperar el estado del mapa de colisiones. 
-			std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::iterator sbbBuscado = collidersSBB.find(itCollision->first);
-			std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4>>::iterator obbBuscado = collidersOBB.find(itCollision->first);
-
-
-			// Se encontró
-			if (sbbBuscado != collidersSBB.end()) {
-				//Determinar NO hubo colision 
-				if (!itCollision->second) {
-					//Se actualiza la matriz de transformacion. La actual pasa a ser la matriz anterior. 
-					addOrUpdateColliders(collidersSBB, itCollision->first);
-				}
-			}
-
-			// Se realiza el mismo proceso pero para la OBB
-			if (obbBuscado != collidersOBB.end()) {
-				if (!itCollision->second) {
-					addOrUpdateColliders(collidersOBB, itCollision->first);
-				}
-				else {
-					//Lista de todos los objetos con colision 
-					if (itCollision->first.compare("mayow") == 0) {
-						//Estamos obteniendo el valor de la primera matriz de transformacion de la tupla que forma parte del obbbuscado.
-						//modelMatrixMayow = std::get<1>(obbBuscado->second);
-						mayowGameObject->ModelMatrix = std::get<1>(obbBuscado->second);
-					}
-
-					if (itCollision->first.compare("jugador") == 0) {
-						jugadorGameObject->ModelMatrix = std::get<1>(obbBuscado->second);
-						
-					}
-
-					if (itCollision->first.find("enemy") == 0) {
-						std::cout << "ENEMY TEST !" << std::endl;
+				bool isCollision = false;
+				for (std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4>>::iterator jt = collidersOBB.begin(); jt != collidersOBB.end(); jt++)
+				{
+					if (testSphereOBox(std::get<0>(it->second), std::get<0>(jt->second))) {
+						std::cout << " Hay colision del " << it->first << " y el modelo: " << jt->first << std::endl;
+						isCollision = true;
+						addOrUpdateCollisionDetection(collisionDetection, jt->first, true);
 					}
 				}
+				addOrUpdateCollisionDetection(collisionDetection, it->first, isCollision);
 			}
 
+			/*******************************************
+			 * Comportamiendo de Colliders
+			 *******************************************/
+			std::map<std::string, bool>::iterator itCollision; //Iterador de colisiones 
+			for (itCollision = collisionDetection.begin(); itCollision != collisionDetection.end(); itCollision++)
+			{
+				//Recuperar el estado del mapa de colisiones. 
+				std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::iterator sbbBuscado = collidersSBB.find(itCollision->first);
+				std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4>>::iterator obbBuscado = collidersOBB.find(itCollision->first);
 
 
-		}
+				// Se encontró
+				if (sbbBuscado != collidersSBB.end()) {
+					//Determinar NO hubo colision 
+					if (!itCollision->second) {
+						//Se actualiza la matriz de transformacion. La actual pasa a ser la matriz anterior. 
+						addOrUpdateColliders(collidersSBB, itCollision->first);
+					}
+				}
 
-		//Generacion de un rayo
-		glm::mat4 modelMatrixRayMay = glm::mat4(mayowGameObject->ModelMatrix);
-		modelMatrixRayMay = glm::translate(modelMatrixRayMay, glm::vec3(0, 1, 0)); //Trasladmos un poco para no quedar a la altura del pie
-		float maxDistanceRay = 10.0;
-		glm::vec3 rayDirection = modelMatrixRayMay[2];
-		glm::vec3 origen = modelMatrixRayMay[3]; //Punto inicial
-		glm::vec3 mid = origen + rayDirection * (maxDistanceRay / 2.0f); //Partiendo de la ecuacion canonica de la recta.
-		glm::vec3 targetRay = origen + rayDirection * maxDistanceRay;
+				// Se realiza el mismo proceso pero para la OBB
+				if (obbBuscado != collidersOBB.end()) {
+					if (!itCollision->second) {
+						addOrUpdateColliders(collidersOBB, itCollision->first);
+					}
+					else {
+						//Lista de todos los objetos con colision 
+						if (itCollision->first.compare("mayow") == 0) {
+							//Estamos obteniendo el valor de la primera matriz de transformacion de la tupla que forma parte del obbbuscado.
+							//modelMatrixMayow = std::get<1>(obbBuscado->second);
+							mayowGameObject->ModelMatrix = std::get<1>(obbBuscado->second);
+						}
 
-		modelMatrixRayMay[3] = glm::vec4(mid, 1.0);
-		modelMatrixRayMay = glm::rotate(modelMatrixRayMay, glm::radians(90.0f), glm::vec3(1, 0, 0));
-		modelMatrixRayMay = glm::scale(modelMatrixRayMay, glm::vec3(0.05f, maxDistanceRay, 0.05f));
+						if (itCollision->first.compare("jugador") == 0) {
+							jugadorGameObject->ModelMatrix = std::get<1>(obbBuscado->second);
 
-		RayModel.render(modelMatrixRayMay);
+						}
 
-		//Rayo por modelos
-		for (size_t i = 0; i < enemyCollection.size(); i++)
-		{
+						if (itCollision->first.find("enemy") == 0) {
+							std::cout << "ENEMY TEST !" << std::endl;
+						}
+					}
+				}
+
+
+
+			}
+
 			//Generacion de un rayo
-			glm::mat4 modelMatrixRayEnemy = glm::mat4(enemyCollection[i]->ModelMatrix);
-			modelMatrixRayEnemy = glm::translate(modelMatrixRayEnemy, glm::vec3(0, 1, 0)); //Trasladmos un poco para no quedar a la altura del pie
-			float maxDistanceRay = 5.0;
-			glm::vec3 rayDirection = modelMatrixRayEnemy[2];
-			glm::vec3 origen = modelMatrixRayEnemy[3]; //Punto inicial
+			glm::mat4 modelMatrixRayMay = glm::mat4(mayowGameObject->ModelMatrix);
+			modelMatrixRayMay = glm::translate(modelMatrixRayMay, glm::vec3(0, 1, 0)); //Trasladmos un poco para no quedar a la altura del pie
+			float maxDistanceRay = 10.0;
+			glm::vec3 rayDirection = modelMatrixRayMay[2];
+			glm::vec3 origen = modelMatrixRayMay[3]; //Punto inicial
 			glm::vec3 mid = origen + rayDirection * (maxDistanceRay / 2.0f); //Partiendo de la ecuacion canonica de la recta.
 			glm::vec3 targetRay = origen + rayDirection * maxDistanceRay;
 
-			modelMatrixRayEnemy[3] = glm::vec4(mid, 1.0);
-			modelMatrixRayEnemy = glm::rotate(modelMatrixRayEnemy, glm::radians(90.0f), glm::vec3(1, 0, 0));
-			modelMatrixRayEnemy = glm::scale(modelMatrixRayEnemy, glm::vec3(0.05f, maxDistanceRay, 0.05f));
-			//modelMatrixRayEnemy = glm::rotate(modelMatrixRayEnemy, glm::radians(90.0f), glm::vec3(0, 0, 1));
-			RayModel.render(modelMatrixRayEnemy);
-		}
+			modelMatrixRayMay[3] = glm::vec4(mid, 1.0);
+			modelMatrixRayMay = glm::rotate(modelMatrixRayMay, glm::radians(90.0f), glm::vec3(1, 0, 0));
+			modelMatrixRayMay = glm::scale(modelMatrixRayMay, glm::vec3(0.05f, maxDistanceRay, 0.05f));
 
-		//Realizar la colision rayo contra esfera. 
-		std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> >::iterator itSBB;
-		for (itSBB = collidersSBB.begin(); itSBB != collidersSBB.end(); itSBB++)
-		{
-			float tRint;
-			if (raySphereIntersect(origen, targetRay, rayDirection, std::get<0>(itSBB->second), tRint)) {
-				std::cout << "Colision del rayo con el modelo" << itSBB->first << std::endl;
+			RayModel.render(modelMatrixRayMay);
+
+			//Rayo por modelos
+			for (size_t i = 0; i < enemyCollection.size(); i++)
+			{
+				//Generacion de un rayo
+				glm::mat4 modelMatrixRayEnemy = glm::mat4(enemyCollection[i]->ModelMatrix);
+				modelMatrixRayEnemy = glm::translate(modelMatrixRayEnemy, glm::vec3(0, 1, 0)); //Trasladmos un poco para no quedar a la altura del pie
+				float maxDistanceRay = 5.0;
+				glm::vec3 rayDirection = modelMatrixRayEnemy[2];
+				glm::vec3 origen = modelMatrixRayEnemy[3]; //Punto inicial
+				glm::vec3 mid = origen + rayDirection * (maxDistanceRay / 2.0f); //Partiendo de la ecuacion canonica de la recta.
+				glm::vec3 targetRay = origen + rayDirection * maxDistanceRay;
+
+				modelMatrixRayEnemy[3] = glm::vec4(mid, 1.0);
+				modelMatrixRayEnemy = glm::rotate(modelMatrixRayEnemy, glm::radians(90.0f), glm::vec3(1, 0, 0));
+				modelMatrixRayEnemy = glm::scale(modelMatrixRayEnemy, glm::vec3(0.05f, maxDistanceRay, 0.05f));
+				//modelMatrixRayEnemy = glm::rotate(modelMatrixRayEnemy, glm::radians(90.0f), glm::vec3(0, 0, 1));
+				RayModel.render(modelMatrixRayEnemy);
 			}
-		}
 
-		//Realizar la colision rayo contra caja
-		std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator itOBB;
-		for (itOBB = collidersOBB.begin(); itOBB != collidersOBB.end(); itOBB++)
-		{
-			if (testRayOBB(origen, targetRay, std::get<0>(itOBB->second))) {
-				std::cout << "Colision del rayo con el modelo" << itOBB->first << std::endl;
+			//Realizar la colision rayo contra esfera. 
+			std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> >::iterator itSBB;
+			for (itSBB = collidersSBB.begin(); itSBB != collidersSBB.end(); itSBB++)
+			{
+				float tRint;
+				if (raySphereIntersect(origen, targetRay, rayDirection, std::get<0>(itSBB->second), tRint)) {
+					std::cout << "Colision del rayo con el modelo" << itSBB->first << std::endl;
+				}
 			}
-		}
 
-		// Constantes de animaciones
-		animationIndex = 1;
-		animationIndexPlayer = 1;
-
-		glfwSwapBuffers(window);
-
-
-		/*******************************************
-		 * OpenAL sound data
-		 *******************************************/
-
-		BGMusic0Pos[0] = camera->getPosition().x;
-		BGMusic0Pos[1] = camera->getPosition().y;
-		BGMusic0Pos[2] = camera->getPosition().z;
-		alSourcefv(source[0], AL_POSITION, BGMusic0Pos);
-
-		 // Listener for the Camera.
-		listenerPos[0] = camera->getPosition().x;
-		listenerPos[1] = camera->getPosition().y;
-		listenerPos[2] = camera->getPosition().z;
-		alListenerfv(AL_POSITION, listenerPos);
-		listenerOri[0] = camera->getFront().x;
-		listenerOri[1] = camera->getFront().y;
-		listenerOri[2] = camera->getFront().z;
-		listenerOri[3] = camera->getUp().x;
-		listenerOri[4] = camera->getUp().y;
-		listenerOri[5] = camera->getUp().z;
-		alListenerfv(AL_ORIENTATION, listenerOri);
-
-		for (unsigned int i = 0; i < sourcesPlay.size(); i++) {
-			if (sourcesPlay[i]) {
-				sourcesPlay[i] = false;
-				alSourcePlay(source[i]);
+			//Realizar la colision rayo contra caja
+			std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator itOBB;
+			for (itOBB = collidersOBB.begin(); itOBB != collidersOBB.end(); itOBB++)
+			{
+				if (testRayOBB(origen, targetRay, std::get<0>(itOBB->second))) {
+					std::cout << "Colision del rayo con el modelo" << itOBB->first << std::endl;
+				}
 			}
+
+			// Constantes de animaciones
+			animationIndex = 1;
+			animationIndexPlayer = 1;
+
+			/*******************************************
+			* Render UI Elements , ejes relevantes X,Y
+			*******************************************/
+
+			drawGUIElement(textureHealthBarID, glm::vec3(0.08f, 0.15f, 0.15f), glm::vec3(-0.925f, 0.75f, 0.0f));
+			drawGUIElement(scoreTextureID, glm::vec3(0.45f, 0.25f, 0.25f), glm::vec3(0.0f, 0.8f, 0.0f));
+			drawGUIElement(textureItemContainer, glm::vec3(0.08f, 0.15f, 0.15f), glm::vec3(-0.825f, 0.75f, 0.0f));
+
+			glfwSwapBuffers(window);
+
+
+			/*******************************************
+			 * OpenAL sound data
+			 *******************************************/
+
+			BGMusic0Pos[0] = camera->getPosition().x;
+			BGMusic0Pos[1] = camera->getPosition().y;
+			BGMusic0Pos[2] = camera->getPosition().z;
+			alSourcefv(source[0], AL_POSITION, BGMusic0Pos);
+
+			// Listener for the Camera.
+			listenerPos[0] = camera->getPosition().x;
+			listenerPos[1] = camera->getPosition().y;
+			listenerPos[2] = camera->getPosition().z;
+			alListenerfv(AL_POSITION, listenerPos);
+			listenerOri[0] = camera->getFront().x;
+			listenerOri[1] = camera->getFront().y;
+			listenerOri[2] = camera->getFront().z;
+			listenerOri[3] = camera->getUp().x;
+			listenerOri[4] = camera->getUp().y;
+			listenerOri[5] = camera->getUp().z;
+			alListenerfv(AL_ORIENTATION, listenerOri);
+
+			for (unsigned int i = 0; i < sourcesPlay.size(); i++) {
+				if (sourcesPlay[i]) {
+					sourcesPlay[i] = false;
+					alSourcePlay(source[i]);
+				}
+			}
+			
 		}
+					
+		if (state == PAUSE) {
+			/*******************************************
+			* Render UI Elements , ejes relevantes X,Y
+			*******************************************/
+			drawGUIElement(texturePauseMenuID, glm::vec3(1.0f), glm::vec3(0.0f));
+			glfwSwapBuffers(window);
+		}
+
+		if (state == GAMEOVER) {
+			/*******************************************
+			* Render UI Elements , ejes relevantes X,Y
+			*******************************************/
+			drawGUIElement(textureGameOverID, glm::vec3(1.0f), glm::vec3(0.0f));
+			glfwSwapBuffers(window);
+		}
+
+		
+			
+
 		
 	}
+
 }
+
+	
+	
+
 
 void prepareScene() {
 
@@ -1353,6 +1427,19 @@ void prepareDepthScene() {
 	}
 
 	
+}
+
+void drawGUIElement(GLuint textureID, glm::vec3 scale, glm::vec3 pos) {
+
+	// Dibujado de una textura sola en pantalla.
+	shaderViewTexture.setMatrix4("view", 1, false, glm::value_ptr(glm::mat4(1.0f)));
+	shaderViewTexture.setMatrix4("projection", 1, false, glm::value_ptr(glm::mat4(1.0f)));
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	boxRenderImagen.setScale(scale);
+	boxRenderImagen.setPosition(pos);
+	boxRenderImagen.render();
 }
 
 void renderScene(bool renderParticles) {
@@ -1513,10 +1600,10 @@ void renderScene(bool renderParticles) {
 
 
 
-		if (i == 0) {
+		/*if (i == 0) {
 			std::cout << "Angulo: " << glm::degrees(angulo) << "  crozz.y : " << cross.y << std::endl;
 			
-		}
+		}*/
 		glm::vec3 goal = (enemyCollection[i]->ModelMatrix[2]);
 		enemyCollection[i]->ModelMatrix = glm::translate(enemyCollection[i]->ModelMatrix,  -currDirection * 0.01f);
 			
@@ -1609,7 +1696,7 @@ void startScene(std::string sceneName) {
 
 
 int main(int argc, char** argv) {
-	init(800, 700, "Proyecto Final", false);
+	init(1350, 768, "Proyecto Final", false);
 
 	//startScene(menu);
 	applicationLoop();
