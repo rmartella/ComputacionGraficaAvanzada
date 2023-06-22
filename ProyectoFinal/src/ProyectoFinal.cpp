@@ -58,8 +58,9 @@
 // Constantes de juego.
 #define VELOCIDAD_MOVIMIENTO_PERSONAJE 0.1f
 #define VELOCIDAD_ROTACION_PERSONAJE 0.5f
+#define VELOCIDAD_MOVIMIENTO_ZOMBIE 0.005f
 #define GRAVEDAD_SALTO_PERSONAJE 0.5f
-#define NUMERO_ENEMIGOS 3
+#define NUMERO_ENEMIGOS 15
 
 // Constantes para la camara
 #define SCREEN_WIDTH 1350
@@ -389,14 +390,14 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	jugadorGameObject = new GameObject("Player", "../models/Player/PlayerAnimated.fbx", &shaderMulLighting);
 
 	// Modelo de juego: Zombie.
-	zombieGameObject = new GameObject("Zombie", "../models/Player/PlayerAnimated.fbx", &shaderMulLighting);
+	zombieGameObject = new GameObject("Zombie", "../models/Zombie/ZombieAnimated.fbx", &shaderMulLighting);
 
 	// Contenedor de Zombies.
 	for (int i = 0; i < NUMERO_ENEMIGOS; i++) {
 		
 
 		// Zombie
-		zombieGameObject->animationIndex = 1;
+		zombieGameObject->animationIndex = 3;
 		
 		//zombieGameObject->Transform = glm::mat4(zombieGameObject->ModelMatrix);
 		int rnd_x = distrib(generador);
@@ -1605,7 +1606,7 @@ void renderScene(bool renderParticles) {
 			
 		}*/
 		glm::vec3 goal = (enemyCollection[i]->ModelMatrix[2]);
-		enemyCollection[i]->ModelMatrix = glm::translate(enemyCollection[i]->ModelMatrix,  -currDirection * 0.01f);
+		enemyCollection[i]->ModelMatrix = glm::translate(enemyCollection[i]->ModelMatrix,  -currDirection * VELOCIDAD_MOVIMIENTO_ZOMBIE);
 			
 
 		//
@@ -1630,7 +1631,7 @@ void renderScene(bool renderParticles) {
 		//	enemyCollection[i]->Rotate(-90.0f, glm::vec3(0, 1, 0));
 
 
-		enemyCollection[i]->animationIndex = 2;
+		enemyCollection[i]->animationIndex = 1;
 		enemyCollection[i]->Transform = glm::mat4(enemyCollection[i]->ModelMatrix);
 		enemyCollection[i]->SetScale(glm::vec3(0.00015, 0.00015, 0.00015));
 		enemyCollection[i]->Draw();
