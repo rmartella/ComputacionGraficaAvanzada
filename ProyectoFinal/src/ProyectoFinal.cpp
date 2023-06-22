@@ -50,6 +50,9 @@
 // Include Sound headers functions
 #include <AL/alut.h>
 
+// Libreria de Texto
+#include "Headers/FontTypeRendering.h"
+
 // My includes for abstraccion
 #include "Headers/GameObject.h"
 
@@ -145,6 +148,8 @@ GLuint skyboxTextureID;
 
 // UI textures:
 GLuint textureHealthBarID, scoreTextureID, texturePauseMenuID, textureGameOverID, textureItemContainer;
+
+FontTypeRendering::FontTypeRendering* modelText;
 
 GLenum types[6] = {
 GL_TEXTURE_CUBE_MAP_POSITIVE_X,
@@ -395,7 +400,6 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	// Contenedor de Zombies.
 	for (int i = 0; i < NUMERO_ENEMIGOS; i++) {
 		
-
 		// Zombie
 		zombieGameObject->animationIndex = 3;
 		
@@ -515,6 +519,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+	modelText = new FontTypeRendering::FontTypeRendering(screenWidth, screenHeight);
+	modelText->Initialize();
 
 
 	/*******************************************
@@ -1324,6 +1332,13 @@ void applicationLoop() {
 			drawGUIElement(textureHealthBarID, glm::vec3(0.08f, 0.15f, 0.15f), glm::vec3(-0.925f, 0.75f, 0.0f));
 			drawGUIElement(scoreTextureID, glm::vec3(0.45f, 0.25f, 0.25f), glm::vec3(0.0f, 0.8f, 0.0f));
 			drawGUIElement(textureItemContainer, glm::vec3(0.08f, 0.15f, 0.15f), glm::vec3(-0.825f, 0.75f, 0.0f));
+
+
+			glEnable(GL_BLEND);
+			
+			modelText->render(std::to_string((int)currTime), 0.1, 0, 1.0, 0.0, 0.0, 42);
+			glDisable(GL_BLEND);
+
 
 			glfwSwapBuffers(window);
 
