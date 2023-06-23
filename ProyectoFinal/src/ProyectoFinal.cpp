@@ -132,6 +132,8 @@ GameObject* zombieGameObject;
 
 std::vector<GameObject*> enemyCollection;
 
+// menus
+bool sw = false;
 
 //std::vector<GameObject> zombieGameObjects;
 std::vector<Box> zombieContainer;
@@ -147,7 +149,7 @@ GLuint textureTerrainBackgroundID, textureTerrainRID, textureTerrainGID, texture
 GLuint skyboxTextureID;
 
 // UI textures:
-GLuint textureHealthBarID, scoreTextureID, texturePauseMenuID, textureGameOverID, textureItemContainer;
+GLuint textureHealthBarID, scoreTextureID, texturePauseMenuID, textureGameOverID, textureItemContainer, textureTitleMenuID;
 
 FontTypeRendering::FontTypeRendering* modelText;
 
@@ -188,11 +190,11 @@ glm::mat4 matrixModelRock = glm::mat4(1.0);
 
 // CONTROLES DE ESCNEA
 enum GameState {
-	PLAY, PAUSE, GAMEOVER
+	PLAY, PAUSE, GAMEOVER, TITLE
 };
 bool isPaused = false;
 bool isGameOver = false;
-GameState state = PLAY;
+GameState state = TITLE;
 
 
 int animationIndex = 1;
@@ -496,6 +498,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	loadTexture("../Textures/UI/pauseMenu.png", &texturePauseMenuID);
 	loadTexture("../Textures/UI/gameOver.png", &textureGameOverID);
 	loadTexture("../Textures/UI/container.png", &textureItemContainer);
+	loadTexture("../Textures/UI/title.png", &textureTitleMenuID);
 
 	/*******************************************
 	 * Inicializacion del framebuffer para
@@ -820,21 +823,25 @@ bool processInput(bool continueApplication) {
 		tmv = 0;
 	}
 
-	bool statePause = glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS;
-	if (statePause)
+	bool statePause;
+	if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_P) == GLFW_RELEASE)
 	{
-		if (state == PAUSE) {
+		sw = !sw;
+		if (sw) {
+			state = PAUSE;
+			
+		}
+		else {
+			state = PLAY;
+		}
+	}
+
+	if (state == TITLE) {
+		if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
 			state = PLAY;
 			isPaused = false;
 		}
-			
-			
-		else {
-			state = PAUSE;
-			isPaused = true;
-		}
-			
-		
+
 	}
 
 	glfwPollEvents();
@@ -1378,7 +1385,15 @@ void applicationLoop() {
 			/*******************************************
 			* Render UI Elements , ejes relevantes X,Y
 			*******************************************/
-			drawGUIElement(texturePauseMenuID, glm::vec3(1.0f), glm::vec3(0.0f));
+			drawGUIElement(texturePauseMenuID, glm::vec3(1.99f), glm::vec3(0.0f));
+			glfwSwapBuffers(window);
+		}
+
+		if (state == TITLE) {
+			/*******************************************
+			* Render UI Elements , ejes relevantes X,Y
+			*******************************************/
+			drawGUIElement(textureTitleMenuID, glm::vec3(1.99f), glm::vec3(0.0f));
 			glfwSwapBuffers(window);
 		}
 
