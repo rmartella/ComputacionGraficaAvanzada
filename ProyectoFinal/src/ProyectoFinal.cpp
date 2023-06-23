@@ -212,8 +212,8 @@ std::vector<glm::vec3> lamp2Position = { glm::vec3(-36.52, 0, -23.24),
 		glm::vec3(-52.73, 0, -3.90) };
 std::vector<float> lamp2Orientation = { 21.37 + 90, -65.0 + 90 };
 
-double deltaTime;
-double currTime, lastTime;
+double deltaTime, diffTime;
+double currTime, lastTime, startupTimer;
 
 // Colliders
 std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> > collidersOBB;
@@ -570,6 +570,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	alSourcei(source[0], AL_LOOPING, AL_TRUE);
 	alSourcef(source[0], AL_MAX_DISTANCE, 2000);
 
+	startupTimer = TimeManager::Instance().GetTime();
+
 }
 
 void loadTexture(std::string pathToTexture, GLuint* textureID)
@@ -879,12 +881,16 @@ void applicationLoop() {
 
 	lastTime = TimeManager::Instance().GetTime();
 
+	
+
 	glm::vec3 lightPos = glm::vec3(10.0, 10.0, 0.0);
 	shadowBox = new ShadowBox(-lightPos, camera.get(), 30.0f, 0.1f, 45.0f);
 
 	std::cout << "State: " << state << std::endl;
 
 	while (psi) {
+
+		
 
 		currTime = TimeManager::Instance().GetTime();
 		if (currTime - lastTime < 0.00833333334) {
@@ -896,12 +902,17 @@ void applicationLoop() {
 		deltaTime = TimeManager::Instance().DeltaTime;
 		psi = processInput(true);
 
+		
+
 		std::map<std::string, bool> collisionDetection;
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		
 		if (state == PLAY) {
+
+			diffTime = lastTime - startupTimer;
+
 			glm::mat4 projection = glm::perspective(glm::radians(45.0f),
 				(float)screenWidth / (float)screenHeight, 0.01f, 100.0f);
 
@@ -1337,13 +1348,20 @@ void applicationLoop() {
 			*******************************************/
 
 			drawGUIElement(textureHealthBarID, glm::vec3(0.08f, 0.15f, 0.15f), glm::vec3(-0.925f, 0.75f, 0.0f));
-			drawGUIElement(scoreTextureID, glm::vec3(0.45f, 0.25f, 0.25f), glm::vec3(0.0f, 0.8f, 0.0f));
 			drawGUIElement(textureItemContainer, glm::vec3(0.08f, 0.15f, 0.15f), glm::vec3(-0.825f, 0.75f, 0.0f));
 
 
 			glEnable(GL_BLEND);
 			
-			modelText->render(std::to_string((int)currTime), 0.1, 0, 1.0, 0.0, 0.0, 42);
+			char buff[100];
+
+			int hours = (int)diffTime / 3600;
+			int minutes = (int)diffTime / 60;
+			int seconds = (int)diffTime % 60;
+			snprintf(buff, 100, "Tiempo: %d:%2d:%2d",hours,minutes,seconds);
+			std::string cadenaTiempo = buff;
+
+			modelText->render((cadenaTiempo), -0.15, 0.8, 1.0, 0.0, 0.0, 42);
 			glDisable(GL_BLEND);
 
 
