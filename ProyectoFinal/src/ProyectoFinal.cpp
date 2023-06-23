@@ -63,7 +63,9 @@
 #define VELOCIDAD_ROTACION_PERSONAJE 0.5f
 #define VELOCIDAD_MOVIMIENTO_ZOMBIE 0.005f
 #define GRAVEDAD_SALTO_PERSONAJE 0.5f
-#define NUMERO_ENEMIGOS 15
+#define NUMERO_ENEMIGOS 100
+int TIEMPO_ENTRE_ZOMBIES = 10;
+int vidas = 1000;
 
 // Constantes para la camara
 #define SCREEN_WIDTH 1350
@@ -278,6 +280,9 @@ void checkCollisions();
 void checkCollisionsZombie();
 void checkCollisionsDisparo();
 
+void generarZombie();
+void resetGame();
+
 void drawGUIElement(GLuint textureID, glm::vec3 scale, glm::vec3 pos);
 void startScene(std::string sceneName);
 
@@ -400,27 +405,8 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	zombieGameObject = new GameObject("Zombie", "../models/Zombie/ZombieAnimated.fbx", &shaderMulLighting);
 
 	// Contenedor de Zombies.
-	for (int i = 0; i < NUMERO_ENEMIGOS; i++) {
-		
-		// Zombie
-		zombieGameObject->animationIndex = 3;
-		
-		//zombieGameObject->Transform = glm::mat4(zombieGameObject->ModelMatrix);
-		int rnd_x = distrib(generador);
-		int rnd_z = distrib(generador);
-		zombieGameObject->ModelMatrix[3][0] = rnd_x;
-		zombieGameObject->ModelMatrix[3][2] = rnd_z;
-		//zombieGameObject->ModelMatrix[3][1] = terrain.getHeightTerrain(zombieGameObject->ModelMatrix[3][0], zombieGameObject->ModelMatrix[3][2]);
-		//zombieGameObject->Translate(glm::vec3(rnd_x, 0.0, rnd_z));
-		//zombieGameObject->SetScale(glm::vec3(0.00015, 0.00015, 0.00015));
-		// GENERAR UN NUEVO ZOMBIE HASTA LA CANTIDAD MÁXIMA DE ENEMIGOS.
-		if (enemyCollection.size() < NUMERO_ENEMIGOS) {
-			//Hacer una copia del zombie
-			GameObject* temp = new GameObject();
-			memcpy(temp, zombieGameObject, sizeof(GameObject));
-			//Guardamos un zombie generico en el vector de enemigos
-			enemyCollection.push_back(temp);
-		}
+	for (int i = 0; i < 3; i++) {
+		generarZombie();
 	}
 
 	// Camera
@@ -846,6 +832,15 @@ bool processInput(bool continueApplication) {
 
 	}
 
+	if (state == GAMEOVER) {
+		if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_R) == GLFW_RELEASE)
+		{
+			state = PLAY;
+			resetGame();
+			
+		}
+	}
+
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -1216,6 +1211,11 @@ void applicationLoop() {
 
 						std::cout << "Hay colision entre: " << it->first << " y el modelo: " << jt->first << std::endl;
 						isCollision = true;
+						
+						if (it->first.compare("jugador") == 0 && jt->first.find("enemy") == 0) {
+							vidas -= 1;
+							std::cout << "JUGADOR HERIDO!: " << vidas << std::endl;
+						}
 
 
 					}
@@ -1277,7 +1277,7 @@ void applicationLoop() {
 						}
 
 						if (itCollision->first.find("enemy") == 0) {
-							std::cout << "ENEMY TEST !" << std::endl;
+							
 						}
 					}
 				}
@@ -1359,10 +1359,32 @@ void applicationLoop() {
 			int minutes = (int)diffTime / 60;
 			int seconds = (int)diffTime % 60;
 			snprintf(buff, 100, "Tiempo: %d:%2d:%2d",hours,minutes,seconds);
+
+			if (TIEMPO_ENTRE_ZOMBIES >= 1)
+			{
+				if (seconds % TIEMPO_ENTRE_ZOMBIES == 0) {
+					generarZombie();
+					TIEMPO_ENTRE_ZOMBIES += -1;
+					if (TIEMPO_ENTRE_ZOMBIES <= 0)
+					{
+						TIEMPO_ENTRE_ZOMBIES = 1;
+					}
+
+				}
+			}
+			
+			std::cout << "tiempo entre zombies: " << TIEMPO_ENTRE_ZOMBIES << std::endl;
+
 			std::string cadenaTiempo = buff;
 
 			modelText->render((cadenaTiempo), -0.15, 0.8, 1.0, 0.0, 0.0, 42);
 			glDisable(GL_BLEND);
+
+
+			if (vidas < 0) {
+				state = GAMEOVER;
+			}
+				
 
 
 			glfwSwapBuffers(window);
@@ -1419,8 +1441,21 @@ void applicationLoop() {
 			/*******************************************
 			* Render UI Elements , ejes relevantes X,Y
 			*******************************************/
-			drawGUIElement(textureGameOverID, glm::vec3(1.0f), glm::vec3(0.0f));
+			char buff[100];
+
+			int hours = (int)diffTime / 3600;
+			int minutes = (int)diffTime / 60;
+			int seconds = (int)diffTime % 60;
+			snprintf(buff, 100, "Survived! : %d:%2d:%2d", hours, minutes, seconds);
+			std::string cadenaTiempo = buff;
+
+			
+			drawGUIElement(textureGameOverID, glm::vec3(1.99f), glm::vec3(0.0f));
+			glEnable(GL_BLEND);
+			modelText->render((cadenaTiempo), -0.25, 0.5, 1.0, 0.0, 0.0, 45);
+			glDisable(GL_BLEND);
 			glfwSwapBuffers(window);
+			
 		}
 
 		
@@ -1431,9 +1466,47 @@ void applicationLoop() {
 
 }
 
-	
-	
+void resetGame() {
+	//Initial Positions???
+	matrixModelRock = glm::translate(matrixModelRock, glm::vec3(-3.0, 0.0, 2.0));
+	jugadorGameObject->ModelMatrix = glm::translate(jugadorGameObject->ModelMatrix, glm::vec3(3.0, 0.0, 2.0));
+	mayowGameObject->ModelMatrix = glm::translate(mayowGameObject->ModelMatrix, glm::vec3(13.0f, 0.05f, -5.0f));
+	mayowGameObject->ModelMatrix = glm::rotate(mayowGameObject->ModelMatrix, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+	zombieGameObject->ModelMatrix = glm::translate(zombieGameObject->ModelMatrix, glm::vec3(5.0, 0.0, 2.0));
 
+	vidas = 1000;
+	diffTime = 0;
+
+	enemyCollection.clear();
+	TIEMPO_ENTRE_ZOMBIES = 10;
+
+}
+	
+void generarZombie() {
+
+	if (enemyCollection.size() < NUMERO_ENEMIGOS)
+	{
+		// Zombie
+		zombieGameObject->animationIndex = 3;
+
+		//zombieGameObject->Transform = glm::mat4(zombieGameObject->ModelMatrix);
+		int rnd_x = distrib(generador);
+		int rnd_z = distrib(generador);
+		zombieGameObject->ModelMatrix[3][0] = rnd_x;
+		zombieGameObject->ModelMatrix[3][2] = rnd_z;
+		//zombieGameObject->ModelMatrix[3][1] = terrain.getHeightTerrain(zombieGameObject->ModelMatrix[3][0], zombieGameObject->ModelMatrix[3][2]);
+		//zombieGameObject->Translate(glm::vec3(rnd_x, 0.0, rnd_z));
+		//zombieGameObject->SetScale(glm::vec3(0.00015, 0.00015, 0.00015));
+		// GENERAR UN NUEVO ZOMBIE HASTA LA CANTIDAD MÁXIMA DE ENEMIGOS.
+		if (enemyCollection.size() < NUMERO_ENEMIGOS) {
+			//Hacer una copia del zombie
+			GameObject* temp = new GameObject();
+			memcpy(temp, zombieGameObject, sizeof(GameObject));
+			//Guardamos un zombie generico en el vector de enemigos
+			enemyCollection.push_back(temp);
+		}
+	}
+}
 
 void prepareScene() {
 
