@@ -24,7 +24,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         "../external/FreeImage/lib"
         "../external/glew/lib"
         "../external/freealut/lib"
-        "../external/OpenAL/lib"
+        "../external/OpenAL/lib/x64"
     )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     include_directories(${CMAKE_SOURCE_DIR}/CGALib/include)
@@ -39,7 +39,7 @@ set_target_properties(01-AnimacionKeyFrames
 
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    target_link_libraries(01-AnimacionKeyFrames opengl32.lib libglfw3dll.dll.a libglew32d.dll.a libassimpd.dll.a libfreetype.dll.a libalut.dll.a OpenAL32.lib CGALib)
+    target_link_libraries(01-AnimacionKeyFrames opengl32.lib libglfw3dll.dll.a libglew32.dll.a libassimp.dll.a libfreetype.dll.a libalut.dll.a OpenAL32.lib CGALib)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(01-AnimacionKeyFrames glut glfw GLEW GLU GL freeimage assimp freetype alut openal CGALib)
 endif()

@@ -808,7 +808,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 		// Transferis los datos de la imagen a memoria
 		// Tipo de textura, Mipmaps, Formato interno de openGL, ancho, alto, Mipmaps,
 		// Formato interno de la libreria de la imagen, el tipo de dato y al apuntador
-		// a los datos
+		// a los datos 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureTerrainR.getWidth(), textureTerrainR.getHeight(), 0,
 		GL_RGBA, GL_UNSIGNED_BYTE, textureTerrainR.getData());
 		// Generan los niveles del mipmap (OpenGL es el ecargado de realizarlos)

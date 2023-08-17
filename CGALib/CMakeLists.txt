@@ -39,7 +39,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
           PROPERTIES
           RUNTIME_OUTPUT_DIRECTORY "../../bin"
      )
-     target_link_libraries(CGALib opengl32.lib libglfw3dll.dll.a libglew32d.dll.a libassimpd.dll.a libfreetype.dll.a)
+     target_link_libraries(CGALib opengl32.lib libglfw3dll.dll.a libglew32.dll.a libassimp.dll.a libfreetype.dll.a)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
      target_link_libraries(CGALib glut glfw GLEW GLU GL freeimage assimp freetype)
 endif()
