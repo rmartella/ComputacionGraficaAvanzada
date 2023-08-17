@@ -73,8 +73,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\external\glm;..\external\glew\include;..\external\glfw\include;..\external\FreeImage\include;..\external\assimp\include;..\external\OpenAL/include;..\external\freealut\include;..\CGALib\include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;..\external\glew\lib\;..\external\glfw\lib;..\external\FreeImage\lib;..\external\assimp\lib;../external/OpenAL/lib;..\external\freealut\lib;../Debug</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\external\glm;..\external\glew\include;..\external\glfw\include;..\external\FreeImage\include;..\external\assimp\include;..\external\OpenAL/include;..\external\freealut\include;..\CGALib\include;..\external\Freetype\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;..\external\glew\lib\;..\external\glfw\lib;..\external\FreeImage\lib;..\external\assimp\lib;../external/OpenAL/lib/x86;..\external\freealut\lib;..\external\freetype\lib;../Debug</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\external\glm;..\external\glew\include;..\external\glfw\include;..\external\FreeImage\include;..\external\assimp\include;..\external\OpenAL/include;..\external\freealut\include;..\CGALib\include</IncludePath>
@@ -90,7 +90,8 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);glew32d.lib;glfw3.lib;opengl32.lib;glu32.lib;assimp-vc140-mt.lib;FreeImaged.lib;alut.lib;OpenAL32.lib;CGALib.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);glew32.lib;glfw3dll.lib;opengl32.lib;glu32.lib;assimp-vc141-mt.lib;alut.lib;OpenAL32.lib;freetype.lib;CGALib.lib</AdditionalDependencies>
+      <SubSystem>NotSet</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
