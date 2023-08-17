@@ -9,7 +9,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
      include_directories(
           CGALib 
           "./include/" 
-          "/usr/include/freetype2" 
           "../external/assimp/include"
           "../external/glfw/include"
           "../external/glm"
@@ -26,6 +25,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
           "../external/Freetype/lib"
           "../external/FreeImage/lib"
           "../external/glew/lib"
+     )
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+     include_directories(
+          CGALib 
+          "./include/" 
+          "/usr/include/freetype2" 
      )
 endif()
 add_library(CGALib SHARED ${CGALib_SRC})

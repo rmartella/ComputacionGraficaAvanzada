@@ -2383,6 +2383,7 @@ void renderScene(bool renderParticles){
 }
 
 int main(int argc, char **argv) {
+	std::cout << "Iniciando ---- " << std::endl;
 	init(800, 700, "Window GLFW", false);
 	applicationLoop();
 	destroy();
