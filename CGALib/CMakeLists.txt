@@ -1,4 +1,4 @@
-add_compile_definitions(BUILDING_DLL) # Define a macro indicating DLL import
+add_definitions(-DBUILDING_DLL) # Define a macro indicating DLL import
 
 file(GLOB CGALib_SRC
      "./include/Headers/*.h"
