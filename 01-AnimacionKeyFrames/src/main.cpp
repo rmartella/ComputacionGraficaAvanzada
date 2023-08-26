@@ -55,7 +55,6 @@ Box boxCesped;
 Box boxWalls;
 Box boxHighway;
 Box boxLandingPad;
-Sphere esfera1(10, 10);
 // Models complex instances
 Model modelRock;
 Model modelAircraft;
@@ -82,7 +81,7 @@ Model modelDartLegoRightHand;
 Model modelDartLegoLeftLeg;
 Model modelDartLegoRightLeg;
 
-GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
+GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID; //, textureLandingPadID;
 GLuint skyboxTextureID;
 
 GLenum types[6] = {
@@ -231,9 +230,6 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	boxLandingPad.init();
 	boxLandingPad.setShader(&shaderMulLighting);
 
-	esfera1.init();
-	esfera1.setShader(&shaderMulLighting);
-
 	modelRock.loadModel("../models/rock/rock.obj");
 	modelRock.setShader(&shaderMulLighting);
 
@@ -289,7 +285,12 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	modelDartLegoRightLeg.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
-	
+
+	// Definimos el tamanio de la imagen
+	int imageWidth, imageHeight;
+	FIBITMAP *bitmap;
+	unsigned char *data;
+
 	// Carga de texturas para el skybox
 	Texture skyboxTexture = Texture("");
 	glGenTextures(1, &skyboxTextureID);
@@ -303,19 +304,24 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	for (int i = 0; i < ARRAY_SIZE_IN_ELEMENTS(types); i++) {
 		skyboxTexture = Texture(fileNames[i]);
-		skyboxTexture.loadImage(true);
-		if (skyboxTexture.getData()) {
-			glTexImage2D(types[i], 0, skyboxTexture.getChannels() == 3 ? GL_RGB : GL_RGBA, skyboxTexture.getWidth(), skyboxTexture.getHeight(), 0,
-			skyboxTexture.getChannels() == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, skyboxTexture.getData());
+		FIBITMAP *bitmap = skyboxTexture.loadImage(true);
+		unsigned char *data = skyboxTexture.convertToData(bitmap, imageWidth,
+				imageHeight);
+		if (data) {
+			glTexImage2D(types[i], 0, GL_RGBA, imageWidth, imageHeight, 0,
+			GL_BGRA, GL_UNSIGNED_BYTE, data);
 		} else
 			std::cout << "Failed to load texture" << std::endl;
-		skyboxTexture.freeImage();
+		skyboxTexture.freeImage(bitmap);
 	}
 
 	// Definiendo la textura a utilizar
-	Texture textureCesped("../Textures/grassy2.png");
+	Texture textureCesped("../Textures/cesped.jpg");
 	// Carga el mapa de bits (FIBITMAP es el tipo de dato de la libreria)
-	textureCesped.loadImage();
+	bitmap = textureCesped.loadImage();
+	// Convertimos el mapa de bits en un arreglo unidimensional de tipo unsigned char
+	data = textureCesped.convertToData(bitmap, imageWidth,
+			imageHeight);
 	// Creando la textura con id 1
 	glGenTextures(1, &textureCespedID);
 	// Enlazar esa textura a una tipo de textura de 2D.
@@ -327,25 +333,27 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// Verifica si se pudo abrir la textura
-	if (textureCesped.getData()) {
+	if (data) {
 		// Transferis los datos de la imagen a memoria
 		// Tipo de textura, Mipmaps, Formato interno de openGL, ancho, alto, Mipmaps,
 		// Formato interno de la libreria de la imagen, el tipo de dato y al apuntador
 		// a los datos
-		std::cout << "Numero de canales :=> " << textureCesped.getChannels() << std::endl;
-		glTexImage2D(GL_TEXTURE_2D, 0, textureCesped.getChannels() == 3 ? GL_RGB : GL_RGBA, textureCesped.getWidth(), textureCesped.getHeight(), 0,
-		textureCesped.getChannels() == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, textureCesped.getData());
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0,
+		GL_BGRA, GL_UNSIGNED_BYTE, data);
 		// Generan los niveles del mipmap (OpenGL es el ecargado de realizarlos)
 		glGenerateMipmap(GL_TEXTURE_2D);
 	} else
 		std::cout << "Failed to load texture" << std::endl;
 	// Libera la memoria de la textura
-	textureCesped.freeImage();
+	textureCesped.freeImage(bitmap);
 
 	// Definiendo la textura a utilizar
 	Texture textureWall("../Textures/whiteWall.jpg");
 	// Carga el mapa de bits (FIBITMAP es el tipo de dato de la libreria)
-	textureWall.loadImage();
+	bitmap = textureWall.loadImage();
+	// Convertimos el mapa de bits en un arreglo unidimensional de tipo unsigned char
+	data = textureWall.convertToData(bitmap, imageWidth,
+			imageHeight);
 	// Creando la textura con id 1
 	glGenTextures(1, &textureWallID);
 	// Enlazar esa textura a una tipo de textura de 2D.
@@ -357,24 +365,27 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// Verifica si se pudo abrir la textura
-	if (textureWall.getData()) {
+	if (data) {
 		// Transferis los datos de la imagen a memoria
 		// Tipo de textura, Mipmaps, Formato interno de openGL, ancho, alto, Mipmaps,
 		// Formato interno de la libreria de la imagen, el tipo de dato y al apuntador
 		// a los datos
-		glTexImage2D(GL_TEXTURE_2D, 0, textureWall.getChannels() == 3 ? GL_RGB : GL_RGBA, textureWall.getWidth(), textureWall.getHeight(), 0,
-		textureWall.getChannels() == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, textureWall.getData());
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0,
+		GL_BGRA, GL_UNSIGNED_BYTE, data);
 		// Generan los niveles del mipmap (OpenGL es el ecargado de realizarlos)
 		glGenerateMipmap(GL_TEXTURE_2D);
 	} else
 		std::cout << "Failed to load texture" << std::endl;
 	// Libera la memoria de la textura
-	textureWall.freeImage();
+	textureWall.freeImage(bitmap);
 
 	// Definiendo la textura a utilizar
 	Texture textureWindow("../Textures/ventana.png");
 	// Carga el mapa de bits (FIBITMAP es el tipo de dato de la libreria)
-	textureWindow.loadImage();
+	bitmap = textureWindow.loadImage();
+	// Convertimos el mapa de bits en un arreglo unidimensional de tipo unsigned char
+	data = textureWindow.convertToData(bitmap, imageWidth,
+			imageHeight);
 	// Creando la textura con id 1
 	glGenTextures(1, &textureWindowID);
 	// Enlazar esa textura a una tipo de textura de 2D.
@@ -386,24 +397,27 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// Verifica si se pudo abrir la textura
-	if (textureWindow.getData()) {
+	if (data) {
 		// Transferis los datos de la imagen a memoria
 		// Tipo de textura, Mipmaps, Formato interno de openGL, ancho, alto, Mipmaps,
 		// Formato interno de la libreria de la imagen, el tipo de dato y al apuntador
 		// a los datos
-		glTexImage2D(GL_TEXTURE_2D, 0, textureWindow.getChannels() == 3 ? GL_RGB : GL_RGBA, textureWindow.getWidth(), textureWindow.getHeight(), 0,
-		textureWindow.getChannels() == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, textureWindow.getData());
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0,
+		GL_BGRA, GL_UNSIGNED_BYTE, data);
 		// Generan los niveles del mipmap (OpenGL es el ecargado de realizarlos)
 		glGenerateMipmap(GL_TEXTURE_2D);
 	} else
 		std::cout << "Failed to load texture" << std::endl;
 	// Libera la memoria de la textura
-	textureWindow.freeImage();
+	textureWindow.freeImage(bitmap);
 
 	// Definiendo la textura a utilizar
 	Texture textureHighway("../Textures/highway.jpg");
 	// Carga el mapa de bits (FIBITMAP es el tipo de dato de la libreria)
-	textureHighway.loadImage();
+	bitmap = textureHighway.loadImage();
+	// Convertimos el mapa de bits en un arreglo unidimensional de tipo unsigned char
+	data = textureHighway.convertToData(bitmap, imageWidth,
+			imageHeight);
 	// Creando la textura con id 1
 	glGenTextures(1, &textureHighwayID);
 	// Enlazar esa textura a una tipo de textura de 2D.
@@ -415,39 +429,19 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// Verifica si se pudo abrir la textura
-	if (textureHighway.getData()) {
+	if (data) {
 		// Transferis los datos de la imagen a memoria
 		// Tipo de textura, Mipmaps, Formato interno de openGL, ancho, alto, Mipmaps,
 		// Formato interno de la libreria de la imagen, el tipo de dato y al apuntador
 		// a los datos
-		glTexImage2D(GL_TEXTURE_2D, 0, textureHighway.getChannels() == 3 ? GL_RGB : GL_RGBA, textureHighway.getWidth(), textureHighway.getHeight(), 0,
-		textureHighway.getChannels() == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, textureHighway.getData());
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0,
+		GL_BGRA, GL_UNSIGNED_BYTE, data);
 		// Generan los niveles del mipmap (OpenGL es el ecargado de realizarlos)
 		glGenerateMipmap(GL_TEXTURE_2D);
 	} else
 		std::cout << "Failed to load texture" << std::endl;
 	// Libera la memoria de la textura
-	textureHighway.freeImage();
-
-	// Definiendo la textura
-	Texture textureLandingPad("../Textures/landingPad.jpg");
-	textureLandingPad.loadImage(); // Cargar la textura
-	glGenTextures(1, &textureLandingPadID); // Creando el id de la textura del landingpad
-	glBindTexture(GL_TEXTURE_2D, textureLandingPadID); // Se enlaza la textura
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // Wrapping en el eje u
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Wrapping en el eje v
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // Filtering de minimización
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Filtering de maximimizacion
-	if(textureLandingPad.getData()){
-		// Transferir los datos de la imagen a la tarjeta
-		glTexImage2D(GL_TEXTURE_2D, 0, textureLandingPad.getChannels() == 3 ? GL_RGB : GL_RGBA, textureLandingPad.getWidth(), textureLandingPad.getHeight(), 0,
-		textureLandingPad.getChannels() == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, textureLandingPad.getData());
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else 
-		std::cout << "Fallo la carga de textura" << std::endl;
-	textureLandingPad.freeImage(); // Liberamos memoria
-
+	textureHighway.freeImage(bitmap);
 }
 
 void destroy() {
@@ -467,7 +461,6 @@ void destroy() {
 	boxWalls.destroy();
 	boxHighway.destroy();
 	boxLandingPad.destroy();
-	esfera1.destroy();
 
 	// Custom objects Delete
 	modelAircraft.destroy();
@@ -500,7 +493,6 @@ void destroy() {
 	glDeleteTextures(1, &textureWallID);
 	glDeleteTextures(1, &textureWindowID);
 	glDeleteTextures(1, &textureHighwayID);
-	glDeleteTextures(1, &textureLandingPadID);
 
 	// Cube Maps Delete
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
@@ -758,7 +750,7 @@ void applicationLoop() {
 		shaderMulLighting.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(0, 0)));
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		/*******************************************ww
+		/*******************************************
 		 * Casa
 		 *******************************************/
 		glActiveTexture(GL_TEXTURE0);
@@ -835,39 +827,6 @@ void applicationLoop() {
 		boxHighway.setPosition(glm::vec3(0.0, 0.05, -35.0));
 		boxHighway.setOrientation(glm::vec3(0.0, 0.0, 0.0));
 		boxHighway.render();
-
-		/*******************************************
-		 * Esfera 1
-		*********************************************/
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureHighwayID);
-		shaderMulLighting.setInt("texture1", 0);
-		esfera1.setScale(glm::vec3(3.0, 3.0, 3.0));
-		esfera1.setPosition(glm::vec3(3.0f, 2.0f, -10.0f));
-		esfera1.render();
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureWallID);
-		shaderMulLighting.setInt("texture1", 0);
-		esfera1.setScale(glm::vec3(10.0, 10.0, 10.0));
-		esfera1.setPosition(glm::vec3(3.0f, 2.0f, 10.0f));
-		esfera1.enableWireMode();
-		esfera1.render();
-		esfera1.enableFillMode();
-
-		/******************************************
-		 * Landing pad
-		*******************************************/
-		boxLandingPad.setScale(glm::vec3(10.0f, 0.05f, 10.0f));
-		boxLandingPad.setPosition(glm::vec3(5.0f, 0.05f, -5.0f));
-		boxLandingPad.setOrientation(glm::vec3(0.0f, 0.0f, 0.0f));
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureLandingPadID);
-		shaderMulLighting.setInt("texture1", 0);
-		//shaderMulLighting.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(2.0, 2.0)));
-		boxLandingPad.render();
-		//shaderMulLighting.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(1.0, 1.0)));
-		glBindTexture(GL_TEXTURE_2D, 0);
 
 		/*******************************************
 		 * Custom objects obj
