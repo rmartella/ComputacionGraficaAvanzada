@@ -13,13 +13,10 @@ namespace glm
 		typename genType::value_type d = glm::dot(dir, planeNormal);
 		typename genType::value_type Epsilon = std::numeric_limits<typename genType::value_type>::epsilon();
 
-		if(glm::abs(d) > Epsilon)  // if dir and planeNormal are not perpendicular
+		if(d < -Epsilon)
 		{
-			typename genType::value_type const tmp_intersectionDistance = 	glm::dot(planeOrig - orig, planeNormal) / d;
-			if (tmp_intersectionDistance > static_cast<typename genType::value_type>(0)) { // allow only intersections
-				intersectionDistance = tmp_intersectionDistance;
-				return true;
-			}
+			intersectionDistance = glm::dot(planeOrig - orig, planeNormal) / d;
+			return true;
 		}
 
 		return false;

@@ -33,15 +33,16 @@
 
 #include <string>
 #include <GL/glew.h>
+#include <FreeImage.h>
 
 class DLL_PUBLIC Texture {
 public:
 
 	Texture(const std::string& FileName);
 	Texture(GLenum TextureTarget, const std::string& FileName);
-	void loadImage( bool flipImage = false);
-	//GLubyte* convertToData(FIBITMAP* bitmap, int &width, int &height);
-	void freeImage();
+	FIBITMAP* loadImage( bool flipImage = false);
+	GLubyte* convertToData(FIBITMAP* bitmap, int &width, int &height);
+	void freeImage(FIBITMAP* bitmap);
 	bool load();
 	void bind(GLenum TextureUnit);
 	virtual ~Texture();
@@ -61,29 +62,9 @@ public:
 		return m_fileName;
 	}
 
-	int getWidth(){
-		return this->imageWidth;
-	}
-
-	int getHeight(){
-		return this->imageHeight;
-	}
-
-	int getChannels(){
-		return this->channels;
-	}
-
-	unsigned char * getData(){
-		return this->data;
-	}
-
 private:
 	std::string m_fileName;
 	GLenum m_textureTarget;
 	GLuint m_textureObj;
 	std::string type;
-	int imageWidth = 0;
-	int imageHeight = 0;
-	int channels = 0;
-	unsigned char * data;
 };

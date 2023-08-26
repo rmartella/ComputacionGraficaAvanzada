@@ -28,7 +28,6 @@
 
 #include <chrono>
 #include <thread>
-#include <cstdio>
 
 class DLL_PUBLIC TimeManager {
 public:
