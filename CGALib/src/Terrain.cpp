@@ -39,9 +39,9 @@ Terrain::Terrain(float gridX, float gridZ, float size, float maxHeight, std::str
 	int vertexPointer = 0;
 	for (int i = 0; i < VERTEX_COUNT; i++) {
 		for (int j = 0; j < VERTEX_COUNT; j++) {
-			float height = getHeight(j, i, data, imageWidth, this->imageHeight);
+			float height = getHeight(j, i, data, imageWidth, this->imageHeight, textureHeightMap.getChannels());
 			glm::vec3 normal = computeNormal(j, i, data, imageWidth,
-					this->imageHeight);
+					this->imageHeight, textureHeightMap.getChannels());
 			heights[j][i] = height;
 			normals[j][i] = normal;
 			vertexArray[vertexPointer] = Vertex(
@@ -82,12 +82,12 @@ Terrain::~Terrain() {
 			delete (heights[i]);
 }
 
-float Terrain::getHeight(int x, int z, unsigned char * data, int imageWidth, int imageHeight){
+float Terrain::getHeight(int x, int z, unsigned char * data, int imageWidth, int imageHeight, int numeroCanales){
 	if(x < 0 || x > imageWidth || z < 0 || z >  imageHeight)
 		return 0;
-	float b = data[x * 4 + z * (imageWidth * 4)];
-	float g = data[x * 4 + z * (imageWidth * 4) + 1];
-	float r = data[x * 4 + z * (imageWidth * 4) + 2];
+	float r = data[x * numeroCanales + z * (imageWidth * numeroCanales)];
+	float g = data[x * numeroCanales + z * (imageWidth * numeroCanales) + 1];
+	float b = data[x * numeroCanales + z * (imageWidth * numeroCanales) + 2];
 	float height = b * g * r;
 	height /= MAX_PIXEL_COLOR;
 	//height -= 0.5;
@@ -100,11 +100,11 @@ float Terrain::getHeight(int x, int z, unsigned char * data, int imageWidth, int
 
 }
 
-glm::vec3 Terrain::computeNormal(int x, int z, unsigned char * data, int imageWidth, int imageHeight){
-	float heightL = getHeight(x - 1, z, data, imageWidth, imageHeight);
-	float heightR = getHeight(x + 1, z, data, imageWidth, imageHeight);
-	float heightD = getHeight(x, z - 1, data, imageWidth, imageHeight);
-	float heightU = getHeight(x, z + 1, data, imageWidth, imageHeight);
+glm::vec3 Terrain::computeNormal(int x, int z, unsigned char * data, int imageWidth, int imageHeight, int numeroCanales){
+	float heightL = getHeight(x - 1, z, data, imageWidth, imageHeight, numeroCanales);
+	float heightR = getHeight(x + 1, z, data, imageWidth, imageHeight, numeroCanales);
+	float heightD = getHeight(x, z - 1, data, imageWidth, imageHeight, numeroCanales);
+	float heightU = getHeight(x, z + 1, data, imageWidth, imageHeight, numeroCanales);
 	glm::vec3 normal = glm::vec3(heightL - heightR, 2.0, heightD - heightU);
 	return glm::normalize(normal);
 }
