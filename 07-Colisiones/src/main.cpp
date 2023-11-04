@@ -68,7 +68,7 @@ Box boxLandingPad;
 Sphere esfera1(10, 10);
 Box boxCollider;
 Sphere sphereCollider(10, 10);
-Cylinder cylinderRay(10, 10, 0.05, 0.05);
+Cylinder rayModel(10, 10, 1.0, 1.0, 1.0);
 // Models complex instances
 Model modelRock;
 Model modelAircraft;
@@ -321,9 +321,9 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	sphereCollider.setShader(&shader);
 	sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 
-	cylinderRay.init();
-	cylinderRay.setShader(&shader);
-	cylinderRay.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
+	rayModel.init();
+	rayModel.setShader(&shader);
+	rayModel.setColor(glm::vec4(1.0));
 
 	boxCesped.init();
 	boxCesped.setShader(&shaderMulLighting);
@@ -699,7 +699,7 @@ void destroy() {
 	esfera1.destroy();
 	boxCollider.destroy();
 	sphereCollider.destroy();
-	cylinderRay.destroy();
+	rayModel.destroy();
 
 	// Custom objects Delete
 	modelAircraft.destroy();
@@ -1076,6 +1076,8 @@ void applicationLoop() {
 		TimeManager::Instance().CalculateFrameRate(true);
 		deltaTime = TimeManager::Instance().DeltaTime;
 		psi = processInput(true);
+
+		std::map<std::string, bool> collisionDetection;
 
 		// Variables donde se guardan las matrices de cada articulacion por 1 frame
 		std::vector<float> matrixDartJoints;
@@ -1583,6 +1585,116 @@ void applicationLoop() {
 			sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 			sphereCollider.enableWireMode();
 			sphereCollider.render(matrixCollider);
+		}
+
+		/*********************Prueba de colisiones****************************/
+		for (std::map<std::string,
+			std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::iterator it =
+			collidersSBB.begin(); it != collidersSBB.end(); it++) {
+			bool isCollision = false;
+			for (std::map<std::string,
+				std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::iterator jt =
+				collidersSBB.begin(); jt != collidersSBB.end(); jt++) {
+				if (it != jt && testSphereSphereIntersection(
+					std::get<0>(it->second), std::get<0>(jt->second))) {
+					std::cout << "Hay collision entre " << it->first <<
+						" y el modelo " << jt->first << std::endl;
+					isCollision = true;
+				}
+			}
+			addOrUpdateCollisionDetection(collisionDetection, it->first, isCollision);
+		}
+
+		for (std::map<std::string,
+			std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4>>::iterator it =
+			collidersOBB.begin(); it != collidersOBB.end(); it++) {
+			bool isColision = false;
+			for (std::map<std::string,
+				std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4>>::iterator jt =
+				collidersOBB.begin(); jt != collidersOBB.end(); jt++) {
+				if (it != jt && 
+					testOBBOBB(std::get<0>(it->second), std::get<0>(jt->second))) {
+					std::cout << "Hay colision entre " << it->first << " y el modelo" <<
+						jt->first << std::endl;
+					isColision = true;
+				}
+			}
+			addOrUpdateCollisionDetection(collisionDetection, it->first, isColision);
+		}
+
+		for (std::map<std::string,
+			std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::iterator it =
+			collidersSBB.begin(); it != collidersSBB.end(); it++) {
+			bool isCollision = false;
+			for (std::map<std::string,
+				std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4>>::iterator jt =
+				collidersOBB.begin(); jt != collidersOBB.end(); jt++) {
+				if (testSphereOBox(std::get<0>(it->second), std::get<0>(jt->second))) {
+					std::cout << "Hay colision del " << it->first << " y el modelo" <<
+						jt->first << std::endl;
+					isCollision = true;
+					addOrUpdateCollisionDetection(collisionDetection, jt->first, true);
+				}
+			}
+			addOrUpdateCollisionDetection(collisionDetection, it->first, isCollision);
+		}
+
+		std::map<std::string, bool>::iterator itCollision;
+		for (itCollision = collisionDetection.begin(); 
+			itCollision != collisionDetection.end(); itCollision++) {
+			std::map<std::string, std::tuple<AbstractModel::SBB, 
+				glm::mat4, glm::mat4>>::iterator sbbBuscado = 
+				collidersSBB.find(itCollision->first);
+			std::map<std::string, std::tuple<AbstractModel::OBB,
+				glm::mat4, glm::mat4>>::iterator obbBuscado =
+				collidersOBB.find(itCollision->first);
+			if (sbbBuscado != collidersSBB.end()) {
+				if (!itCollision->second) 
+					addOrUpdateColliders(collidersSBB, itCollision->first);
+			}
+			if (obbBuscado != collidersOBB.end()) {
+				if (!itCollision->second) 
+					addOrUpdateColliders(collidersOBB, itCollision->first);
+				else {
+					if (itCollision->first.compare("mayow") == 0)
+						modelMatrixMayow = std::get<1>(obbBuscado->second);
+					if (itCollision->first.compare("dart") == 0)
+						modelMatrixDart = std::get<1>(obbBuscado->second);
+				}
+			}
+		}
+
+		glm::mat4 modelMatrixRayMay = glm::mat4(modelMatrixMayow);
+		modelMatrixRayMay = glm::translate(modelMatrixRayMay, glm::vec3(0, 1, 0));
+		float maxDistanceRay = 10.0;
+		glm::vec3 rayDirection = modelMatrixRayMay[2];
+		glm::vec3 ori = modelMatrixRayMay[3];
+		glm::vec3 rmd = ori + rayDirection * (maxDistanceRay / 2.0f);
+		glm::vec3 targetRay = ori + rayDirection * maxDistanceRay;
+		modelMatrixRayMay[3] = glm::vec4(rmd, 1.0);
+		modelMatrixRayMay = glm::rotate(modelMatrixRayMay, glm::radians(90.0f), 
+			glm::vec3(1, 0, 0));
+		modelMatrixRayMay = glm::scale(modelMatrixRayMay, 
+			glm::vec3(0.05, maxDistanceRay, 0.05));
+		rayModel.render(modelMatrixRayMay);
+
+		std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::
+			iterator itSBB;
+		for (itSBB = collidersSBB.begin(); itSBB != collidersSBB.end(); itSBB++) {
+			float tRint;
+			if (raySphereIntersect(ori, targetRay, rayDirection,
+				std::get<0>(itSBB->second), tRint)) {
+				std::cout << "Collision del rayo con el modelo " << itSBB->first 
+				<< std::endl;
+			}
+		}
+		std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4>>::
+			iterator itOBB;
+		for (itOBB = collidersOBB.begin(); itOBB != collidersOBB.end(); itOBB++) {
+			if (testRayOBB(ori, targetRay, std::get<0>(itOBB->second))) {
+				std::cout << "Collision del rayo con el modelo " << itOBB->first
+					<< std::endl;
+			}
 		}
 
 		// Esto es para ilustrar la transformacion inversa de los coliders

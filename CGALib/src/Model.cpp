@@ -86,11 +86,15 @@ void Model::loadModel(const std::string & path) {
 	this->sbb.c = glm::vec3((this->aabb.mins.x + this->aabb.maxs.x) / 2.0f,
 			(this->aabb.mins.y + this->aabb.maxs.y) / 2.0f,
 			(this->aabb.mins.z + this->aabb.maxs.z) / 2.0f);
-	this->sbb.ratio = sqrt(
+	/*this->sbb.ratio = sqrt(
 			pow(this->aabb.mins.x - this->aabb.maxs.x, 2)
 					+ pow(this->aabb.mins.y - this->aabb.maxs.y, 2)
-					+ pow(this->aabb.mins.z - this->aabb.maxs.z, 2)) / 2.0f;
+					+ pow(this->aabb.mins.z - this->aabb.maxs.z, 2)) / 2.0f;*/
 
+	float dx = this->aabb.maxs.x - this->aabb.mins.x;
+	float dy = this->aabb.maxs.y - this->aabb.mins.y;
+	float dz = this->aabb.maxs.z - this->aabb.mins.z;
+	this->sbb.ratio = std::max(std::max(dx, dy), dz) / 2;
 
 	// Se crea la obb
 	this->obb.c = this->sbb.c;
