@@ -219,13 +219,12 @@ std::vector<float> lamp2Orientation = {
 	21.37 + 90, -65.0 + 90
 };
 
-/***
 // Blending model unsorted
 std::map<std::string, glm::vec3> blendingUnsorted = {
 		{"aircraft", glm::vec3(10.0, 0.0, -17.5)},
 		{"lambo", glm::vec3(23.0, 0.0, 0.0)},
 		{"heli", glm::vec3(5.0, 10.0, -5.0)}
-};***/
+};
 
 double deltaTime;
 double currTime, lastTime;
@@ -1264,8 +1263,8 @@ void applicationLoop() {
 		glActiveTexture(GL_TEXTURE0);
 
 		// Render for the aircraft model
-		modelMatrixAircraft[3][1] = terrain.getHeightTerrain(modelMatrixAircraft[3][0], modelMatrixAircraft[3][2]) + 2.0;
-		modelAircraft.render(modelMatrixAircraft);
+		/*modelMatrixAircraft[3][1] = terrain.getHeightTerrain(modelMatrixAircraft[3][0], modelMatrixAircraft[3][2]) + 2.0;
+		modelAircraft.render(modelMatrixAircraft);*/
 
 		// Render for the eclipse car
 		modelMatrixEclipse[3][1] = terrain.getHeightTerrain(modelMatrixEclipse[3][0], modelMatrixEclipse[3][2]);
@@ -1287,7 +1286,7 @@ void applicationLoop() {
 		modelEclipseRearWheels.render(modelMatrixRearWheels);
 
 		// Helicopter
-		glm::mat4 modelMatrixHeliChasis = glm::mat4(modelMatrixHeli);
+		/*glm::mat4 modelMatrixHeliChasis = glm::mat4(modelMatrixHeli);
 		modelHeliChasis.render(modelMatrixHeliChasis);
 
 		glm::mat4 modelMatrixHeliHeli = glm::mat4(modelMatrixHeliChasis);
@@ -1299,10 +1298,10 @@ void applicationLoop() {
 		modelMatrixHeliHeliBack = glm::translate(modelMatrixHeliHeliBack, glm::vec3(0.400524, 2.0928, -5.64124));
 		modelMatrixHeliHeliBack = glm::rotate(modelMatrixHeliHeliBack, rotHelHelBack, glm::vec3(1.0, 0.0, 0.0));
 		modelMatrixHeliHeliBack = glm::translate(modelMatrixHeliHeliBack, glm::vec3(-0.400524, -2.0928, 5.64124));
-		modelHeliHeliBack.render(modelMatrixHeliHeliBack);
+		modelHeliHeliBack.render(modelMatrixHeliHeliBack);*/
 
 		// Lambo car
-		glDisable(GL_CULL_FACE);
+		/*glDisable(GL_CULL_FACE);
 		glm::mat4 modelMatrixLamboChasis = glm::mat4(modelMatrixLambo);
 		modelMatrixLamboChasis[3][1] = terrain.getHeightTerrain(modelMatrixLamboChasis[3][0], modelMatrixLamboChasis[3][2]);
 		modelMatrixLamboChasis = glm::scale(modelMatrixLamboChasis, glm::vec3(1.3, 1.3, 1.3));
@@ -1319,7 +1318,7 @@ void applicationLoop() {
 		modelLamboRearLeftWheel.render(modelMatrixLamboChasis);
 		modelLamboRearRightWheel.render(modelMatrixLamboChasis);
 		// Se regresa el cull faces IMPORTANTE para las puertas
-		glEnable(GL_CULL_FACE);
+		glEnable(GL_CULL_FACE);*/
 
 		// Render lamp
 		for(int i = 0; i < lamp1Position.size(); i++){
@@ -1481,28 +1480,27 @@ void applicationLoop() {
 		/**********
 		 * Update the position with alpha objects
 		 */
-		/***
 		// Update the aircraft
 		blendingUnsorted.find("aircraft")->second = glm::vec3(modelMatrixAircraft[3]);
 		// Update the lambo
 		blendingUnsorted.find("lambo")->second = glm::vec3(modelMatrixLambo[3]);
 		// Update the helicopter
-		blendingUnsorted.find("heli")->second = glm::vec3(modelMatrixHeli[3]);***/
+		blendingUnsorted.find("heli")->second = glm::vec3(modelMatrixHeli[3]);
 
 		/**********
 		 * Sorter with alpha objects
 		 */
-		/***std::map<float, std::pair<std::string, glm::vec3>> blendingSorted;
+		std::map<float, std::pair<std::string, glm::vec3>> blendingSorted;
 		std::map<std::string, glm::vec3>::iterator itblend;
 		for(itblend = blendingUnsorted.begin(); itblend != blendingUnsorted.end(); itblend++){
 			float distanceFromView = glm::length(camera->getPosition() - itblend->second);
 			blendingSorted[distanceFromView] = std::make_pair(itblend->first, itblend->second);
-		}***/
+		}
 
 		/**********
 		 * Render de las transparencias
 		 */
-		/***glEnable(GL_BLEND);
+		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL_CULL_FACE);
 		for(std::map<float, std::pair<std::string, glm::vec3> >::reverse_iterator it = blendingSorted.rbegin(); it != blendingSorted.rend(); it++){
@@ -1543,7 +1541,7 @@ void applicationLoop() {
 				modelHeliHeli.render(modelMatrixHeliHeli);
 			}
 		}
-		glEnable(GL_CULL_FACE);***/
+		glEnable(GL_CULL_FACE);
 
 		/*******************************************
 		 * Creacion de colliders
