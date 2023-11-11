@@ -210,6 +210,7 @@ bool testOBBOBB(AbstractModel::OBB a, AbstractModel::OBB b){
 	return true;
 }
 
+/***
 bool testSLABPLane(float p, float v, float min, float max, float &tmin, float &tmax) {
 	if (fabs(v) <= 0.01) {
 		return p >= min && p <= max;
@@ -257,6 +258,6 @@ bool testRayOBB(glm::vec3 o, glm::vec3 t, AbstractModel::OBB collider) {
 	aabb.mins = cOBBTemp - collider.e;
 	aabb.maxs = cOBBTemp + collider.e;
 	return intersectSegmentAABB(oTemp, tTemp, aabb);
-}
+}***/
 
 #endif /* COLISIONES_H_ */

@@ -39,8 +39,9 @@
 
 #include "Headers/AnimationUtils.h"
 
+/***
 // Include Colision headers functions
-#include "Headers/Colisiones.h"
+#include "Headers/Colisiones.h"***/
 
 #define ARRAY_SIZE_IN_ELEMENTS(a) (sizeof(a)/sizeof(a[0]))
 
@@ -66,9 +67,9 @@ Box boxWalls;
 Box boxHighway;
 Box boxLandingPad;
 Sphere esfera1(10, 10);
-Box boxCollider;
+/***Box boxCollider;
 Sphere sphereCollider(10, 10);
-Cylinder rayModel(10, 10, 1.0, 1.0, 1.0);
+Cylinder rayModel(10, 10, 1.0, 1.0, 1.0);***/
 // Models complex instances
 Model modelRock;
 Model modelAircraft;
@@ -229,9 +230,10 @@ float GRAVITY = 1.81;
 double tmv = 0;
 double startTimeJump = 0;***/
 
+/***
 // Colliders
 std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> > collidersOBB;
-std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> > collidersSBB;
+std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> > collidersSBB;*/
 
 // Variables animacion maquina de estados eclipse
 const float avance = 0.1;
@@ -313,7 +315,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	skyboxSphere.setShader(&shaderSkybox);
 	skyboxSphere.setScale(glm::vec3(20.0f, 20.0f, 20.0f));
 
-	boxCollider.init();
+	/***boxCollider.init();
 	boxCollider.setShader(&shader);
 	boxCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 
@@ -323,7 +325,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	rayModel.init();
 	rayModel.setShader(&shader);
-	rayModel.setColor(glm::vec4(1.0));
+	rayModel.setColor(glm::vec4(1.0));***/
 
 	boxCesped.init();
 	boxCesped.setShader(&shaderMulLighting);
@@ -697,9 +699,9 @@ void destroy() {
 	boxHighway.destroy();
 	boxLandingPad.destroy();
 	esfera1.destroy();
-	boxCollider.destroy();
+	/***boxCollider.destroy();
 	sphereCollider.destroy();
-	rayModel.destroy();
+	rayModel.destroy();***/
 
 	// Custom objects Delete
 	modelAircraft.destroy();
@@ -1477,6 +1479,7 @@ void applicationLoop() {
 		 * Creacion de colliders
 		 * IMPORTANT do this before interpolations
 		 *******************************************/
+		/***
 		// Collider del dart vader lego
 		glm::mat4 modelmatrixColliderDart = glm::mat4(modelMatrixDart);
 		AbstractModel::OBB dartLegoBodyCollider;
@@ -1561,12 +1564,12 @@ void applicationLoop() {
 						mayowModelAnimate.getObb().c.z));
 		mayowCollider.e = mayowModelAnimate.getObb().e * glm::vec3(0.021, 0.021, 0.021) * glm::vec3(0.787401574, 0.787401574, 0.787401574);
 		mayowCollider.c = glm::vec3(modelmatrixColliderMayow[3]);
-		addOrUpdateColliders(collidersOBB, "mayow", mayowCollider, modelMatrixMayow);
+		addOrUpdateColliders(collidersOBB, "mayow", mayowCollider, modelMatrixMayow);***/
 
 		/*******************************************
 		 * Render de colliders
 		 *******************************************/
-		for (std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator it =
+		/***for (std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator it =
 				collidersOBB.begin(); it != collidersOBB.end(); it++) {
 			glm::mat4 matrixCollider = glm::mat4(1.0);
 			matrixCollider = glm::translate(matrixCollider, std::get<0>(it->second).c);
@@ -1585,10 +1588,10 @@ void applicationLoop() {
 			sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 			sphereCollider.enableWireMode();
 			sphereCollider.render(matrixCollider);
-		}
+		}***/
 
 		/*********************Prueba de colisiones****************************/
-		for (std::map<std::string,
+		/***for (std::map<std::string,
 			std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::iterator it =
 			collidersSBB.begin(); it != collidersSBB.end(); it++) {
 			bool isCollision = false;
@@ -1662,9 +1665,9 @@ void applicationLoop() {
 						modelMatrixDart = std::get<1>(obbBuscado->second);
 				}
 			}
-		}
+		}***/
 
-		glm::mat4 modelMatrixRayMay = glm::mat4(modelMatrixMayow);
+		/***glm::mat4 modelMatrixRayMay = glm::mat4(modelMatrixMayow);
 		modelMatrixRayMay = glm::translate(modelMatrixRayMay, glm::vec3(0, 1, 0));
 		float maxDistanceRay = 10.0;
 		glm::vec3 rayDirection = modelMatrixRayMay[2];
@@ -1695,7 +1698,7 @@ void applicationLoop() {
 				std::cout << "Collision del rayo con el modelo " << itOBB->first
 					<< std::endl;
 			}
-		}
+		}***/
 
 		// Esto es para ilustrar la transformacion inversa de los coliders
 		/*glm::vec3 cinv = glm::inverse(mayowCollider.u) * glm::vec4(rockCollider.c, 1.0);
