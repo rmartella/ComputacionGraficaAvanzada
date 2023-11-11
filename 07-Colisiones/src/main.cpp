@@ -233,7 +233,7 @@ double startTimeJump = 0;***/
 /***
 // Colliders
 std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> > collidersOBB;
-std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> > collidersSBB;*/
+std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> > collidersSBB;***/
 
 // Variables animacion maquina de estados eclipse
 const float avance = 0.1;
