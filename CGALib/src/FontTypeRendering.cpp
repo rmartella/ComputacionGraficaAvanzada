@@ -131,9 +131,11 @@ void FontTypeRendering::render(const std::string &str, float x, float y) {
 	// Se coloca el tama�o en Pixeles de la fuente.
 	FT_Set_Pixel_Sizes(face, 0, 12);
 	// Renderiza la fuente.
+	glEnable(GL_BLEND);
 	render_text(str, face, x, y, SCALEX, SCALEY);
 	// Se desabilita el sample de textura.
 	glBindSampler(0, 0);
+	glDisable(GL_BLEND);
 }
 
 /**
