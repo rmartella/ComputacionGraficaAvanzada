@@ -182,6 +182,8 @@ float rotHelHelBack = 0.0;
 // Var animate lambo dor
 int stateDoor = 0;
 float dorRotCount = 0.0;
+float rotWheelsX = 0.0;
+float rotWheelsY = 0.0;
 
 double deltaTime;
 double currTime, lastTime;
@@ -814,8 +816,6 @@ void applicationLoop() {
 	int state = 0;
 	float advanceCount = 0.0;
 	float rotCount = 0.0;
-	float rotWheelsX = 0.0;
-	float rotWheelsY = 0.0;
 	int numberAdvance = 0;
 	int maxAdvance = 0.0;
 

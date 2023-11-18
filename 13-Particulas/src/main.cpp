@@ -370,12 +370,11 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	// Inicialización de los shaders
 	shader.initialize("../Shaders/colorShader.vs", "../Shaders/colorShader.fs");
-	/*shaderSkybox.initialize("../Shaders/skyBox.vs", "../Shaders/skyBox.fs");
-	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation.vs", "../Shaders/multipleLights.fs");
-	shaderTerrain.initialize("../Shaders/terrain.vs", "../Shaders/terrain.fs");*/
 	shaderSkybox.initialize("../Shaders/skyBox.vs", "../Shaders/skyBox_fog.fs");
-	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation_fog.vs", "../Shaders/multipleLights_fog.fs");
-	shaderTerrain.initialize("../Shaders/terrain_fog.vs", "../Shaders/terrain_fog.fs");
+	/*shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation_fog.vs", "../Shaders/multipleLights_fog.fs");
+	shaderTerrain.initialize("../Shaders/terrain_fog.vs", "../Shaders/terrain_fog.fs");*/
+	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation_shadow.vs", "../Shaders/multipleLights_shadow.fs");
+	shaderTerrain.initialize("../Shaders/terrain_shadow.vs", "../Shaders/terrain_shadow.fs");
 	shaderTexture.initialize("../Shaders/texturizado.vs", "../Shaders/texturizado.fs");
 	shaderViewDepth.initialize("../Shaders/texturizado.vs", "../Shaders/texturizado_depth_view.fs");
 	shaderDepth.initialize("../Shaders/shadow_mapping_depth.vs", "../Shaders/shadow_mapping_depth.fs");
@@ -891,10 +890,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 				 SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);*/
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);*/
 	float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
@@ -1438,10 +1437,6 @@ void renderSolidScene(){
 	// Forze to enable the unit texture to 0 always ----------------- IMPORTANT
 	glActiveTexture(GL_TEXTURE0);
 
-	// Render for the aircraft model
-	/*modelMatrixAircraft[3][1] = terrain.getHeightTerrain(modelMatrixAircraft[3][0], modelMatrixAircraft[3][2]) + 2.0;
-	modelAircraft.render(modelMatrixAircraft);*/
-
 	// Render for the eclipse car
 	modelMatrixEclipse[3][1] = terrain.getHeightTerrain(modelMatrixEclipse[3][0], modelMatrixEclipse[3][2]);
 	glm::mat4 modelMatrixEclipseChasis = glm::mat4(modelMatrixEclipse);
@@ -1460,41 +1455,6 @@ void renderSolidScene(){
 	modelMatrixRearWheels = glm::rotate(modelMatrixRearWheels, rotWheelsX, glm::vec3(1, 0, 0));
 	modelMatrixRearWheels = glm::translate(modelMatrixRearWheels, glm::vec3(0.0, -1.05813, 4.35157));
 	modelEclipseRearWheels.render(modelMatrixRearWheels);
-
-	// Helicopter
-	/*glm::mat4 modelMatrixHeliChasis = glm::mat4(modelMatrixHeli);
-	modelHeliChasis.render(modelMatrixHeliChasis);
-
-	glm::mat4 modelMatrixHeliHeli = glm::mat4(modelMatrixHeliChasis);
-	modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, -0.249548));
-	modelMatrixHeliHeli = glm::rotate(modelMatrixHeliHeli, rotHelHelY, glm::vec3(0, 1, 0));
-	modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, 0.249548));
-	modelHeliHeli.render(modelMatrixHeliHeli);
-	glm::mat4 modelMatrixHeliHeliBack = glm::mat4(modelMatrixHeliChasis);
-	modelMatrixHeliHeliBack = glm::translate(modelMatrixHeliHeliBack, glm::vec3(0.400524, 2.0928, -5.64124));
-	modelMatrixHeliHeliBack = glm::rotate(modelMatrixHeliHeliBack, rotHelHelBack, glm::vec3(1.0, 0.0, 0.0));
-	modelMatrixHeliHeliBack = glm::translate(modelMatrixHeliHeliBack, glm::vec3(-0.400524, -2.0928, 5.64124));
-	modelHeliHeliBack.render(modelMatrixHeliHeliBack);*/
-
-	// Lambo car
-	/*glDisable(GL_CULL_FACE);
-	glm::mat4 modelMatrixLamboChasis = glm::mat4(modelMatrixLambo);
-	modelMatrixLamboChasis[3][1] = terrain.getHeightTerrain(modelMatrixLamboChasis[3][0], modelMatrixLamboChasis[3][2]);
-	modelMatrixLamboChasis = glm::scale(modelMatrixLamboChasis, glm::vec3(1.3, 1.3, 1.3));
-	modelLambo.render(modelMatrixLamboChasis);
-	glActiveTexture(GL_TEXTURE0);
-	glm::mat4 modelMatrixLamboLeftDor = glm::mat4(modelMatrixLamboChasis);
-	modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(1.08866, 0.705743, 0.968917));
-	modelMatrixLamboLeftDor = glm::rotate(modelMatrixLamboLeftDor, glm::radians(dorRotCount), glm::vec3(1.0, 0, 0));
-	modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(-1.08866, -0.705743, -0.968917));
-	modelLamboLeftDor.render(modelMatrixLamboLeftDor);
-	modelLamboRightDor.render(modelMatrixLamboChasis);
-	modelLamboFrontLeftWheel.render(modelMatrixLamboChasis);
-	modelLamboFrontRightWheel.render(modelMatrixLamboChasis);
-	modelLamboRearLeftWheel.render(modelMatrixLamboChasis);
-	modelLamboRearRightWheel.render(modelMatrixLamboChasis);
-	// Se regresa el cull faces IMPORTANTE para las puertas
-	glEnable(GL_CULL_FACE);*/
 
 	// Render lamp
 	for(int i = 0; i < lamp1Position.size(); i++){
@@ -1619,7 +1579,7 @@ void renderSolidScene(){
 	modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021f));
 	mayowModelAnimate.setAnimationIndex(animationMayowIndex);
 	mayowModelAnimate.render(modelMatrixMayowBody);
-	animationMayowIndex = 1;
+	//animationMayowIndex = 1;
 
 	modelMatrixCowboy[3][1] = terrain.getHeightTerrain(modelMatrixCowboy[3][0], modelMatrixCowboy[3][2]);
 	glm::mat4 modelMatrixCowboyBody = glm::mat4(modelMatrixCowboy);
@@ -1643,9 +1603,25 @@ void renderSolidScene(){
 	glm::mat4 modelMatrixFountainCopy = glm::scale(modelMatrixFountain, glm::vec3(10.0f, 10.0f, 10.0f));
 	modelFountain.render(modelMatrixFountainCopy);
 	glEnable(GL_CULL_FACE);
+
+	/*******************************************
+	 * Skybox
+	 *******************************************/
+	GLint oldCullFaceMode;
+	GLint oldDepthFuncMode;
+	// deshabilita el modo del recorte de caras ocultas para ver las esfera desde adentro
+	glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFaceMode);
+	glGetIntegerv(GL_DEPTH_FUNC, &oldDepthFuncMode);
+	shaderSkybox.setFloat("skybox", 0);
+	glCullFace(GL_FRONT);
+	glDepthFunc(GL_LEQUAL);
+	glActiveTexture(GL_TEXTURE0);
+	skyboxSphere.render();
+	glCullFace(oldCullFaceMode);
+	glDepthFunc(oldDepthFuncMode);
 }
 
-void renderAlphaScene(){
+void renderAlphaScene(bool render = true){
 	/**********
 	 * Update the position with alpha objects
 	 */
@@ -1713,15 +1689,24 @@ void renderAlphaScene(){
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
 
-	/************Render de imagen de frente**************/
-	shaderTexture.setMatrix4("projection", 1, false, glm::value_ptr(glm::mat4(1.0)));
-	shaderTexture.setMatrix4("view", 1, false, glm::value_ptr(glm::mat4(1.0)));
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureActivaID);
-	shaderTexture.setInt("outTexture", 0);
-	glEnable(GL_BLEND);
-	boxIntro.render();
-	glDisable(GL_BLEND);
+	if(render){
+		/************Render de imagen de frente**************/
+		shaderTexture.setMatrix4("projection", 1, false, glm::value_ptr(glm::mat4(1.0)));
+		shaderTexture.setMatrix4("view", 1, false, glm::value_ptr(glm::mat4(1.0)));
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureActivaID);
+		shaderTexture.setInt("outTexture", 0);
+		glEnable(GL_BLEND);
+		boxIntro.render();
+		glDisable(GL_BLEND);
+
+		modelText->render("Texto en OpenGL", -1, 0, 1, 0, 0, 24);
+	}
+}
+
+void renderScene(){
+	renderSolidScene();
+	renderAlphaScene(false);
 }
 
 void applicationLoop() {
@@ -1774,7 +1759,7 @@ void applicationLoop() {
 
 	textureActivaID = textureInit1ID;
 
-	glm::vec3 lightPos = glm::vec3(10.0, 10.0, 0.0);
+	glm::vec3 lightPos = glm::vec3(10.0, 10.0, -10.0);
 
 	while (psi) {
 		currTime = TimeManager::Instance().GetTime();
@@ -1821,6 +1806,16 @@ void applicationLoop() {
 		camera->updateCamera();
 		glm::mat4 view = camera->getViewMatrix();
 
+		// Projection light shadow mapping
+		glm::mat4 lightProjection, lightView;
+		glm::mat4 lightSpaceMatrix;
+		float near_plane = 0.1f, far_plane = 20.0f;
+		//lightProjection = glm::perspective(glm::radians(45.0f), (GLfloat)SHADOW_WIDTH / (GLfloat)SHADOW_HEIGHT, near_plane, far_plane); // note that if you use a perspective projection matrix you'll have to change the light position as the current light position isn't enough to reflect the whole scene
+		lightProjection = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, near_plane, far_plane);
+		lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+		lightSpaceMatrix = lightProjection * lightView;
+		shaderDepth.setMatrix4("lightSpaceMatrix", 1, false, glm::value_ptr(lightSpaceMatrix));
+
 		// Settea la matriz de vista y projection al shader con solo color
 		shader.setMatrix4("projection", 1, false, glm::value_ptr(projection));
 		shader.setMatrix4("view", 1, false, glm::value_ptr(view));
@@ -1835,11 +1830,15 @@ void applicationLoop() {
 					glm::value_ptr(projection));
 		shaderMulLighting.setMatrix4("view", 1, false,
 				glm::value_ptr(view));
+		shaderMulLighting.setMatrix4("lightSpaceMatrix", 1, false,
+				glm::value_ptr(lightSpaceMatrix));
 		// Settea la matriz de vista y projection al shader con multiples luces
 		shaderTerrain.setMatrix4("projection", 1, false,
 				glm::value_ptr(projection));
 		shaderTerrain.setMatrix4("view", 1, false,
 				glm::value_ptr(view));
+		shaderTerrain.setMatrix4("lightSpaceMatrix", 1, false,
+				glm::value_ptr(lightSpaceMatrix));
 
 		/*******************************************
 		 * Propiedades de neblina
@@ -1852,16 +1851,24 @@ void applicationLoop() {
 		 * Propiedades Luz direccional
 		 *******************************************/
 		shaderMulLighting.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
-		shaderMulLighting.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.05, 0.05, 0.05)));
+		/*shaderMulLighting.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.05, 0.05, 0.05)));
 		shaderMulLighting.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
-		shaderMulLighting.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.4, 0.4, 0.4)));
-		shaderMulLighting.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-1.0, 0.0, 0.0)));
+		shaderMulLighting.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.4, 0.4, 0.4)));*/
+		shaderMulLighting.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
+		shaderMulLighting.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
+		shaderMulLighting.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
+		//shaderMulLighting.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-1.0, 0.0, 0.0)));
+		shaderMulLighting.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-0.707106781, -0.707106781, 0.0)));
 
 		shaderTerrain.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
-		shaderTerrain.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.05, 0.05, 0.05)));
+		/*shaderTerrain.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.05, 0.05, 0.05)));
 		shaderTerrain.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
-		shaderTerrain.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.4, 0.4, 0.4)));
-		shaderTerrain.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-1.0, 0.0, 0.0)));
+		shaderTerrain.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.4, 0.4, 0.4)));*/
+		shaderTerrain.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
+		shaderTerrain.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
+		shaderTerrain.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
+		//shaderTerrain.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-1.0, 0.0, 0.0)));
+		shaderTerrain.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-0.707106781, -0.707106781, 0.0)));
 
 		/*******************************************
 		 * Propiedades SpotLights
@@ -1869,8 +1876,11 @@ void applicationLoop() {
 		shaderMulLighting.setInt("spotLightCount", 1);
 		shaderTerrain.setInt("spotLightCount", 1);
 		glm::vec3 spotPosition = glm::vec3(modelMatrixHeli * glm::vec4(0.0, 0.2, 1.75, 1.0));
-		shaderMulLighting.setVectorFloat3("spotLights[0].light.ambient", glm::value_ptr(glm::vec3(0.0, 0.0, 0.0)));
+		/*shaderMulLighting.setVectorFloat3("spotLights[0].light.ambient", glm::value_ptr(glm::vec3(0.0, 0.0, 0.0)));
 		shaderMulLighting.setVectorFloat3("spotLights[0].light.diffuse", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
+		shaderMulLighting.setVectorFloat3("spotLights[0].light.specular", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));*/
+		shaderMulLighting.setVectorFloat3("spotLights[0].light.ambient", glm::value_ptr(glm::vec3(0.0, 0.0, 0.0)));
+		shaderMulLighting.setVectorFloat3("spotLights[0].light.diffuse", glm::value_ptr(glm::vec3(0.2, 0.3, 0.2)));
 		shaderMulLighting.setVectorFloat3("spotLights[0].light.specular", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
 		shaderMulLighting.setVectorFloat3("spotLights[0].position", glm::value_ptr(spotPosition));
 		shaderMulLighting.setVectorFloat3("spotLights[0].direction", glm::value_ptr(glm::vec3(0, -1, 0)));
@@ -1879,8 +1889,11 @@ void applicationLoop() {
 		shaderMulLighting.setFloat("spotLights[0].quadratic", 0.03);
 		shaderMulLighting.setFloat("spotLights[0].cutOff", cos(glm::radians(12.5f)));
 		shaderMulLighting.setFloat("spotLights[0].outerCutOff", cos(glm::radians(15.0f)));
-		shaderTerrain.setVectorFloat3("spotLights[0].light.ambient", glm::value_ptr(glm::vec3(0.0, 0.0, 0.0)));
+		/*shaderTerrain.setVectorFloat3("spotLights[0].light.ambient", glm::value_ptr(glm::vec3(0.0, 0.0, 0.0)));
 		shaderTerrain.setVectorFloat3("spotLights[0].light.diffuse", glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
+		shaderTerrain.setVectorFloat3("spotLights[0].light.specular", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));*/
+		shaderTerrain.setVectorFloat3("spotLights[0].light.ambient", glm::value_ptr(glm::vec3(0.0, 0.0, 0.0)));
+		shaderTerrain.setVectorFloat3("spotLights[0].light.diffuse", glm::value_ptr(glm::vec3(0.2, 0.3, 0.2)));
 		shaderTerrain.setVectorFloat3("spotLights[0].light.specular", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
 		shaderTerrain.setVectorFloat3("spotLights[0].position", glm::value_ptr(spotPosition));
 		shaderTerrain.setVectorFloat3("spotLights[0].direction", glm::value_ptr(glm::vec3(0, -1, 0)));
@@ -1952,16 +1965,6 @@ void applicationLoop() {
 			continue;
 		}
 
-		// Projection light shadow mapping
-		glm::mat4 lightProjection, lightView;
-		glm::mat4 lightSpaceMatrix;
-		float near_plane = 0.1f, far_plane = 20.0f;
-		//lightProjection = glm::perspective(glm::radians(45.0f), (GLfloat)SHADOW_WIDTH / (GLfloat)SHADOW_HEIGHT, near_plane, far_plane); // note that if you use a perspective projection matrix you'll have to change the light position as the current light position isn't enough to reflect the whole scene
-		lightProjection = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, near_plane, far_plane);
-		lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-		lightSpaceMatrix = lightProjection * lightView;
-		shaderDepth.setMatrix4("lightSpaceMatrix", 1, false, glm::value_ptr(lightSpaceMatrix));
-
 		/*******************************************
 		 * 1.- We render the depth buffer
 		 *******************************************/
@@ -1973,7 +1976,7 @@ void applicationLoop() {
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glCullFace(GL_FRONT);
 		prepareDepthScene();
-		renderSolidScene();
+		renderScene();
 		glCullFace(GL_BACK);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -1981,7 +1984,7 @@ void applicationLoop() {
 		 * Debug to view the texture view map
 		 *******************************************/
 		// reset viewport
-		/***glViewport(0, 0, screenWidth, screenHeight);
+		/*glViewport(0, 0, screenWidth, screenHeight);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// render Depth map to quad for visual debugging
 		shaderViewDepth.setMatrix4("projection", 1, false, glm::value_ptr(glm::mat4(1.0)));
@@ -1991,7 +1994,7 @@ void applicationLoop() {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
 		boxViewDepth.setScale(glm::vec3(2.0, 2.0, 1.0));
-		boxViewDepth.render();***/
+		boxViewDepth.render();*/
 
 		/*******************************************
 		 * 2.- We render the normal objects
@@ -2004,24 +2007,6 @@ void applicationLoop() {
 		shaderMulLighting.setInt("shadowMap", 10);
 		shaderTerrain.setInt("shadowMap", 10);
 		renderSolidScene();
-
-		/*******************************************
-		 * Skybox
-		 *******************************************/
-		GLint oldCullFaceMode;
-		GLint oldDepthFuncMode;
-		// deshabilita el modo del recorte de caras ocultas para ver las esfera desde adentro
-		glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFaceMode);
-		glGetIntegerv(GL_DEPTH_FUNC, &oldDepthFuncMode);
-		shaderSkybox.setFloat("skybox", 0);
-		glCullFace(GL_FRONT);
-		glDepthFunc(GL_LEQUAL);
-		glActiveTexture(GL_TEXTURE0);
-		skyboxSphere.render();
-		glCullFace(oldCullFaceMode);
-		glDepthFunc(oldDepthFuncMode);
-
-		renderAlphaScene();
 
 		/*******************************************
 		 * Creacion de colliders
@@ -2446,8 +2431,7 @@ void applicationLoop() {
 		// Constantes de animaciones
 		rotHelHelY += 0.5;
 		rotHelHelBack += 0.5;
-
-		modelText->render("Texto en OpenGL", -1, 0, 1, 0, 0, 24);
+		animationMayowIndex = 1;
 
 		glfwSwapBuffers(window);
 

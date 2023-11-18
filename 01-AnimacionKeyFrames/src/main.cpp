@@ -174,6 +174,8 @@ double currTime, lastTime;
 // Variables animacion maquina de estados eclipse
 const float avance = 0.1;
 const float giroEclipse = 0.5f;
+float rotWheelsX = 0.0;
+float rotWheelsY = 0.0;
 
 // Se definen todos las funciones.
 void reshapeCallback(GLFWwindow *Window, int widthRes, int heightRes);
@@ -760,8 +762,6 @@ void applicationLoop() {
 	int state = 0;
 	float advanceCount = 0.0;
 	float rotCount = 0.0;
-	float rotWheelsX = 0.0;
-	float rotWheelsY = 0.0;
 	int numberAdvance = 0;
 	int maxAdvance = 0.0;
 

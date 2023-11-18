@@ -220,6 +220,8 @@ float rotHelHelBack = 0.0;
 // Var animate lambo dor
 int stateDoor = 0;
 float dorRotCount = 0.0;
+float rotWheelsX = 0.0;
+float rotWheelsY = 0.0;
 
 // Lamps position
 std::vector<glm::vec3> lamp1Position = {
@@ -360,9 +362,6 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
 	// Inicialización de los shaders
 	shader.initialize("../Shaders/colorShader.vs", "../Shaders/colorShader.fs");
-	/*shaderSkybox.initialize("../Shaders/skyBox.vs", "../Shaders/skyBox.fs");
-	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation.vs", "../Shaders/multipleLights.fs");
-	shaderTerrain.initialize("../Shaders/terrain.vs", "../Shaders/terrain.fs");*/
 	shaderSkybox.initialize("../Shaders/skyBox.vs", "../Shaders/skyBox_fog.fs");
 	shaderMulLighting.initialize("../Shaders/iluminacion_textura_animation_fog.vs", "../Shaders/multipleLights_fog.fs");
 	shaderTerrain.initialize("../Shaders/terrain_fog.vs", "../Shaders/terrain_fog.fs");
@@ -1239,8 +1238,6 @@ void applicationLoop() {
 	int state = 0;
 	float advanceCount = 0.0;
 	float rotCount = 0.0;
-	float rotWheelsX = 0.0;
-	float rotWheelsY = 0.0;
 	int numberAdvance = 0;
 	int maxAdvance = 0.0;
 
@@ -1489,10 +1486,6 @@ void applicationLoop() {
 		// Forze to enable the unit texture to 0 always ----------------- IMPORTANT
 		glActiveTexture(GL_TEXTURE0);
 
-		// Render for the aircraft model
-		/*modelMatrixAircraft[3][1] = terrain.getHeightTerrain(modelMatrixAircraft[3][0], modelMatrixAircraft[3][2]) + 2.0;
-		modelAircraft.render(modelMatrixAircraft);*/
-
 		// Render for the eclipse car
 		modelMatrixEclipse[3][1] = terrain.getHeightTerrain(modelMatrixEclipse[3][0], modelMatrixEclipse[3][2]);
 		glm::mat4 modelMatrixEclipseChasis = glm::mat4(modelMatrixEclipse);
@@ -1511,41 +1504,6 @@ void applicationLoop() {
 		modelMatrixRearWheels = glm::rotate(modelMatrixRearWheels, rotWheelsX, glm::vec3(1, 0, 0));
 		modelMatrixRearWheels = glm::translate(modelMatrixRearWheels, glm::vec3(0.0, -1.05813, 4.35157));
 		modelEclipseRearWheels.render(modelMatrixRearWheels);
-
-		// Helicopter
-		/*glm::mat4 modelMatrixHeliChasis = glm::mat4(modelMatrixHeli);
-		modelHeliChasis.render(modelMatrixHeliChasis);
-
-		glm::mat4 modelMatrixHeliHeli = glm::mat4(modelMatrixHeliChasis);
-		modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, -0.249548));
-		modelMatrixHeliHeli = glm::rotate(modelMatrixHeliHeli, rotHelHelY, glm::vec3(0, 1, 0));
-		modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, 0.249548));
-		modelHeliHeli.render(modelMatrixHeliHeli);
-		glm::mat4 modelMatrixHeliHeliBack = glm::mat4(modelMatrixHeliChasis);
-		modelMatrixHeliHeliBack = glm::translate(modelMatrixHeliHeliBack, glm::vec3(0.400524, 2.0928, -5.64124));
-		modelMatrixHeliHeliBack = glm::rotate(modelMatrixHeliHeliBack, rotHelHelBack, glm::vec3(1.0, 0.0, 0.0));
-		modelMatrixHeliHeliBack = glm::translate(modelMatrixHeliHeliBack, glm::vec3(-0.400524, -2.0928, 5.64124));
-		modelHeliHeliBack.render(modelMatrixHeliHeliBack);*/
-
-		// Lambo car
-		/*glDisable(GL_CULL_FACE);
-		glm::mat4 modelMatrixLamboChasis = glm::mat4(modelMatrixLambo);
-		modelMatrixLamboChasis[3][1] = terrain.getHeightTerrain(modelMatrixLamboChasis[3][0], modelMatrixLamboChasis[3][2]);
-		modelMatrixLamboChasis = glm::scale(modelMatrixLamboChasis, glm::vec3(1.3, 1.3, 1.3));
-		modelLambo.render(modelMatrixLamboChasis);
-		glActiveTexture(GL_TEXTURE0);
-		glm::mat4 modelMatrixLamboLeftDor = glm::mat4(modelMatrixLamboChasis);
-		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(1.08866, 0.705743, 0.968917));
-		modelMatrixLamboLeftDor = glm::rotate(modelMatrixLamboLeftDor, glm::radians(dorRotCount), glm::vec3(1.0, 0, 0));
-		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(-1.08866, -0.705743, -0.968917));
-		modelLamboLeftDor.render(modelMatrixLamboLeftDor);
-		modelLamboRightDor.render(modelMatrixLamboChasis);
-		modelLamboFrontLeftWheel.render(modelMatrixLamboChasis);
-		modelLamboFrontRightWheel.render(modelMatrixLamboChasis);
-		modelLamboRearLeftWheel.render(modelMatrixLamboChasis);
-		modelLamboRearRightWheel.render(modelMatrixLamboChasis);
-		// Se regresa el cull faces IMPORTANTE para las puertas
-		glEnable(GL_CULL_FACE);*/
 
 		// Render lamp
 		for(int i = 0; i < lamp1Position.size(); i++){
@@ -1711,26 +1669,6 @@ void applicationLoop() {
 		glCullFace(oldCullFaceMode);
 		glDepthFunc(oldDepthFuncMode);
 
-		/**********
-		 * Update the position with alpha objects
-		 */
-		// Update the aircraft
-		blendingUnsorted.find("aircraft")->second = glm::vec3(modelMatrixAircraft[3]);
-		// Update the lambo
-		blendingUnsorted.find("lambo")->second = glm::vec3(modelMatrixLambo[3]);
-		// Update the helicopter
-		blendingUnsorted.find("heli")->second = glm::vec3(modelMatrixHeli[3]);
-
-		/**********
-		 * Sorter with alpha objects
-		 */
-		std::map<float, std::pair<std::string, glm::vec3>> blendingSorted;
-		std::map<std::string, glm::vec3>::iterator itblend;
-		for(itblend = blendingUnsorted.begin(); itblend != blendingUnsorted.end(); itblend++){
-			float distanceFromView = glm::length(camera->getPosition() - itblend->second);
-			blendingSorted[distanceFromView] = std::make_pair(itblend->first, itblend->second);
-		}
-
 		/*******************************************
 		 * Creacion de colliders
 		 * IMPORTANT do this before interpolations
@@ -1843,6 +1781,40 @@ void applicationLoop() {
 			sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 			sphereCollider.enableWireMode();
 			sphereCollider.render(matrixCollider);
+		}
+
+		glm::mat4 modelMatrixRayMay = glm::mat4(modelMatrixMayow);
+		modelMatrixRayMay = glm::translate(modelMatrixRayMay, glm::vec3(0, 1, 0));
+		float maxDistanceRay = 10.0;
+		glm::vec3 rayDirection = modelMatrixRayMay[2];
+		glm::vec3 ori = modelMatrixRayMay[3];
+		glm::vec3 rmd = ori + rayDirection * (maxDistanceRay / 2.0f);
+		glm::vec3 targetRay = ori + rayDirection * maxDistanceRay;
+		modelMatrixRayMay[3] = glm::vec4(rmd, 1.0);
+		modelMatrixRayMay = glm::rotate(modelMatrixRayMay, glm::radians(90.0f), 
+			glm::vec3(1, 0, 0));
+		modelMatrixRayMay = glm::scale(modelMatrixRayMay, 
+			glm::vec3(0.05, maxDistanceRay, 0.05));
+		rayModel.render(modelMatrixRayMay);
+
+		/**********
+		 * Update the position with alpha objects
+		 */
+		// Update the aircraft
+		blendingUnsorted.find("aircraft")->second = glm::vec3(modelMatrixAircraft[3]);
+		// Update the lambo
+		blendingUnsorted.find("lambo")->second = glm::vec3(modelMatrixLambo[3]);
+		// Update the helicopter
+		blendingUnsorted.find("heli")->second = glm::vec3(modelMatrixHeli[3]);
+
+		/**********
+		 * Sorter with alpha objects
+		 */
+		std::map<float, std::pair<std::string, glm::vec3>> blendingSorted;
+		std::map<std::string, glm::vec3>::iterator itblend;
+		for(itblend = blendingUnsorted.begin(); itblend != blendingUnsorted.end(); itblend++){
+			float distanceFromView = glm::length(camera->getPosition() - itblend->second);
+			blendingSorted[distanceFromView] = std::make_pair(itblend->first, itblend->second);
 		}
 
 		/**********
@@ -1978,20 +1950,6 @@ void applicationLoop() {
 				}
 			}
 		}
-
-		glm::mat4 modelMatrixRayMay = glm::mat4(modelMatrixMayow);
-		modelMatrixRayMay = glm::translate(modelMatrixRayMay, glm::vec3(0, 1, 0));
-		float maxDistanceRay = 10.0;
-		glm::vec3 rayDirection = modelMatrixRayMay[2];
-		glm::vec3 ori = modelMatrixRayMay[3];
-		glm::vec3 rmd = ori + rayDirection * (maxDistanceRay / 2.0f);
-		glm::vec3 targetRay = ori + rayDirection * maxDistanceRay;
-		modelMatrixRayMay[3] = glm::vec4(rmd, 1.0);
-		modelMatrixRayMay = glm::rotate(modelMatrixRayMay, glm::radians(90.0f), 
-			glm::vec3(1, 0, 0));
-		modelMatrixRayMay = glm::scale(modelMatrixRayMay, 
-			glm::vec3(0.05, maxDistanceRay, 0.05));
-		rayModel.render(modelMatrixRayMay);
 
 		std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::
 			iterator itSBB;

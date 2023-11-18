@@ -203,6 +203,8 @@ float rotHelHelBack = 0.0;
 // Var animate lambo dor
 int stateDoor = 0;
 float dorRotCount = 0.0;
+float rotWheelsX = 0.0;
+float rotWheelsY = 0.0;
 
 // Lamps position
 std::vector<glm::vec3> lamp1Position = {
@@ -1074,8 +1076,6 @@ void applicationLoop() {
 	int state = 0;
 	float advanceCount = 0.0;
 	float rotCount = 0.0;
-	float rotWheelsX = 0.0;
-	float rotWheelsY = 0.0;
 	int numberAdvance = 0;
 	int maxAdvance = 0.0;
 
@@ -1636,6 +1636,20 @@ void applicationLoop() {
 			sphereCollider.render(matrixCollider);
 		}
 
+		glm::mat4 modelMatrixRayMay = glm::mat4(modelMatrixMayow);
+		modelMatrixRayMay = glm::translate(modelMatrixRayMay, glm::vec3(0, 1, 0));
+		float maxDistanceRay = 10.0;
+		glm::vec3 rayDirection = modelMatrixRayMay[2];
+		glm::vec3 ori = modelMatrixRayMay[3];
+		glm::vec3 rmd = ori + rayDirection * (maxDistanceRay / 2.0f);
+		glm::vec3 targetRay = ori + rayDirection * maxDistanceRay;
+		modelMatrixRayMay[3] = glm::vec4(rmd, 1.0);
+		modelMatrixRayMay = glm::rotate(modelMatrixRayMay, glm::radians(90.0f), 
+			glm::vec3(1, 0, 0));
+		modelMatrixRayMay = glm::scale(modelMatrixRayMay, 
+			glm::vec3(0.05, maxDistanceRay, 0.05));
+		rayModel.render(modelMatrixRayMay);
+
 		/*********************Prueba de colisiones****************************/
 		for (std::map<std::string,
 			std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::iterator it =
@@ -1712,20 +1726,6 @@ void applicationLoop() {
 				}
 			}
 		}
-
-		glm::mat4 modelMatrixRayMay = glm::mat4(modelMatrixMayow);
-		modelMatrixRayMay = glm::translate(modelMatrixRayMay, glm::vec3(0, 1, 0));
-		float maxDistanceRay = 10.0;
-		glm::vec3 rayDirection = modelMatrixRayMay[2];
-		glm::vec3 ori = modelMatrixRayMay[3];
-		glm::vec3 rmd = ori + rayDirection * (maxDistanceRay / 2.0f);
-		glm::vec3 targetRay = ori + rayDirection * maxDistanceRay;
-		modelMatrixRayMay[3] = glm::vec4(rmd, 1.0);
-		modelMatrixRayMay = glm::rotate(modelMatrixRayMay, glm::radians(90.0f), 
-			glm::vec3(1, 0, 0));
-		modelMatrixRayMay = glm::scale(modelMatrixRayMay, 
-			glm::vec3(0.05, maxDistanceRay, 0.05));
-		rayModel.render(modelMatrixRayMay);
 
 		std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::
 			iterator itSBB;

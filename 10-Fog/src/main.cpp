@@ -213,6 +213,8 @@ float rotHelHelBack = 0.0;
 // Var animate lambo dor
 int stateDoor = 0;
 float dorRotCount = 0.0;
+float rotWheelsX = 0.0;
+float rotWheelsY = 0.0;
 
 // Lamps position
 std::vector<glm::vec3> lamp1Position = {
@@ -1137,8 +1139,6 @@ void applicationLoop() {
 	int state = 0;
 	float advanceCount = 0.0;
 	float rotCount = 0.0;
-	float rotWheelsX = 0.0;
-	float rotWheelsY = 0.0;
 	int numberAdvance = 0;
 	int maxAdvance = 0.0;
 
@@ -1600,26 +1600,6 @@ void applicationLoop() {
 		glCullFace(oldCullFaceMode);
 		glDepthFunc(oldDepthFuncMode);
 
-		/**********
-		 * Update the position with alpha objects
-		 */
-		// Update the aircraft
-		blendingUnsorted.find("aircraft")->second = glm::vec3(modelMatrixAircraft[3]);
-		// Update the lambo
-		blendingUnsorted.find("lambo")->second = glm::vec3(modelMatrixLambo[3]);
-		// Update the helicopter
-		blendingUnsorted.find("heli")->second = glm::vec3(modelMatrixHeli[3]);
-
-		/**********
-		 * Sorter with alpha objects
-		 */
-		std::map<float, std::pair<std::string, glm::vec3>> blendingSorted;
-		std::map<std::string, glm::vec3>::iterator itblend;
-		for(itblend = blendingUnsorted.begin(); itblend != blendingUnsorted.end(); itblend++){
-			float distanceFromView = glm::length(camera->getPosition() - itblend->second);
-			blendingSorted[distanceFromView] = std::make_pair(itblend->first, itblend->second);
-		}
-
 		/*******************************************
 		 * Creacion de colliders
 		 * IMPORTANT do this before interpolations
@@ -1710,6 +1690,64 @@ void applicationLoop() {
 		mayowCollider.c = glm::vec3(modelmatrixColliderMayow[3]);
 		addOrUpdateColliders(collidersOBB, "mayow", mayowCollider, modelMatrixMayow);
 
+		/*******************************************
+		 * Render de colliders
+		 *******************************************/
+		for (std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator it =
+				collidersOBB.begin(); it != collidersOBB.end(); it++) {
+			glm::mat4 matrixCollider = glm::mat4(1.0);
+			matrixCollider = glm::translate(matrixCollider, std::get<0>(it->second).c);
+			matrixCollider = matrixCollider * glm::mat4(std::get<0>(it->second).u);
+			matrixCollider = glm::scale(matrixCollider, std::get<0>(it->second).e * 2.0f);
+			boxCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
+			boxCollider.enableWireMode();
+			boxCollider.render(matrixCollider);
+		}
+
+		for (std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> >::iterator it =
+				collidersSBB.begin(); it != collidersSBB.end(); it++) {
+			glm::mat4 matrixCollider = glm::mat4(1.0);
+			matrixCollider = glm::translate(matrixCollider, std::get<0>(it->second).c);
+			matrixCollider = glm::scale(matrixCollider, glm::vec3(std::get<0>(it->second).ratio * 2.0f));
+			sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
+			sphereCollider.enableWireMode();
+			sphereCollider.render(matrixCollider);
+		}
+
+		glm::mat4 modelMatrixRayMay = glm::mat4(modelMatrixMayow);
+		modelMatrixRayMay = glm::translate(modelMatrixRayMay, glm::vec3(0, 1, 0));
+		float maxDistanceRay = 10.0;
+		glm::vec3 rayDirection = modelMatrixRayMay[2];
+		glm::vec3 ori = modelMatrixRayMay[3];
+		glm::vec3 rmd = ori + rayDirection * (maxDistanceRay / 2.0f);
+		glm::vec3 targetRay = ori + rayDirection * maxDistanceRay;
+		modelMatrixRayMay[3] = glm::vec4(rmd, 1.0);
+		modelMatrixRayMay = glm::rotate(modelMatrixRayMay, glm::radians(90.0f), 
+			glm::vec3(1, 0, 0));
+		modelMatrixRayMay = glm::scale(modelMatrixRayMay, 
+			glm::vec3(0.05, maxDistanceRay, 0.05));
+		rayModel.render(modelMatrixRayMay);
+
+		/**********
+		 * Update the position with alpha objects
+		 */
+		// Update the aircraft
+		blendingUnsorted.find("aircraft")->second = glm::vec3(modelMatrixAircraft[3]);
+		// Update the lambo
+		blendingUnsorted.find("lambo")->second = glm::vec3(modelMatrixLambo[3]);
+		// Update the helicopter
+		blendingUnsorted.find("heli")->second = glm::vec3(modelMatrixHeli[3]);
+
+		/**********
+		 * Sorter with alpha objects
+		 */
+		std::map<float, std::pair<std::string, glm::vec3>> blendingSorted;
+		std::map<std::string, glm::vec3>::iterator itblend;
+		for(itblend = blendingUnsorted.begin(); itblend != blendingUnsorted.end(); itblend++){
+			float distanceFromView = glm::length(camera->getPosition() - itblend->second);
+			blendingSorted[distanceFromView] = std::make_pair(itblend->first, itblend->second);
+		}
+
 		/**********
 		 * Render de las transparencias
 		 */
@@ -1756,30 +1794,6 @@ void applicationLoop() {
 		}
 		glEnable(GL_CULL_FACE);
 		glDisable(GL_BLEND);
-
-		/*******************************************
-		 * Render de colliders
-		 *******************************************/
-		for (std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator it =
-				collidersOBB.begin(); it != collidersOBB.end(); it++) {
-			glm::mat4 matrixCollider = glm::mat4(1.0);
-			matrixCollider = glm::translate(matrixCollider, std::get<0>(it->second).c);
-			matrixCollider = matrixCollider * glm::mat4(std::get<0>(it->second).u);
-			matrixCollider = glm::scale(matrixCollider, std::get<0>(it->second).e * 2.0f);
-			boxCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
-			boxCollider.enableWireMode();
-			boxCollider.render(matrixCollider);
-		}
-
-		for (std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> >::iterator it =
-				collidersSBB.begin(); it != collidersSBB.end(); it++) {
-			glm::mat4 matrixCollider = glm::mat4(1.0);
-			matrixCollider = glm::translate(matrixCollider, std::get<0>(it->second).c);
-			matrixCollider = glm::scale(matrixCollider, glm::vec3(std::get<0>(it->second).ratio * 2.0f));
-			sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
-			sphereCollider.enableWireMode();
-			sphereCollider.render(matrixCollider);
-		}
 
 		/************Render de imagen de frente**************/
 		shaderTexture.setMatrix4("projection", 1, false, glm::value_ptr(glm::mat4(1.0)));
@@ -1867,20 +1881,6 @@ void applicationLoop() {
 				}
 			}
 		}
-
-		glm::mat4 modelMatrixRayMay = glm::mat4(modelMatrixMayow);
-		modelMatrixRayMay = glm::translate(modelMatrixRayMay, glm::vec3(0, 1, 0));
-		float maxDistanceRay = 10.0;
-		glm::vec3 rayDirection = modelMatrixRayMay[2];
-		glm::vec3 ori = modelMatrixRayMay[3];
-		glm::vec3 rmd = ori + rayDirection * (maxDistanceRay / 2.0f);
-		glm::vec3 targetRay = ori + rayDirection * maxDistanceRay;
-		modelMatrixRayMay[3] = glm::vec4(rmd, 1.0);
-		modelMatrixRayMay = glm::rotate(modelMatrixRayMay, glm::radians(90.0f), 
-			glm::vec3(1, 0, 0));
-		modelMatrixRayMay = glm::scale(modelMatrixRayMay, 
-			glm::vec3(0.05, maxDistanceRay, 0.05));
-		rayModel.render(modelMatrixRayMay);
 
 		std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4>>::
 			iterator itSBB;
