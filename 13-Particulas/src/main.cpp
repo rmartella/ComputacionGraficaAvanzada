@@ -45,6 +45,9 @@
 // Include Colision headers functions
 #include "Headers/Colisiones.h"
 
+// ShadowBox include
+#include "Headers/ShadowBox.h"
+
 // OpenAL include
 #include <AL/alut.h>
 
@@ -135,6 +138,8 @@ Model cyborgModelAnimate;
 Model modelFountain;
 // Terrain model instance
 Terrain terrain(-1, -1, 200, 8, "../Textures/heightmap.png");
+
+ShadowBox * shadowBox;
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint textureTerrainRID, textureTerrainGID, textureTerrainBID, textureTerrainBlendMapID;
@@ -888,10 +893,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 				 SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);*/
+	/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);*/
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
@@ -1759,6 +1764,8 @@ void applicationLoop() {
 
 	glm::vec3 lightPos = glm::vec3(10.0, 10.0, -10.0);
 
+	shadowBox = new ShadowBox(-lightPos, camera.get(), 15.0f, 0.1f, 45.0f);
+
 	while (psi) {
 		currTime = TimeManager::Instance().GetTime();
 		if(currTime - lastTime < 0.016666667){
@@ -1804,13 +1811,17 @@ void applicationLoop() {
 		camera->updateCamera();
 		glm::mat4 view = camera->getViewMatrix();
 
+		shadowBox->update(screenWidth, screenHeight);
+		glm::vec3 centerBox = shadowBox->getCenter();
+
 		// Projection light shadow mapping
-		glm::mat4 lightProjection, lightView;
+		glm::mat4 lightProjection = glm::mat4(1.0f), lightView = glm::mat4(1.0f);
 		glm::mat4 lightSpaceMatrix;
-		float near_plane = 0.1f, far_plane = 20.0f;
-		//lightProjection = glm::perspective(glm::radians(45.0f), (GLfloat)SHADOW_WIDTH / (GLfloat)SHADOW_HEIGHT, near_plane, far_plane); // note that if you use a perspective projection matrix you'll have to change the light position as the current light position isn't enough to reflect the whole scene
-		lightProjection = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, near_plane, far_plane);
-		lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+		lightProjection[0][0] = 2.0f / shadowBox->getWidth();
+		lightProjection[1][1] = 2.0f / shadowBox->getHeight();
+		lightProjection[2][2] = -2.0f / shadowBox->getLength();
+		lightProjection[3][3] = 1.0f;
+		lightView = glm::lookAt(centerBox, centerBox + glm::normalize(-lightPos), glm::vec3(0.0, 1.0, 0.0));
 		lightSpaceMatrix = lightProjection * lightView;
 		shaderDepth.setMatrix4("lightSpaceMatrix", 1, false, glm::value_ptr(lightSpaceMatrix));
 
