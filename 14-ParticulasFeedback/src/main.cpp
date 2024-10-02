@@ -7,6 +7,10 @@
 #include <string>
 #include <iostream>
 
+// contains new std::shuffle definition
+#include <algorithm>
+#include <random>
+
 //glfw include
 #include <GLFW/glfw3.h>
 
@@ -75,6 +79,8 @@ Shader shaderDepth;
 Shader shaderViewDepth;
 //Shader para las particulas de fountain
 Shader shaderParticlesFountain;
+//Shader para las particulas de fuego
+Shader shaderParticlesFire;
 
 std::shared_ptr<Camera> camera(new ThirdPersonCamera());
 float distanceFromTarget = 7.0;
@@ -147,7 +153,7 @@ GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textur
 GLuint textureTerrainRID, textureTerrainGID, textureTerrainBID, textureTerrainBlendMapID;
 GLuint skyboxTextureID;
 GLuint textureInit1ID, textureInit2ID, textureActivaID, textureScreenID;
-GLuint textureParticleFountainID;
+GLuint textureParticleFountainID, textureParticleFireID, texId;
 
 bool iniciaPartida = false, presionarOpcion = false;
 
@@ -257,7 +263,8 @@ std::map<std::string, glm::vec3> blendingUnsorted = {
 		{"aircraft", glm::vec3(10.0, 0.0, -17.5)},
 		{"lambo", glm::vec3(23.0, 0.0, 0.0)},
 		{"heli", glm::vec3(5.0, 10.0, -5.0)},
-		{"fountain", glm::vec3(5.0, 0.0, -40.0)}
+		{"fountain", glm::vec3(5.0, 0.0, -40.0)},
+		{"fire", glm::vec3(0.0, 0.0, 7.0)}
 };
 
 double deltaTime;
@@ -269,6 +276,10 @@ bool isJump = false;
 float GRAVITY = 1.81;
 double tmv = 0;
 double startTimeJump = 0;
+
+// Variables para la camara en tercera persona
+float angleTarget = -glm::half_pi<float>();
+glm::vec3 target;
 
 // Colliders
 std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> > collidersOBB;
@@ -317,6 +328,17 @@ GLuint initVel, startTime;
 GLuint VAOParticles;
 GLuint nParticles = 200;
 double currTimeParticlesAnimation, lastTimeParticlesAnimation;
+
+// Definition for the particle system fire
+/***GLuint initVelFire, startTimeFire;
+GLuint VAOParticlesFire;
+GLuint nParticlesFire = 2000;
+GLuint posBuf[2], velBuf[2], age[2];
+GLuint particleArray[2];
+GLuint feedback[2];
+GLuint drawBuf = 1;
+float particleSize = 0.5, particleLifetime = 3.0;
+double currTimeParticlesAnimationFire, lastTimeParticlesAnimationFire;***/
 
 // Se definen todos las funciones.
 void reshapeCallback(GLFWwindow *Window, int widthRes, int heightRes);
@@ -393,6 +415,95 @@ void initParticleBuffers() {
 	glBindVertexArray(0);
 }
 
+/*void initParticleBuffersFire() {
+	// Generate the buffers
+	glGenBuffers(2, posBuf);    // position buffers
+	glGenBuffers(2, velBuf);    // velocity buffers
+	glGenBuffers(2, age);       // age buffers
+
+	// Allocate space for all buffers
+	int size = nParticlesFire * sizeof(GLfloat);
+	glBindBuffer(GL_ARRAY_BUFFER, posBuf[0]);
+	glBufferData(GL_ARRAY_BUFFER, 3 * size, 0, GL_DYNAMIC_COPY);
+	glBindBuffer(GL_ARRAY_BUFFER, posBuf[1]);
+	glBufferData(GL_ARRAY_BUFFER, 3 * size, 0, GL_DYNAMIC_COPY);
+	glBindBuffer(GL_ARRAY_BUFFER, velBuf[0]);
+	glBufferData(GL_ARRAY_BUFFER, 3 * size, 0, GL_DYNAMIC_COPY);
+	glBindBuffer(GL_ARRAY_BUFFER, velBuf[1]);
+	glBufferData(GL_ARRAY_BUFFER, 3 * size, 0, GL_DYNAMIC_COPY);
+	glBindBuffer(GL_ARRAY_BUFFER, age[0]);
+	glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_COPY);
+	glBindBuffer(GL_ARRAY_BUFFER, age[1]);
+	glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_COPY);
+
+	// Fill the first age buffer
+	std::vector<GLfloat> initialAge(nParticlesFire);
+	float rate = particleLifetime / nParticlesFire;
+	for(unsigned int i = 0; i < nParticlesFire; i++ ) {
+		int index = i - nParticlesFire;
+		float result = rate * index;
+		initialAge[i] = result;
+	}
+	// Shuffle them for better looking results
+	//Random::shuffle(initialAge);
+	auto rng = std::default_random_engine {};
+	std::shuffle(initialAge.begin(), initialAge.end(), rng);
+	glBindBuffer(GL_ARRAY_BUFFER, age[0]);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, size, initialAge.data());
+
+	glBindBuffer(GL_ARRAY_BUFFER,0);
+
+	// Create vertex arrays for each set of buffers
+	glGenVertexArrays(2, particleArray);
+
+	// Set up particle array 0
+	glBindVertexArray(particleArray[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, posBuf[0]);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, velBuf[0]);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, age[0]);
+	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
+
+	// Set up particle array 1
+	glBindVertexArray(particleArray[1]);
+	glBindBuffer(GL_ARRAY_BUFFER, posBuf[1]);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, velBuf[1]);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, age[1]);
+	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
+
+	glBindVertexArray(0);
+
+	// Setup the feedback objects
+	glGenTransformFeedbacks(2, feedback);
+
+	// Transform feedback 0
+	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, feedback[0]);
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, posBuf[0]);
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 1, velBuf[0]);
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 2, age[0]);
+
+	// Transform feedback 1
+	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, feedback[1]);
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, posBuf[1]);
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 1, velBuf[1]);
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 2, age[1]);
+
+	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
+}*/
+
 // Implementacion de todas las funciones.
 void init(int width, int height, std::string strTitle, bool bFullScreen) {
 
@@ -456,6 +567,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shaderViewDepth.initialize("../Shaders/texturizado.vs", "../Shaders/texturizado_depth_view.fs");
 	shaderDepth.initialize("../Shaders/shadow_mapping_depth.vs", "../Shaders/shadow_mapping_depth.fs");
 	shaderParticlesFountain.initialize("../Shaders/particlesFountain.vs", "../Shaders/particlesFountain.fs");
+	shaderParticlesFire.initialize("../Shaders/particlesFire.vs", "../Shaders/particlesFire.fs", {"Position", "Velocity", "Age"});
 
 	// Inicializacion de los objetos.
 	skyboxSphere.init();
@@ -916,6 +1028,25 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 		std::cout << "Fallo la carga de textura" << std::endl;
 	textureParticlesFountain.freeImage(); // Liberamos memoria
 
+	// Definiendo la textura
+	Texture textureParticleFire("../Textures/fire.png");
+	textureParticleFire.loadImage(); // Cargar la textura
+	glGenTextures(1, &textureParticleFireID); // Creando el id de la textura del landingpad
+	glBindTexture(GL_TEXTURE_2D, textureParticleFireID); // Se enlaza la textura
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // Wrapping en el eje u
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Wrapping en el eje v
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // Filtering de minimización
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Filtering de maximimizacion
+	if(textureParticleFire.getData()){
+		// Transferir los datos de la imagen a la tarjeta
+		glTexImage2D(GL_TEXTURE_2D, 0, textureParticleFire.getChannels() == 3 ? GL_RGB : GL_RGBA, textureParticleFire.getWidth(), textureParticleFire.getHeight(), 0,
+		textureParticleFire.getChannels() == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, textureParticleFire.getData());
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else 
+		std::cout << "Fallo la carga de textura" << std::endl;
+	textureParticleFire.freeImage(); // Liberamos memoria
+
 	/*******************************************
 	 * OpenAL init
 	 *******************************************/
@@ -1001,6 +1132,52 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	 * Inicializacion de los buffers de la fuente
 	 *******************************************/
 	initParticleBuffers();
+
+	/*std::uniform_real_distribution<float> distr01 = std::uniform_real_distribution<float>(0.0f, 1.0f);
+	std::mt19937 generator;
+	std::random_device rd;
+	generator.seed(rd());
+	int size = nParticlesFire * 2;
+	std::vector<GLfloat> randData(size);
+	for( int i = 0; i < randData.size(); i++ ) {
+		randData[i] = distr01(generator);
+	}*/
+
+	/*******************************************
+	 * Inicializacion del sistema de particulas de fuego
+	 *******************************************/
+	/*glGenTextures(1, &texId);
+	glBindTexture(GL_TEXTURE_1D, texId);
+	glTexStorage1D(GL_TEXTURE_1D, 1, GL_R32F, size);
+	glTexSubImage1D(GL_TEXTURE_1D, 0, 0, size, GL_RED, GL_FLOAT, randData.data());
+	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	shaderParticlesFire.setInt("Pass", 1);
+	shaderParticlesFire.setInt("ParticleTex", 0);
+	shaderParticlesFire.setInt("RandomTex", 1);
+	shaderParticlesFire.setFloat("ParticleLifetime", particleLifetime);
+	shaderParticlesFire.setFloat("ParticleSize", particleSize);
+	shaderParticlesFire.setVectorFloat3("Accel", glm::value_ptr(glm::vec3(0.0f,0.1f,0.0f)));
+	shaderParticlesFire.setVectorFloat3("Emitter", glm::value_ptr(glm::vec3(0.0f)));
+
+	glm::mat3 basis;
+	glm::vec3 u, v, n;
+	v = glm::vec3(0,1,0);
+	n = glm::cross(glm::vec3(1,0,0), v);
+	if( glm::length(n) < 0.00001f ) {
+		n = glm::cross(glm::vec3(0,1,0), v);
+	}
+	u = glm::cross(v,n);
+	basis[0] = glm::normalize(u);
+	basis[1] = glm::normalize(v);
+	basis[2] = glm::normalize(n);
+	shaderParticlesFire.setMatrix3("EmitterBasis", 1, false, glm::value_ptr(basis));*/
+
+	/*******************************************
+	 * Inicializacion de los buffers del fuego
+	 *******************************************/
+	/*initParticleBuffersFire();*/
 }
 
 void destroy() {
@@ -1015,6 +1192,7 @@ void destroy() {
 	shaderSkybox.destroy();
 	shaderTerrain.destroy();
 	shaderParticlesFountain.destroy();
+	shaderParticlesFire.destroy();
 
 	// Basic objects Delete
 	skyboxSphere.destroy();
@@ -1086,6 +1264,8 @@ void destroy() {
 	glDeleteTextures(1, &textureInit2ID);
 	glDeleteTextures(1, &textureScreenID);
 	glDeleteTextures(1, &textureParticleFountainID);
+	glDeleteTextures(1, &textureParticleFireID);
+	glDeleteTextures(1, &texId);
 
 	// Cube Maps Delete
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
@@ -1097,6 +1277,16 @@ void destroy() {
 	glDeleteBuffers(1, &startTime);
 	glBindVertexArray(0);
 	glDeleteVertexArrays(1, &VAOParticles);
+
+	// Remove the buffer of the fire particles
+	/*glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glDeleteBuffers(2, posBuf);
+	glDeleteBuffers(2, velBuf);
+	glDeleteBuffers(2, age);
+	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
+	glDeleteTransformFeedbacks(2, feedback);
+	glBindVertexArray(0);
+	glDeleteVertexArrays(1, &VAOParticlesFire);*/
 }
 
 void reshapeCallback(GLFWwindow *Window, int widthRes, int heightRes) {
@@ -1347,9 +1537,11 @@ bool processInput(bool continueApplication) {
 
 	// Controles de mayow
 	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
+		angleTarget += 0.02;
 		modelMatrixMayow = glm::rotate(modelMatrixMayow, 0.02f, glm::vec3(0, 1, 0));
 		animationMayowIndex = 0;
 	} else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS){
+		angleTarget -= 0.02;
 		modelMatrixMayow = glm::rotate(modelMatrixMayow, -0.02f, glm::vec3(0, 1, 0));
 		animationMayowIndex = 0;
 	}
@@ -1515,6 +1707,9 @@ void renderSolidScene(){
 	/*******************************************
 	 * Terrain Cesped
 	 *******************************************/
+	GLint oldCullFaceMode;
+	glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFaceMode);
+	glCullFace(GL_BACK);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureCespedID);
 	shaderTerrain.setInt("backgroundTexture", 0);
@@ -1534,6 +1729,7 @@ void renderSolidScene(){
 	terrain.render();
 	shaderTerrain.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(0, 0)));
 	glBindTexture(GL_TEXTURE_2D, 0);
+	glCullFace(oldCullFaceMode);
 
 	/*******************************************
 	 * Custom objects obj
@@ -1714,7 +1910,6 @@ void renderSolidScene(){
 	/*******************************************
 	 * Skybox
 	 *******************************************/
-	GLint oldCullFaceMode;
 	GLint oldDepthFuncMode;
 	// deshabilita el modo del recorte de caras ocultas para ver las esfera desde adentro
 	glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFaceMode);
@@ -1760,6 +1955,7 @@ void renderAlphaScene(bool render = true){
 	for(std::map<float, std::pair<std::string, glm::vec3> >::reverse_iterator it = blendingSorted.rbegin(); it != blendingSorted.rend(); it++){
 		if(it->second.first.compare("aircraft") == 0){
 			// Render for the aircraft model
+			modelMatrixAircraft[3][1] = terrain.getHeightTerrain(modelMatrixAircraft[3][0], modelMatrixAircraft[3][2]) + 2.0;
 			glm::mat4 modelMatrixAircraftBlend = glm::mat4(modelMatrixAircraft);
 			modelMatrixAircraftBlend[3][1] = terrain.getHeightTerrain(modelMatrixAircraftBlend[3][0], modelMatrixAircraftBlend[3][2]) + 2.0;
 			modelAircraft.render(modelMatrixAircraftBlend);
@@ -1822,6 +2018,50 @@ void renderAlphaScene(bool render = true){
 			shaderParticlesFountain.turnOff();
 			// End Render particles systems
 		}
+		/***else if(it->second.first.compare("fire") == 0){
+			// Init Render particles systems
+			lastTimeParticlesAnimationFire = currTimeParticlesAnimationFire;
+			currTimeParticlesAnimationFire = TimeManager::Instance().GetTime();
+
+			shaderParticlesFire.setInt("Pass", 1);
+			shaderParticlesFire.setFloat("Time", currTimeParticlesAnimationFire);
+			shaderParticlesFire.setFloat("DeltaT", currTimeParticlesAnimationFire - lastTimeParticlesAnimationFire);
+
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_1D, texId);
+			glEnable(GL_RASTERIZER_DISCARD);
+			glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, feedback[drawBuf]);
+			glBeginTransformFeedback(GL_POINTS);
+			glBindVertexArray(particleArray[1-drawBuf]);
+			glVertexAttribDivisor(0,0);
+			glVertexAttribDivisor(1,0);
+			glVertexAttribDivisor(2,0);
+			glDrawArrays(GL_POINTS, 0, nParticlesFire);
+			glEndTransformFeedback();
+			glDisable(GL_RASTERIZER_DISCARD);
+
+			shaderParticlesFire.setInt("Pass", 2);
+			glm::mat4 modelFireParticles = glm::mat4(1.0);
+			modelFireParticles = glm::translate(modelFireParticles, it->second.second);
+			modelFireParticles[3][1] = terrain.getHeightTerrain(modelFireParticles[3][0], modelFireParticles[3][2]);
+			shaderParticlesFire.setMatrix4("model", 1, false, glm::value_ptr(modelFireParticles));
+
+			shaderParticlesFire.turnOn();
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, textureParticleFireID);
+			glDepthMask(GL_FALSE);
+			glBindVertexArray(particleArray[drawBuf]);
+			glVertexAttribDivisor(0,1);
+			glVertexAttribDivisor(1,1);
+			glVertexAttribDivisor(2,1);
+			glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticlesFire);
+			glBindVertexArray(0);
+			glDepthMask(GL_TRUE);
+			drawBuf = 1 - drawBuf;
+			shaderParticlesFire.turnOff();
+
+			// End Render particles systems
+		} ***/
 	}
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
@@ -1848,10 +2088,6 @@ void renderScene(){
 
 void applicationLoop() {
 	bool psi = true;
-
-	glm::vec3 axis;
-	glm::vec3 target;
-	float angleTarget;
 
 	modelMatrixEclipse = glm::translate(modelMatrixEclipse, glm::vec3(27.5, 0, 30.0));
 	modelMatrixEclipse = glm::rotate(modelMatrixEclipse, glm::radians(180.0f), glm::vec3(0, 1, 0));
@@ -1900,6 +2136,8 @@ void applicationLoop() {
 
 	shadowBox = new ShadowBox(-lightPos, camera.get(), 15.0f, 0.1f, 45.0f);
 
+	/***currTimeParticlesAnimationFire = TimeManager::Instance().GetTime();***/
+
 	while (psi) {
 		currTime = TimeManager::Instance().GetTime();
 		if(currTime - lastTime < 0.016666667){
@@ -1923,40 +2161,19 @@ void applicationLoop() {
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f),
 				(float) screenWidth / (float) screenHeight, 0.01f, 100.0f);
 
-		if(modelSelected == 1){
-			axis = glm::axis(glm::quat_cast(modelMatrixDart));
-			angleTarget = glm::angle(glm::quat_cast(modelMatrixDart));
-			target = modelMatrixDart[3];
-		}
-		else{
-			axis = glm::axis(glm::quat_cast(modelMatrixMayow));
-			angleTarget = glm::angle(glm::quat_cast(modelMatrixMayow));
-			target = modelMatrixMayow[3];
-		}
-
-		if(std::isnan(angleTarget))
-			angleTarget = 0.0;
-		if(axis.y < 0)
-			angleTarget = -angleTarget;
 		if(modelSelected == 1)
-			angleTarget -= glm::radians(90.0f);
+			target = modelMatrixDart[3];
+		else
+			target = modelMatrixMayow[3];
+
 		camera->setCameraTarget(target);
 		camera->setAngleTarget(angleTarget);
 		camera->updateCamera();
 		glm::mat4 view = camera->getViewMatrix();
 
+		// Lightspace shadow box
 		shadowBox->update(screenWidth, screenHeight);
-		glm::vec3 centerBox = shadowBox->getCenter();
-
-		// Projection light shadow mapping
-		glm::mat4 lightProjection = glm::mat4(1.0f), lightView = glm::mat4(1.0f);
-		glm::mat4 lightSpaceMatrix;
-		lightProjection[0][0] = 2.0f / shadowBox->getWidth();
-		lightProjection[1][1] = 2.0f / shadowBox->getHeight();
-		lightProjection[2][2] = -2.0f / shadowBox->getLength();
-		lightProjection[3][3] = 1.0f;
-		lightView = glm::lookAt(centerBox, centerBox + glm::normalize(-lightPos), glm::vec3(0.0, 1.0, 0.0));
-		lightSpaceMatrix = lightProjection * lightView;
+		glm::mat4 lightSpaceMatrix = shadowBox->getLightProjection() * shadowBox->getLightView();
 		shaderDepth.setMatrix4("lightSpaceMatrix", 1, false, glm::value_ptr(lightSpaceMatrix));
 
 		// Settea la matriz de vista y projection al shader con solo color
@@ -1987,6 +2204,9 @@ void applicationLoop() {
 				glm::value_ptr(projection));
 		shaderParticlesFountain.setMatrix4("view", 1, false,
 				glm::value_ptr(view));
+		// Settea la matriz de vista y projection al shader para el fuego
+		shaderParticlesFire.setMatrix4("projection", 1, false, glm::value_ptr(projection));
+		shaderParticlesFire.setMatrix4("view", 1, false, glm::value_ptr(view));
 
 		/*******************************************
 		 * Propiedades de neblina
@@ -2108,10 +2328,10 @@ void applicationLoop() {
 		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		glCullFace(GL_FRONT);
+		//glCullFace(GL_FRONT);
 		prepareDepthScene();
 		renderScene();
-		glCullFace(GL_BACK);
+		//glCullFace(GL_BACK);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		/*******************************************
