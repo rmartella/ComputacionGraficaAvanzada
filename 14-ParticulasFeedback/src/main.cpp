@@ -7,9 +7,9 @@
 #include <string>
 #include <iostream>
 
-// contains new std::shuffle definition
+/*// contains new std::shuffle definition
 #include <algorithm>
-#include <random>
+#include <random>*/
 
 //glfw include
 #include <GLFW/glfw3.h>
@@ -79,8 +79,8 @@ Shader shaderDepth;
 Shader shaderViewDepth;
 //Shader para las particulas de fountain
 Shader shaderParticlesFountain;
-//Shader para las particulas de fuego
-Shader shaderParticlesFire;
+/*//Shader para las particulas de fuego
+Shader shaderParticlesFire;*/
 
 std::shared_ptr<Camera> camera(new ThirdPersonCamera());
 float distanceFromTarget = 7.0;
@@ -153,7 +153,7 @@ GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textur
 GLuint textureTerrainRID, textureTerrainGID, textureTerrainBID, textureTerrainBlendMapID;
 GLuint skyboxTextureID;
 GLuint textureInit1ID, textureInit2ID, textureActivaID, textureScreenID;
-GLuint textureParticleFountainID, textureParticleFireID, texId;
+GLuint textureParticleFountainID; /***, textureParticleFireID, texId;***/
 
 bool iniciaPartida = false, presionarOpcion = false;
 
@@ -264,7 +264,7 @@ std::map<std::string, glm::vec3> blendingUnsorted = {
 		{"lambo", glm::vec3(23.0, 0.0, 0.0)},
 		{"heli", glm::vec3(5.0, 10.0, -5.0)},
 		{"fountain", glm::vec3(5.0, 0.0, -40.0)},
-		{"fire", glm::vec3(0.0, 0.0, 7.0)}
+		/***{"fire", glm::vec3(0.0, 0.0, 7.0)}***/
 };
 
 double deltaTime;
@@ -567,7 +567,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shaderViewDepth.initialize("../Shaders/texturizado.vs", "../Shaders/texturizado_depth_view.fs");
 	shaderDepth.initialize("../Shaders/shadow_mapping_depth.vs", "../Shaders/shadow_mapping_depth.fs");
 	shaderParticlesFountain.initialize("../Shaders/particlesFountain.vs", "../Shaders/particlesFountain.fs");
-	shaderParticlesFire.initialize("../Shaders/particlesFire.vs", "../Shaders/particlesFire.fs", {"Position", "Velocity", "Age"});
+	/*shaderParticlesFire.initialize("../Shaders/particlesFire.vs", "../Shaders/particlesFire.fs", {"Position", "Velocity", "Age"});*/
 
 	// Inicializacion de los objetos.
 	skyboxSphere.init();
@@ -1028,7 +1028,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 		std::cout << "Fallo la carga de textura" << std::endl;
 	textureParticlesFountain.freeImage(); // Liberamos memoria
 
-	// Definiendo la textura
+	/*// Definiendo la textura
 	Texture textureParticleFire("../Textures/fire.png");
 	textureParticleFire.loadImage(); // Cargar la textura
 	glGenTextures(1, &textureParticleFireID); // Creando el id de la textura del landingpad
@@ -1045,7 +1045,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	}
 	else 
 		std::cout << "Fallo la carga de textura" << std::endl;
-	textureParticleFire.freeImage(); // Liberamos memoria
+	textureParticleFire.freeImage(); // Liberamos memoria */
 
 	/*******************************************
 	 * OpenAL init
@@ -1192,7 +1192,7 @@ void destroy() {
 	shaderSkybox.destroy();
 	shaderTerrain.destroy();
 	shaderParticlesFountain.destroy();
-	shaderParticlesFire.destroy();
+	/*shaderParticlesFire.destroy();*/
 
 	// Basic objects Delete
 	skyboxSphere.destroy();
@@ -1264,8 +1264,8 @@ void destroy() {
 	glDeleteTextures(1, &textureInit2ID);
 	glDeleteTextures(1, &textureScreenID);
 	glDeleteTextures(1, &textureParticleFountainID);
-	glDeleteTextures(1, &textureParticleFireID);
-	glDeleteTextures(1, &texId);
+	/*glDeleteTextures(1, &textureParticleFireID);
+	glDeleteTextures(1, &texId);*/
 
 	// Cube Maps Delete
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
@@ -2205,8 +2205,8 @@ void applicationLoop() {
 		shaderParticlesFountain.setMatrix4("view", 1, false,
 				glm::value_ptr(view));
 		// Settea la matriz de vista y projection al shader para el fuego
-		shaderParticlesFire.setMatrix4("projection", 1, false, glm::value_ptr(projection));
-		shaderParticlesFire.setMatrix4("view", 1, false, glm::value_ptr(view));
+		/*shaderParticlesFire.setMatrix4("projection", 1, false, glm::value_ptr(projection));
+		shaderParticlesFire.setMatrix4("view", 1, false, glm::value_ptr(view));*/
 
 		/*******************************************
 		 * Propiedades de neblina
