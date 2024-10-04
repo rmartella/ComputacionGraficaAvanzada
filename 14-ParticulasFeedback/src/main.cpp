@@ -148,6 +148,7 @@ Model modelFountain;
 Terrain terrain(32.0f, -16.0f, "../Textures/heightmap.png");
 
 ShadowBox * shadowBox;
+float near_plane = 0.1f, far_plane = 15.0f;
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint textureTerrainRID, textureTerrainGID, textureTerrainBID, textureTerrainBlendMapID;
@@ -565,7 +566,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	shaderTerrain.initialize("../Shaders/terrain_shadow.vs", "../Shaders/terrain_shadow.fs");
 	shaderTexture.initialize("../Shaders/texturizado.vs", "../Shaders/texturizado.fs");
 	shaderViewDepth.initialize("../Shaders/texturizado.vs", "../Shaders/texturizado_depth_view.fs");
-	shaderDepth.initialize("../Shaders/shadow_mapping_depth.vs", "../Shaders/shadow_mapping_depth.fs");
+	shaderDepth.initialize("../Shaders/shadow_mapping_depth.vs");
 	shaderParticlesFountain.initialize("../Shaders/particlesFountain.vs", "../Shaders/particlesFountain.fs");
 	/*shaderParticlesFire.initialize("../Shaders/particlesFire.vs", "../Shaders/particlesFire.fs", {"Position", "Velocity", "Age"});*/
 
@@ -2081,11 +2082,6 @@ void renderAlphaScene(bool render = true){
 	}
 }
 
-void renderScene(){
-	renderSolidScene();
-	renderAlphaScene(false);
-}
-
 void applicationLoop() {
 	bool psi = true;
 
@@ -2330,7 +2326,7 @@ void applicationLoop() {
 		glClear(GL_DEPTH_BUFFER_BIT);
 		//glCullFace(GL_FRONT);
 		prepareDepthScene();
-		renderScene();
+		renderSolidScene();
 		//glCullFace(GL_BACK);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

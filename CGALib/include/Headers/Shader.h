@@ -41,8 +41,10 @@ public:
 
 	std::string loadShaderFile(std::string strFile);
 
+	void initialize(std::string strVertexFile);
 	void initialize(std::string strVertexFile, std::string strFragmentFile, std::vector<std::string> nameFeedback = {});
-	void initialize(std::string strVertexFile, std::string strFragmentFile, std::string strTessControlFile, std::string strTessFile);
+	void initialize(std::string strVertexFile, std::string strTessControlFile, std::string strTessFile, std::string strFragmentFile);
+	void initialize(std::string strVertexFile, std::string strTessControlFile, std::string strTessFile);
 
 	GLint getUniformLocation(std::string strVariable);
 
