@@ -2096,6 +2096,7 @@ void applicationLoop() {
 		//glCullFace(GL_FRONT);
 		prepareDepthScene();
 		renderSolidScene();
+		renderAlphaScene(false);
 		//glCullFace(GL_BACK);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
